@@ -1,0 +1,9 @@
+const Savings = () => {
+  return (
+    <div className="p-6">
+      <h1 className="text-2xl font-bold">Savings</h1>
+    </div>
+  );
+};
+
+export default Savings;
