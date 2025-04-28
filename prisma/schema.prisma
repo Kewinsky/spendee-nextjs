@@ -20,6 +20,7 @@ model User {
   email         String          @unique
   emailVerified DateTime?
   image         String?
+  password       String?
   expenses  Expense[]
   accounts      Account[]
   sessions      Session[]
