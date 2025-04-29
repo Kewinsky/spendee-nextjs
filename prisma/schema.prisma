@@ -20,9 +20,11 @@ model User {
   email         String          @unique
   emailVerified DateTime?
   image         String?
+  password       String?
   expenses  Expense[]
   accounts      Account[]
   sessions      Session[]
+  verificationTokens VerificationToken[]
  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -60,11 +62,13 @@ model Session {
 }
  
 model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
- 
-  @@id([identifier, token])
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expires   DateTime
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
 }
 
 

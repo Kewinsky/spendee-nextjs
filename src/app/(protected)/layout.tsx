@@ -1,9 +1,17 @@
+import { auth } from "@/auth";
 import { AppSidebar } from "@/components/app-sidebar";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { redirect } from "next/navigation";
 import { CSSProperties, ReactNode } from "react";
 
-const DashboardLayout = ({ children }: { children: ReactNode }) => {
+const ProtectedLayout = async ({ children }: { children: ReactNode }) => {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
   return (
     <SidebarProvider
       style={
@@ -26,4 +34,4 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export default DashboardLayout;
+export default ProtectedLayout;

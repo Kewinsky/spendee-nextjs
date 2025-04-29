@@ -3,21 +3,15 @@
 import * as React from "react";
 import {
   AudioWaveform,
-  BarChartIcon,
   BrainCog,
   Command,
-  FolderIcon,
   GalleryVerticalEnd,
   HelpCircleIcon,
   LayoutDashboard,
-  LayoutDashboardIcon,
-  ListIcon,
   ListOrdered,
   PiggyBank,
-  SearchIcon,
   SettingsIcon,
   Shapes,
-  UsersIcon,
   Wallet,
 } from "lucide-react";
 
@@ -32,14 +26,9 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { NavSecondary } from "./nav-secondary";
+import { useSession } from "next-auth/react";
 
-// This is sample data.
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   teams: [
     {
       name: "Acme Inc",
@@ -104,6 +93,14 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { data: session } = useSession();
+
+  const user = {
+    name: session?.user?.name || "Unknown User",
+    email: session?.user?.email || "no-email@example.com",
+    avatar: session?.user?.image || "/avatars/default.jpg",
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -114,7 +111,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

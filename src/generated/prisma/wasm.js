@@ -123,6 +123,7 @@ exports.Prisma.UserScalarFieldEnum = {
   email: 'email',
   emailVerified: 'emailVerified',
   image: 'image',
+  password: 'password',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -152,8 +153,9 @@ exports.Prisma.SessionScalarFieldEnum = {
 };
 
 exports.Prisma.VerificationTokenScalarFieldEnum = {
-  identifier: 'identifier',
+  id: 'id',
   token: 'token',
+  userId: 'userId',
   expires: 'expires'
 };
 
