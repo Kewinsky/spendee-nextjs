@@ -15,15 +15,16 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  expenses      Expense[]
-  accounts      Account[]
-  sessions      Session[]
+  id                 String              @id @default(cuid())
+  name               String?
+  email              String              @unique
+  emailVerified      DateTime?
+  image              String?
+  password           String?
+  expenses           Expense[]
+  accounts           Account[]
+  sessions           Session[]
+  verificationTokens VerificationToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -61,11 +62,13 @@ model Session {
 }
 
 model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
+  id      String   @id @default(cuid())
+  token   String   @unique
+  userId  String
+  expires DateTime
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([identifier, token])
+  @@index([token])
 }
 
 model Expense {

@@ -44,7 +44,9 @@ export function RegisterForm({
         return;
       }
 
-      toast.success("Account created! You can now log in.");
+      toast.success(
+        "Registration successful! Please check your email to verify your account"
+      );
       router.push("/login");
     } catch (error) {
       toast.error("Registration failed");

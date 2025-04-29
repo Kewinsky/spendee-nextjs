@@ -3,6 +3,7 @@ import "./globals.css";
 import { ReactNode } from "react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { SessionProvider } from "next-auth/react";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -14,15 +15,17 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head />
       <body>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <main>{children}</main>
-          <Toaster />
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <main>{children}</main>
+            <Toaster />
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );

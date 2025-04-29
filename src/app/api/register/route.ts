@@ -1,7 +1,7 @@
-// app/api/register/route.ts
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
+import { sendVerificationEmail } from "@/lib/auth/email-verification";
 
 export async function POST(req: Request) {
   const body = await req.json();
@@ -26,6 +26,8 @@ export async function POST(req: Request) {
       password: hashedPassword,
     },
   });
+
+  await sendVerificationEmail(newUser.id, newUser.email);
 
   return NextResponse.json({ user: newUser });
 }

@@ -35,9 +35,9 @@ export function ForgotPasswordForm({
       });
 
       if (res.ok) {
-        toast.success("If that email exists, we sent a reset link.");
+        toast.success("If that email exists, we sent a reset link");
       } else {
-        toast.error("Something went wrong.");
+        toast.error("Something went wrong");
       }
     } catch (error) {
       toast.error("Unexpected error. Try again.");
