@@ -10,7 +10,7 @@ export const sendPasswordResetEmail = async (email: string) => {
   const token = await createToken({
     userId: user.id,
     type: "passwordReset",
-    expiresInMs: TOKEN_EXPIRATION.RESET_PASSWORD,
+    expiresInSec: TOKEN_EXPIRATION.RESET_PASSWORD,
   });
 
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;

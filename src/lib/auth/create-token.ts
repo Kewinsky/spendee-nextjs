@@ -4,14 +4,14 @@ import { prisma } from "@/lib/prisma";
 export const createToken = async ({
   userId,
   type,
-  expiresInMs,
+  expiresInSec,
 }: {
   userId: string;
   type: "verification" | "passwordReset";
-  expiresInMs: number;
+  expiresInSec: number;
 }): Promise<string> => {
   const token = uuid();
-  const expires = new Date(Date.now() + expiresInMs);
+  const expires = new Date(Date.now() + expiresInSec * 1000);
 
   if (type === "verification") {
     const existing = await prisma.verificationToken.findFirst({

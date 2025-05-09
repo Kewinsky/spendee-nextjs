@@ -1,5 +1,4 @@
 import NextAuth, { JWT } from "next-auth";
-import type { AdapterUser } from "next-auth/adapters";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./lib/prisma";
 import Github from "next-auth/providers/github";
@@ -9,6 +8,7 @@ import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
 import { Session } from "next-auth";
+import { TOKEN_EXPIRATION } from "./lib/constanst";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -56,7 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60, // 1 hour
+    maxAge: TOKEN_EXPIRATION.SESSION,
   },
   pages: {
     signIn: "/login",
@@ -72,7 +72,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       if (
         typeof token.createdAt !== "number" ||
-        now - token.createdAt > 5 * 60
+        now - token.createdAt > TOKEN_EXPIRATION.SESSION_WARNING_TIME
       ) {
         token.createdAt = now;
       }
@@ -88,7 +88,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             ? token.createdAt
             : Math.floor(Date.now() / 1000);
 
-        session.expiresAt = createdAt + 60 * 60; // 1 hour
+        session.expiresAt = createdAt + TOKEN_EXPIRATION.SESSION;
       }
 
       return session;

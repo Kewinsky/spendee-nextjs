@@ -6,7 +6,7 @@ export const sendVerificationEmail = async (userId: string, email: string) => {
   const token = await createToken({
     userId,
     type: "verification",
-    expiresInMs: TOKEN_EXPIRATION.VERIFY_EMAIL,
+    expiresInSec: TOKEN_EXPIRATION.VERIFY_EMAIL,
   });
 
   const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${token}`;

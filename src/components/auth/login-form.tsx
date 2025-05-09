@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Logo } from "../logo";
 
 export function LoginForm({
   className,
@@ -87,7 +88,7 @@ export function LoginForm({
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
                 <p className="text-muted-foreground text-balance">
-                  Login to your Acme Inc account
+                  Login to your <Logo /> account
                 </p>
               </div>
               <div className="grid gap-3">
@@ -145,7 +146,7 @@ export function LoginForm({
               )}
 
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                <span className="bg-card text-muted-foreground relative z-10 px-2">
+                <span className="bg-background text-muted-foreground relative z-10 px-2">
                   Or continue with
                 </span>
               </div>
@@ -211,10 +212,21 @@ export function LoginForm({
           </div>
         </CardContent>
       </Card>
-      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+      <div className="text-muted-foreground text-center text-xs text-balance">
         By clicking continue, you agree to our{" "}
-        <Link href="#">Terms of Service</Link> and{" "}
-        <Link href="#">Privacy Policy</Link>.
+        <Link
+          href="/terms-of-service"
+          className="underline underline-offset-4 hover:text-primary"
+        >
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link
+          href="/privacy-policy"
+          className="underline underline-offset-4 hover:text-primary"
+        >
+          Privacy Policy
+        </Link>
       </div>
     </div>
   );

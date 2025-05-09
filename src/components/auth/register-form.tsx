@@ -13,6 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { RegisterFormValues, registerSchema } from "@/lib/schemas";
 import { useRouter } from "next/navigation";
+import { Logo } from "../logo";
 
 export function RegisterForm({
   className,
@@ -62,7 +63,7 @@ export function RegisterForm({
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Create an account</h1>
                 <p className="text-balance text-muted-foreground">
-                  Sign up for your Acme Inc account
+                  Sign up for your <Logo /> account
                 </p>
               </div>
               <div className="grid gap-2">
@@ -135,10 +136,21 @@ export function RegisterForm({
           </div>
         </CardContent>
       </Card>
-      <div className="text-balance text-center text-xs text-muted-foreground [&_a]:underline [&_a]:underline-offset-4 hover:[&_a]:text-primary">
+      <div className="text-muted-foreground text-center text-xs text-balance">
         By clicking register, you agree to our{" "}
-        <Link href="#">Terms of Service</Link> and{" "}
-        <Link href="#">Privacy Policy</Link>.
+        <Link
+          href="/terms-of-service"
+          className="underline underline-offset-4 hover:text-primary"
+        >
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link
+          href="/privacy-policy"
+          className="underline underline-offset-4 hover:text-primary"
+        >
+          Privacy Policy
+        </Link>
       </div>
     </div>
   );

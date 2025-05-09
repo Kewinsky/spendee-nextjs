@@ -8,15 +8,14 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 const Home = () => {
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background">
+      <header className="sticky top-0 z-40 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto flex h-16 items-center justify-between py-4">
-          <div className="flex items-center gap-2 font-bold">
-            <span className="text-xl">Spendee</span>
-          </div>
+          <Logo className="text-2xl" asLink />
           <div className="flex items-center gap-2">
             <Link href="/login">
               <Button variant="ghost" size="sm">
@@ -95,10 +94,9 @@ const Home = () => {
         </section>
       </main>
       <footer className="border-t py-6 md:py-0">
-        <div className="container mx-auto flex flex-col items-center justify-between gap-4 md:h-24 md:flex-row">
+        <div className="container mx-auto flex flex-col items-center justify-center gap-4 md:h-24 md:flex-row">
           <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-            &copy; {new Date().getFullYear()} ExpenseTracker. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} <Logo /> All rights reserved.
           </p>
         </div>
       </footer>

@@ -1,3 +1,4 @@
+import { APP_NAME } from "../constanst";
 import { transporter } from "./transporter";
 
 export const sendEmail = async ({
@@ -10,7 +11,7 @@ export const sendEmail = async ({
   html: string;
 }) => {
   await transporter.sendMail({
-    from: '"spendee" <no-reply@spendee.com>',
+    from: `"${APP_NAME}" <no-reply@${APP_NAME}.com>`,
     to,
     subject,
     html,
