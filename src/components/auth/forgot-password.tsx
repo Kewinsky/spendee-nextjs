@@ -20,7 +20,8 @@ export function ForgotPasswordForm({
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    reset,
+    formState: { errors, isSubmitting },
   } = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     mode: "onSubmit",
@@ -28,7 +29,7 @@ export function ForgotPasswordForm({
 
   async function onSubmit(data: ForgotPasswordFormValues) {
     try {
-      const res = await fetch("/api/auth/forgot-password", {
+      const res = await fetch("/api/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: data.email }),
@@ -36,10 +37,12 @@ export function ForgotPasswordForm({
 
       if (res.ok) {
         toast.success("If that email exists, we sent a reset link");
+        reset();
       } else {
-        toast.error("Something went wrong");
+        const body = await res.json();
+        toast.error(body.error || "Something went wrong");
       }
-    } catch (error) {
+    } catch {
       toast.error("Unexpected error. Try again.");
     }
   }
@@ -63,6 +66,7 @@ export function ForgotPasswordForm({
                   type="email"
                   {...register("email")}
                   placeholder="m@example.com"
+                  disabled={isSubmitting}
                 />
                 {errors.email && (
                   <p className="text-sm text-destructive">
@@ -70,8 +74,8 @@ export function ForgotPasswordForm({
                   </p>
                 )}
               </div>
-              <Button type="submit" className="w-full">
-                Reset Password
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? "Sending..." : "Reset Password"}
               </Button>
               <div className="text-center text-sm">
                 Remember your password?{" "}

@@ -159,6 +159,13 @@ exports.Prisma.VerificationTokenScalarFieldEnum = {
   expires: 'expires'
 };
 
+exports.Prisma.PasswordResetTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  userId: 'userId',
+  expires: 'expires'
+};
+
 exports.Prisma.ExpenseScalarFieldEnum = {
   id: 'id',
   title: 'title',
@@ -190,6 +197,7 @@ exports.Prisma.ModelName = {
   Account: 'Account',
   Session: 'Session',
   VerificationToken: 'VerificationToken',
+  PasswordResetToken: 'PasswordResetToken',
   Expense: 'Expense'
 };
 

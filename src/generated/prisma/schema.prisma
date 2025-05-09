@@ -15,9 +15,9 @@ datasource db {
 }
 
 model User {
-  id                 String              @id @default(cuid())
+  id                 String               @id @default(cuid())
   name               String?
-  email              String              @unique
+  email              String               @unique
   emailVerified      DateTime?
   image              String?
   password           String?
@@ -25,6 +25,7 @@ model User {
   accounts           Account[]
   sessions           Session[]
   verificationTokens VerificationToken[]
+  passwordResetToken PasswordResetToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -62,6 +63,16 @@ model Session {
 }
 
 model VerificationToken {
+  id      String   @id @default(cuid())
+  token   String   @unique
+  userId  String
+  expires DateTime
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+}
+
+model PasswordResetToken {
   id      String   @id @default(cuid())
   token   String   @unique
   userId  String
