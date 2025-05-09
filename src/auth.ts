@@ -1,4 +1,5 @@
-import NextAuth from "next-auth";
+import NextAuth, { JWT } from "next-auth";
+import type { AdapterUser } from "next-auth/adapters";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./lib/prisma";
 import Github from "next-auth/providers/github";
@@ -7,6 +8,7 @@ import Facebook from "next-auth/providers/facebook";
 import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
+import { Session } from "next-auth";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -28,6 +30,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const isValid = await compare(credentials.password, user.password);
         if (!isValid) return null;
+
+        if (!user.emailVerified) return null;
 
         return user;
       },
@@ -52,24 +56,45 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
+    maxAge: 60 * 60, // 1 hour
   },
   pages: {
     signIn: "/login",
   },
   callbacks: {
     async jwt({ token, user }) {
+      const now = Math.floor(Date.now() / 1000);
+
       if (user) {
         token.id = user.id;
+        token.createdAt = now;
       }
+
+      if (
+        typeof token.createdAt !== "number" ||
+        now - token.createdAt > 5 * 60
+      ) {
+        token.createdAt = now;
+      }
+
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (session?.user && token) {
         session.user.id = token.id as string;
+
+        const createdAt =
+          typeof token.createdAt === "number"
+            ? token.createdAt
+            : Math.floor(Date.now() / 1000);
+
+        session.expiresAt = createdAt + 60 * 60; // 1 hour
       }
+
       return session;
     },
-    async redirect({ baseUrl }) {
+
+    async redirect({ baseUrl }: { baseUrl: string }) {
       return baseUrl + "/dashboard";
     },
   },

@@ -14,6 +14,7 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function LoginForm({
   className,
@@ -23,25 +24,58 @@ export function LoginForm({
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    getValues,
+    trigger,
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
   const router = useRouter();
 
+  const [isResending, setIsResending] = useState(false);
+
   const onSubmit = async (data: LoginFormValues) => {
     const res = await signIn("credentials", {
       email: data.email,
       password: data.password,
-      callbackUrl: "/dashboard",
+      redirect: false,
     });
 
-    if (res?.error) {
-      toast.error("Invalid credentials");
-      return;
+    if (res?.error === "CredentialsSignin") {
+      toast.error("Invalid email, password, or email not verified");
+    } else if (res?.ok && res?.url) {
+      toast.success("Login successful!");
+      router.push("/dashboard");
+    } else {
+      toast.error("Something went wrong");
     }
+  };
 
-    toast.success("Login successful!");
-    router.push("/dashboard");
+  const resendVerification = async () => {
+    const result = await trigger("email");
+    if (!result) return;
+
+    setIsResending(true);
+    const email = getValues("email");
+
+    try {
+      const res = await fetch("/api/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Verification email sent!");
+      } else {
+        toast.error(data.error || "Something went wrong.");
+      }
+    } catch {
+      toast.error("Failed to resend email.");
+    } finally {
+      setIsResending(false);
+    }
   };
 
   return (
@@ -91,9 +125,25 @@ export function LoginForm({
                   </p>
                 )}
               </div>
+
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Logging in..." : "Log in"}
               </Button>
+              {!isSubmitting && (
+                <div className="text-center text-sm">
+                  Didn’t verify your email?{" "}
+                  <Button
+                    variant="link"
+                    type="button"
+                    onClick={resendVerification}
+                    className="underline underline-offset-2 text-primary p-0 font-normal"
+                    disabled={isResending}
+                  >
+                    {isResending ? "Sending..." : "Resend verification"}
+                  </Button>
+                </div>
+              )}
+
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                 <span className="bg-card text-muted-foreground relative z-10 px-2">
                   Or continue with

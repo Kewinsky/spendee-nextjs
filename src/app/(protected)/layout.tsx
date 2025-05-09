@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ClientLayoutWrapper } from "@/components/client-layout-wrapper";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { redirect } from "next/navigation";
@@ -26,7 +27,7 @@ const ProtectedLayout = async ({ children }: { children: ReactNode }) => {
         <SiteHeader />
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
-            {children}
+            <ClientLayoutWrapper>{children}</ClientLayoutWrapper>
           </div>
         </div>
       </SidebarInset>
