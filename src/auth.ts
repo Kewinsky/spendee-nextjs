@@ -1,4 +1,4 @@
-import NextAuth, { JWT } from "next-auth";
+import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "./lib/prisma";
 import Github from "next-auth/providers/github";
@@ -7,10 +7,11 @@ import Facebook from "next-auth/providers/facebook";
 import Apple from "next-auth/providers/apple";
 import Credentials from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
-import { Session } from "next-auth";
 import { TOKEN_EXPIRATION } from "./lib/constanst";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
   adapter: PrismaAdapter(prisma),
   providers: [
     Credentials({
@@ -23,12 +24,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: String(credentials.email) },
         });
 
         if (!user || !user.password) return null;
 
-        const isValid = await compare(credentials.password, user.password);
+        const isValid = await compare(
+          credentials.password as string,
+          user.password
+        );
         if (!isValid) return null;
 
         if (!user.emailVerified) return null;
@@ -79,7 +83,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       return token;
     },
-    async session({ session, token }: { session: Session; token: JWT }) {
+    async session({ session, token }) {
       if (session?.user && token) {
         session.user.id = token.id as string;
 
