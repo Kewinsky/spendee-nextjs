@@ -35,7 +35,7 @@ export function SessionRefresher() {
       clearTimeout(popup);
       clearTimeout(logout);
     };
-  }, [session?.expiresAt]);
+  }, [session, session?.expiresAt]);
 
   const handleExtend = async () => {
     try {
