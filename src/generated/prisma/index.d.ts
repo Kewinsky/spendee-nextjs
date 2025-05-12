@@ -464,7 +464,7 @@ export namespace Prisma {
   ? False
   : T extends Uint8Array
   ? False
-  : T extends bigint
+  : T extends BigInt
   ? False
   : T extends object
   ? True
@@ -3818,6 +3818,7 @@ export namespace Prisma {
   }
 
   export type SessionMinAggregateOutputType = {
+    id: string | null
     sessionToken: string | null
     userId: string | null
     expires: Date | null
@@ -3826,6 +3827,7 @@ export namespace Prisma {
   }
 
   export type SessionMaxAggregateOutputType = {
+    id: string | null
     sessionToken: string | null
     userId: string | null
     expires: Date | null
@@ -3834,6 +3836,7 @@ export namespace Prisma {
   }
 
   export type SessionCountAggregateOutputType = {
+    id: number
     sessionToken: number
     userId: number
     expires: number
@@ -3844,6 +3847,7 @@ export namespace Prisma {
 
 
   export type SessionMinAggregateInputType = {
+    id?: true
     sessionToken?: true
     userId?: true
     expires?: true
@@ -3852,6 +3856,7 @@ export namespace Prisma {
   }
 
   export type SessionMaxAggregateInputType = {
+    id?: true
     sessionToken?: true
     userId?: true
     expires?: true
@@ -3860,6 +3865,7 @@ export namespace Prisma {
   }
 
   export type SessionCountAggregateInputType = {
+    id?: true
     sessionToken?: true
     userId?: true
     expires?: true
@@ -3941,6 +3947,7 @@ export namespace Prisma {
   }
 
   export type SessionGroupByOutputType = {
+    id: string
     sessionToken: string
     userId: string
     expires: Date
@@ -3966,6 +3973,7 @@ export namespace Prisma {
 
 
   export type SessionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
     sessionToken?: boolean
     userId?: boolean
     expires?: boolean
@@ -3975,6 +3983,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["session"]>
 
   export type SessionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
     sessionToken?: boolean
     userId?: boolean
     expires?: boolean
@@ -3984,6 +3993,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["session"]>
 
   export type SessionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
     sessionToken?: boolean
     userId?: boolean
     expires?: boolean
@@ -3993,6 +4003,7 @@ export namespace Prisma {
   }, ExtArgs["result"]["session"]>
 
   export type SessionSelectScalar = {
+    id?: boolean
     sessionToken?: boolean
     userId?: boolean
     expires?: boolean
@@ -4000,7 +4011,7 @@ export namespace Prisma {
     updatedAt?: boolean
   }
 
-  export type SessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"sessionToken" | "userId" | "expires" | "createdAt" | "updatedAt", ExtArgs["result"]["session"]>
+  export type SessionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "sessionToken" | "userId" | "expires" | "createdAt" | "updatedAt", ExtArgs["result"]["session"]>
   export type SessionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
   }
@@ -4017,6 +4028,7 @@ export namespace Prisma {
       user: Prisma.$UserPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
+      id: string
       sessionToken: string
       userId: string
       expires: Date
@@ -4105,8 +4117,8 @@ export namespace Prisma {
      * // Get first 10 Sessions
      * const sessions = await prisma.session.findMany({ take: 10 })
      * 
-     * // Only select the `sessionToken`
-     * const sessionWithSessionTokenOnly = await prisma.session.findMany({ select: { sessionToken: true } })
+     * // Only select the `id`
+     * const sessionWithIdOnly = await prisma.session.findMany({ select: { id: true } })
      * 
      */
     findMany<T extends SessionFindManyArgs>(args?: SelectSubset<T, SessionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -4150,9 +4162,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many Sessions and only return the `sessionToken`
-     * const sessionWithSessionTokenOnly = await prisma.session.createManyAndReturn({
-     *   select: { sessionToken: true },
+     * // Create many Sessions and only return the `id`
+     * const sessionWithIdOnly = await prisma.session.createManyAndReturn({
+     *   select: { id: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -4241,9 +4253,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Sessions and only return the `sessionToken`
-     * const sessionWithSessionTokenOnly = await prisma.session.updateManyAndReturn({
-     *   select: { sessionToken: true },
+     * // Update zero or more Sessions and only return the `id`
+     * const sessionWithIdOnly = await prisma.session.updateManyAndReturn({
+     *   select: { id: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -4446,6 +4458,7 @@ export namespace Prisma {
    * Fields of the Session model
    */
   interface SessionFieldRefs {
+    readonly id: FieldRef<"Session", 'String'>
     readonly sessionToken: FieldRef<"Session", 'String'>
     readonly userId: FieldRef<"Session", 'String'>
     readonly expires: FieldRef<"Session", 'DateTime'>
@@ -8121,6 +8134,7 @@ export namespace Prisma {
 
 
   export const SessionScalarFieldEnum: {
+    id: 'id',
     sessionToken: 'sessionToken',
     userId: 'userId',
     expires: 'expires',
@@ -8436,6 +8450,7 @@ export namespace Prisma {
     AND?: SessionWhereInput | SessionWhereInput[]
     OR?: SessionWhereInput[]
     NOT?: SessionWhereInput | SessionWhereInput[]
+    id?: StringFilter<"Session"> | string
     sessionToken?: StringFilter<"Session"> | string
     userId?: StringFilter<"Session"> | string
     expires?: DateTimeFilter<"Session"> | Date | string
@@ -8445,6 +8460,7 @@ export namespace Prisma {
   }
 
   export type SessionOrderByWithRelationInput = {
+    id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
     expires?: SortOrder
@@ -8454,6 +8470,7 @@ export namespace Prisma {
   }
 
   export type SessionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
     sessionToken?: string
     AND?: SessionWhereInput | SessionWhereInput[]
     OR?: SessionWhereInput[]
@@ -8463,9 +8480,10 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Session"> | Date | string
     updatedAt?: DateTimeFilter<"Session"> | Date | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
-  }, "sessionToken">
+  }, "id" | "sessionToken">
 
   export type SessionOrderByWithAggregationInput = {
+    id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
     expires?: SortOrder
@@ -8480,6 +8498,7 @@ export namespace Prisma {
     AND?: SessionScalarWhereWithAggregatesInput | SessionScalarWhereWithAggregatesInput[]
     OR?: SessionScalarWhereWithAggregatesInput[]
     NOT?: SessionScalarWhereWithAggregatesInput | SessionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Session"> | string
     sessionToken?: StringWithAggregatesFilter<"Session"> | string
     userId?: StringWithAggregatesFilter<"Session"> | string
     expires?: DateTimeWithAggregatesFilter<"Session"> | Date | string
@@ -8863,6 +8882,7 @@ export namespace Prisma {
   }
 
   export type SessionCreateInput = {
+    id?: string
     sessionToken: string
     expires: Date | string
     createdAt?: Date | string
@@ -8871,6 +8891,7 @@ export namespace Prisma {
   }
 
   export type SessionUncheckedCreateInput = {
+    id?: string
     sessionToken: string
     userId: string
     expires: Date | string
@@ -8879,6 +8900,7 @@ export namespace Prisma {
   }
 
   export type SessionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8887,6 +8909,7 @@ export namespace Prisma {
   }
 
   export type SessionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8895,6 +8918,7 @@ export namespace Prisma {
   }
 
   export type SessionCreateManyInput = {
+    id?: string
     sessionToken: string
     userId: string
     expires: Date | string
@@ -8903,6 +8927,7 @@ export namespace Prisma {
   }
 
   export type SessionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -8910,6 +8935,7 @@ export namespace Prisma {
   }
 
   export type SessionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -9380,6 +9406,7 @@ export namespace Prisma {
   }
 
   export type SessionCountOrderByAggregateInput = {
+    id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
     expires?: SortOrder
@@ -9388,6 +9415,7 @@ export namespace Prisma {
   }
 
   export type SessionMaxOrderByAggregateInput = {
+    id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
     expires?: SortOrder
@@ -9396,6 +9424,7 @@ export namespace Prisma {
   }
 
   export type SessionMinOrderByAggregateInput = {
+    id?: SortOrder
     sessionToken?: SortOrder
     userId?: SortOrder
     expires?: SortOrder
@@ -10079,6 +10108,7 @@ export namespace Prisma {
   }
 
   export type SessionCreateWithoutUserInput = {
+    id?: string
     sessionToken: string
     expires: Date | string
     createdAt?: Date | string
@@ -10086,6 +10116,7 @@ export namespace Prisma {
   }
 
   export type SessionUncheckedCreateWithoutUserInput = {
+    id?: string
     sessionToken: string
     expires: Date | string
     createdAt?: Date | string
@@ -10230,6 +10261,7 @@ export namespace Prisma {
     AND?: SessionScalarWhereInput | SessionScalarWhereInput[]
     OR?: SessionScalarWhereInput[]
     NOT?: SessionScalarWhereInput | SessionScalarWhereInput[]
+    id?: StringFilter<"Session"> | string
     sessionToken?: StringFilter<"Session"> | string
     userId?: StringFilter<"Session"> | string
     expires?: DateTimeFilter<"Session"> | Date | string
@@ -10694,6 +10726,7 @@ export namespace Prisma {
   }
 
   export type SessionCreateManyUserInput = {
+    id?: string
     sessionToken: string
     expires: Date | string
     createdAt?: Date | string
@@ -10785,6 +10818,7 @@ export namespace Prisma {
   }
 
   export type SessionUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10792,6 +10826,7 @@ export namespace Prisma {
   }
 
   export type SessionUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -10799,6 +10834,7 @@ export namespace Prisma {
   }
 
   export type SessionUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
     sessionToken?: StringFieldUpdateOperationsInput | string
     expires?: DateTimeFieldUpdateOperationsInput | Date | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
