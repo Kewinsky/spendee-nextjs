@@ -50,7 +50,6 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import type { ChartConfig } from "@/components/ui/chart";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Drawer,
@@ -105,6 +104,7 @@ import {
   emptyTransactionForm,
 } from "@/lib/schemas";
 import { format } from "date-fns";
+import { DateRange } from "react-day-picker";
 
 export const schema = z.object({
   id: z.number(),
@@ -159,12 +159,11 @@ export function TransactionsTable({
   const [selectedTransactions, setSelectedTransactions] = React.useState<
     z.infer<typeof schema>[]
   >([]);
-  const [dateRange, setDateRange] = React.useState<{
-    from: Date | undefined;
-    to: Date | undefined;
-  }>({ from: undefined, to: undefined });
+  const [dateRange, setDateRange] = React.useState<DateRange>({
+    from: undefined,
+    to: undefined,
+  });
 
-  // Function declarations for openTableCellViewer and handleDeleteTransaction
   const openTableCellViewer = (
     item: z.infer<typeof schema> | null = null,
     mode: "add" | "edit" | "view" | "delete-confirm" = "view"
@@ -186,7 +185,6 @@ export function TransactionsTable({
   };
 
   const handleBulkDelete = () => {
-    // Get selected rows from the table
     const selectedRows = table.getFilteredSelectedRowModel().rows;
     const selectedItems = selectedRows.map((row) => row.original);
     setSelectedTransactions(selectedItems);
@@ -195,12 +193,14 @@ export function TransactionsTable({
 
   const handleRangeSelect = (range: { from?: Date; to?: Date } | undefined) => {
     if (range?.from && range?.to) {
-      setDateRange(range); // normalne ustawienie zakresu
-    } else if (range?.from && dateRange.from && dateRange.to) {
-      // reset jeśli klikniesz po raz kolejny po wybraniu pełnego zakresu
+      setDateRange({ from: range.from, to: range.to });
+    } else if (range?.from && dateRange?.from && dateRange?.to) {
       setDateRange({ from: range.from, to: undefined });
     } else {
-      setDateRange(range || { from: undefined, to: undefined });
+      setDateRange({
+        from: range?.from ?? undefined,
+        to: range?.to ?? undefined,
+      });
     }
   };
 
@@ -227,7 +227,6 @@ export function TransactionsTable({
     setSelectedTransactions([]);
   };
 
-  // Define columns inside the component to access component functions
   const columns: ColumnDef<z.infer<typeof schema>>[] = [
     {
       id: "select",
@@ -422,7 +421,6 @@ export function TransactionsTable({
     },
   ];
 
-  // Filter data based on active tab
   const filteredData = React.useMemo(() => {
     let result = data;
 
@@ -484,18 +482,15 @@ export function TransactionsTable({
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  // Check if any rows are selected
   const hasSelectedRows = table.getFilteredSelectedRowModel().rows.length > 0;
 
   React.useEffect(() => {
-    // Apply category filter
     if (categoryFilter !== "All Categories") {
       table.getColumn("category")?.setFilterValue(categoryFilter);
     } else {
       table.getColumn("category")?.setFilterValue(undefined);
     }
 
-    // Apply description filter
     if (descriptionFilter) {
       table.getColumn("description")?.setFilterValue(descriptionFilter);
     } else {
@@ -510,7 +505,7 @@ export function TransactionsTable({
       onValueChange={setActiveTab}
     >
       <div className="flex flex-wrap items-start justify-between gap-4 px-4 lg:px-6">
-        {/* Select + Tabs */}
+        {/* Tabs */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <Label htmlFor="view-selector" className="sr-only">
             View
@@ -554,6 +549,7 @@ export function TransactionsTable({
             />
           </div>
 
+          {/* Range picker */}
           <div className="flex items-center gap-2">
             <Popover>
               <PopoverTrigger asChild>
@@ -579,7 +575,6 @@ export function TransactionsTable({
                   selected={dateRange}
                   onSelect={handleRangeSelect}
                   numberOfMonths={1}
-                  initialFocus
                 />
               </PopoverContent>
             </Popover>
@@ -1112,7 +1107,6 @@ function TableCellViewer({
 }) {
   const isMobile = useIsMobile();
 
-  // Initialize the form with react-hook-form and zod resolver
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
     defaultValues: activeItem
@@ -1129,7 +1123,6 @@ function TableCellViewer({
     mode: "onSubmit",
   });
 
-  // Update form values when activeItem changes
   React.useEffect(() => {
     if (activeItem) {
       form.reset({
@@ -1151,7 +1144,7 @@ function TableCellViewer({
       id: values.id || Date.now(),
       date: values.date,
       description: values.description,
-      amount: Number(values.amount),
+      amount: values.amount,
       category: values.category,
       type: values.type,
       notes: values.notes || "",
@@ -1169,6 +1162,7 @@ function TableCellViewer({
           return "Transaction updated successfully";
         } else {
           setData((prev) => [...prev, newTransaction]);
+          form.reset(emptyTransactionForm);
           return "Transaction added successfully";
         }
       },
@@ -1181,7 +1175,6 @@ function TableCellViewer({
   const isReadOnly = viewMode === "view";
   const isDeleteConfirm = viewMode === "delete-confirm";
 
-  // Render delete confirmation view
   if (isDeleteConfirm) {
     return (
       <Drawer
@@ -1376,7 +1369,12 @@ function TableCellViewer({
                         </div>
                       ) : (
                         <FormControl>
-                          <Input {...field} type="number" step="0.01" />
+                          <Input
+                            {...field}
+                            type="number"
+                            step="0.01"
+                            min={0.01}
+                          />
                         </FormControl>
                       )}
                       <FormMessage />
