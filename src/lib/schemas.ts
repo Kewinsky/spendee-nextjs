@@ -61,7 +61,66 @@ export const resetPasswordSchema = z
     path: ["confirmPassword"],
   });
 
+export const transactionFormSchema = z.object({
+  id: z
+    .number()
+    .optional()
+    .describe("Transaction ID - automatically generated for new transactions"),
+
+  date: z
+    .string()
+    .min(1, "Date is required")
+    .refine((val) => !isNaN(Date.parse(val)), {
+      message: "Invalid date format",
+    })
+    .transform((val) => val)
+    .describe("Transaction date"),
+
+  description: z
+    .string()
+    .min(3, "Description must be at least 3 characters")
+    .max(100, "Description cannot exceed 100 characters")
+    .describe("Transaction description"),
+
+  amount: z
+    .string()
+    .min(1, "Amount is required")
+    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
+      message: "Amount must be a positive number",
+    })
+    .transform((val) => Number(val)) // Convert to number
+    .describe("Transaction amount"),
+
+  category: z
+    .string()
+    .min(1, "Category is required")
+    .describe("Transaction category"),
+
+  type: z
+    .enum(["Income", "Expense"], {
+      errorMap: () => ({ message: "Type must be either Income or Expense" }),
+    })
+    .describe("Transaction type"),
+
+  notes: z
+    .string()
+    .max(500, "Notes cannot exceed 500 characters")
+    .optional()
+    .describe("Additional notes about the transaction"),
+});
+
+export const emptyTransactionForm: TransactionFormValues = {
+  date: new Date().toISOString().split("T")[0],
+  description: "",
+  amount: "",
+  category: "",
+  type: "Expense",
+  notes: "",
+};
+
 export type LoginFormValues = z.infer<typeof loginSchema>;
 export type RegisterFormValues = z.infer<typeof registerSchema>;
 export type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+export type TransactionData = z.output<typeof transactionFormSchema>;
+export type TransactionFormValues = z.infer<typeof transactionFormSchema>;
