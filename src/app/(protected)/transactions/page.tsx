@@ -1,9 +1,11 @@
-const Transactions = () => {
+"use client";
+import data from "./_components/data.json";
+import { TransactionsTable } from "./_components/transactions-table";
+
+export default function ExpensesPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Transactions</h1>
+    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <TransactionsTable data={data} />
     </div>
   );
-};
-
-export default Transactions;
+}
