@@ -8,9 +8,8 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconDotsVertical,
-  IconGripVertical,
-  IconLayoutColumns,
   IconPlus,
+  IconLayoutColumns,
 } from "@tabler/icons-react";
 import {
   Building,
@@ -24,30 +23,11 @@ import {
   ArrowDown,
   Edit,
   Eye,
+  PiggyBank,
 } from "lucide-react";
-import {
-  DndContext,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type UniqueIdentifier,
-} from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import {
-  SortableContext,
-  arrayMove,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type Row,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -155,135 +135,108 @@ const getCategoryIcon = (category: string) => {
       return <TrendingUp className="mr-2 h-4 w-4" />;
     case "Cash":
       return <Wallet className="mr-2 h-4 w-4" />;
+    case "Savings":
+      return <PiggyBank className="mr-2 h-4 w-4" />;
     default:
       return <Building className="mr-2 h-4 w-4" />;
   }
 };
 
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: number }) {
-  const { attributes, listeners } = useSortable({
-    id,
-  });
+// Sample data for when initialData is undefined
+const sampleData: Account[] = [
+  {
+    id: 1,
+    accountName: "Checking Account",
+    institution: "Bank of America",
+    category: "Bank Account",
+    expectedRate: 0.01,
+    balance: 5000,
+    growth: 0.5,
+    type: "Savings",
+  },
+  {
+    id: 2,
+    accountName: "401(k)",
+    institution: "Fidelity",
+    category: "Retirement",
+    expectedRate: 7.0,
+    balance: 85000,
+    growth: 12.3,
+    type: "Investment",
+  },
+];
 
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
-    >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  );
-}
-
-function DraggableRow({ row }: { row: Row<Account> }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.id,
-  });
-
-  return (
-    <TableRow
-      data-state={row.getIsSelected() && "selected"}
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
-  );
-}
-
-export function SavingsTable({ data: initialData }: { data: Account[] }) {
+export function SavingsTable({ data: initialData }: { data?: Account[] }) {
   const [activeItem, setActiveItem] = React.useState<Account | null>(null);
   const [viewMode, setViewMode] = React.useState<
     "add" | "edit" | "view" | "delete-confirm"
   >("add");
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-  const [data, setData] = React.useState(() => initialData);
+  // Ensure data is always an array, even if initialData is undefined
+  const [data, setData] = React.useState<Account[]>(
+    () => initialData || sampleData
+  );
   const [selectedAccounts, setSelectedAccounts] = React.useState<Account[]>([]);
   const [activeTab, setActiveTab] = React.useState("savings");
   const [categoryFilter, setCategoryFilter] =
     React.useState<string>("All Categories");
-  const sortableId = React.useId();
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  );
+
+  const filteredData = React.useMemo(() => {
+    // No need to check if data is undefined since we ensure it's always an array
+    let result = data;
+
+    if (activeTab !== "all") {
+      result = result.filter((item) =>
+        activeTab === "investments"
+          ? item.type === "Investment"
+          : item.type === "Savings"
+      );
+    }
+
+    if (categoryFilter !== "All Categories") {
+      result = result.filter((item) => item.category === categoryFilter);
+    }
+
+    return result;
+  }, [data, activeTab, categoryFilter]);
 
   const openTableCellViewer = (
-    item: Account | null = null,
-    mode: "add" | "edit" | "view" | "delete-confirm" = "view"
+    item: Account | null,
+    mode: "add" | "edit" | "view"
   ) => {
     setActiveItem(item);
     setViewMode(mode);
     setIsDrawerOpen(true);
   };
 
+  const closeDrawer = () => {
+    setIsDrawerOpen(false);
+  };
+
   const handleDeleteAccount = (id: number) => {
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: "Deleting account...",
-      success: () => {
-        setData((prev) => prev.filter((item) => item.id !== id));
-        return "Account deleted successfully";
-      },
-      error: "Failed to delete account",
-    });
+    setData((prev) => prev.filter((item) => item.id !== id));
+    toast.success("Account deleted successfully");
   };
 
   const handleBulkDelete = () => {
-    const selectedRows = table.getFilteredSelectedRowModel().rows;
-    const selectedItems = selectedRows.map((row) => row.original);
-    setSelectedAccounts(selectedItems);
-    openTableCellViewer(null, "delete-confirm");
+    const selectedRowIds = Object.keys(rowSelection).map(Number);
+    const selectedRows = data.filter((item) =>
+      selectedRowIds.includes(item.id)
+    );
+    setSelectedAccounts(selectedRows);
+    setViewMode("delete-confirm");
+    setIsDrawerOpen(true);
   };
 
   const confirmBulkDelete = () => {
-    const selectedIds = selectedAccounts.map((item) => item.id);
-
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: `Deleting ${selectedIds.length} account(s)...`,
-      success: () => {
-        setData((prev) =>
-          prev.filter((item) => !selectedIds.includes(item.id))
-        );
-        table.resetRowSelection();
-        closeDrawer();
-        return `${selectedIds.length} account(s) deleted successfully`;
-      },
-      error: "Failed to delete accounts",
-    });
+    const selectedRowIds = Object.keys(rowSelection).map(Number);
+    setData((prev) => prev.filter((item) => !selectedRowIds.includes(item.id)));
+    setRowSelection({});
+    toast.success("Accounts deleted successfully");
+    closeDrawer();
   };
-
-  const closeDrawer = () => {
-    setIsDrawerOpen(false);
-    setActiveItem(null);
-    setSelectedAccounts([]);
-  };
-
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ id }) => id) || [],
-    [data]
-  );
 
   const columns: ColumnDef<Account>[] = [
-    {
-      id: "drag",
-      header: () => null,
-      cell: ({ row }) => <DragHandle id={row.original.id} />,
-    },
     {
       id: "select",
       header: ({ table }) => (
@@ -411,7 +364,7 @@ export function SavingsTable({ data: initialData }: { data: Account[] }) {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="flex items-center gap-1 p-0!"
           >
-            Expected Rate
+            {activeTab === "investments" ? "Expected Return" : "Interest Rate"}
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -534,24 +487,6 @@ export function SavingsTable({ data: initialData }: { data: Account[] }) {
     },
   ];
 
-  const filteredData = React.useMemo(() => {
-    let result = data;
-
-    if (activeTab !== "all") {
-      result = result.filter((item) =>
-        activeTab === "investments"
-          ? item.type === "Investment"
-          : item.type === "Savings"
-      );
-    }
-
-    if (categoryFilter !== "All Categories") {
-      result = result.filter((item) => item.category === categoryFilter);
-    }
-
-    return result;
-  }, [data, activeTab, categoryFilter]);
-
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -589,18 +524,12 @@ export function SavingsTable({ data: initialData }: { data: Account[] }) {
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id);
-        const newIndex = dataIds.indexOf(over.id);
-        return arrayMove(data, oldIndex, newIndex);
-      });
-    }
-  }
-
   const hasSelectedRows = table.getFilteredSelectedRowModel().rows.length > 0;
+
+  // Get unique categories from data for the filter dropdown
+  const uniqueCategories = React.useMemo(() => {
+    return Array.from(new Set(data.map((item) => item.category)));
+  }, [data]);
 
   return (
     <Tabs
@@ -685,19 +614,17 @@ export function SavingsTable({ data: initialData }: { data: Account[] }) {
                 All Categories
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {Array.from(new Set(data.map((item) => item.category))).map(
-                (category) => (
-                  <DropdownMenuItem
-                    key={category}
-                    onClick={() => setCategoryFilter(category)}
-                  >
-                    <div className="flex items-center">
-                      {getCategoryIcon(category)}
-                      {category}
-                    </div>
-                  </DropdownMenuItem>
-                )
-              )}
+              {uniqueCategories.map((category) => (
+                <DropdownMenuItem
+                  key={category}
+                  onClick={() => setCategoryFilter(category)}
+                >
+                  <div className="flex items-center">
+                    {getCategoryIcon(category)}
+                    {category}
+                  </div>
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -730,55 +657,54 @@ export function SavingsTable({ data: initialData }: { data: Account[] }) {
         className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
       >
         <div className="overflow-hidden rounded-lg border">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
-            <Table>
-              <TableHeader className="bg-muted sticky top-0 z-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
+          <Table>
+            <TableHeader className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
                   >
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
                     ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No savings accounts found.
-                    </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DndContext>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No savings accounts found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
@@ -863,55 +789,54 @@ export function SavingsTable({ data: initialData }: { data: Account[] }) {
         className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
       >
         <div className="overflow-hidden rounded-lg border">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
-            <Table>
-              <TableHeader className="bg-muted sticky top-0 z-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
+          <Table>
+            <TableHeader className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
                   >
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
                     ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No investment accounts found.
-                    </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DndContext>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No investment accounts found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
@@ -1000,6 +925,7 @@ export function SavingsTable({ data: initialData }: { data: Account[] }) {
         setData={setData}
         selectedAccounts={selectedAccounts}
         confirmBulkDelete={confirmBulkDelete}
+        activeTab={activeTab}
       />
     </Tabs>
   );
@@ -1014,6 +940,7 @@ function TableCellViewer({
   setData,
   selectedAccounts = [],
   confirmBulkDelete,
+  activeTab,
 }: {
   activeItem: Account | null;
   viewMode: "add" | "edit" | "view" | "delete-confirm";
@@ -1023,6 +950,7 @@ function TableCellViewer({
   setData: React.Dispatch<React.SetStateAction<Account[]>>;
   selectedAccounts?: Account[];
   confirmBulkDelete?: () => void;
+  activeTab?: string;
 }) {
   const isMobile = useIsMobile();
 
@@ -1054,9 +982,12 @@ function TableCellViewer({
         type: activeItem.type,
       });
     } else {
-      form.reset(emptyAccountForm);
+      form.reset({
+        ...emptyAccountForm,
+        type: activeTab === "investments" ? "Investment" : "Savings",
+      });
     }
-  }, [activeItem, form]);
+  }, [activeItem, form, activeTab]);
 
   const onSubmit = (values: AccountFormValues) => {
     const newAccount = {
@@ -1092,6 +1023,7 @@ function TableCellViewer({
 
   const isReadOnly = viewMode === "view";
   const isDeleteConfirm = viewMode === "delete-confirm";
+  const isSavings = form.watch("type") === "Savings";
 
   if (isDeleteConfirm) {
     return (
@@ -1279,6 +1211,12 @@ function TableCellViewer({
                                 Cash
                               </div>
                             </SelectItem>
+                            <SelectItem value="Savings">
+                              <div className="flex items-center">
+                                <PiggyBank className="mr-2 h-4 w-4" />
+                                Savings
+                              </div>
+                            </SelectItem>
                             <SelectItem value="Other">
                               <div className="flex items-center">
                                 <Building className="mr-2 h-4 w-4" />
@@ -1333,7 +1271,9 @@ function TableCellViewer({
                 name="expectedRate"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Expected Rate (%)</FormLabel>
+                    <FormLabel>
+                      {isSavings ? "Interest Rate (%)" : "Expected Return (%)"}
+                    </FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
                         {Number.parseFloat(field.value).toFixed(2)}%

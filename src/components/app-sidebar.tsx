@@ -58,8 +58,13 @@ const data = {
       icon: ListOrdered,
     },
     {
-      title: "Categories & Budgets",
+      title: "Categories",
       url: "/categories",
+      icon: Shapes,
+    },
+    {
+      title: "Budgets",
+      url: "/budgets",
       icon: Wallet,
     },
     {

@@ -8,41 +8,29 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
   IconDotsVertical,
-  IconGripVertical,
   IconLayoutColumns,
   IconPlus,
 } from "@tabler/icons-react";
 import {
-  Trash2,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
   Edit,
   Eye,
+  Trash2,
+  Package,
+  Utensils,
+  Car,
+  Home,
+  Lightbulb,
+  Film,
+  Heart,
+  Briefcase,
+  TrendingUp,
 } from "lucide-react";
-import {
-  DndContext,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type UniqueIdentifier,
-} from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import {
-  SortableContext,
-  arrayMove,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  type Row,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -106,26 +94,69 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
+import { getIconBySlug } from "@/utils/getIconBySlug";
 
+// Schema for category data
 export const categorySchema = z.object({
   id: z.number(),
   name: z.string(),
-  description: z.string(),
-  period: z.enum([
-    "daily",
-    "weekly",
-    "monthly",
-    "quarterly",
-    "semi-annually",
-    "annually",
-  ]),
-  transactions: z.number(),
-  amount: z.number(),
-  spent: z.number(),
+  description: z.string().optional(),
   type: z.enum(["Expense", "Income"]),
+  icon: z.string().default("Package"),
+  period: z
+    .enum([
+      "daily",
+      "weekly",
+      "monthly",
+      "quarterly",
+      "semi-annually",
+      "annually",
+    ])
+    .optional(),
+  budget: z.number().optional(),
+  spent: z.number().optional(),
+  transactions: z.number().optional(),
+  balance: z.number().optional(),
 });
 
 export type Category = z.infer<typeof categorySchema>;
+
+// Form schema for adding/editing categories
+const categoryFormSchema = z.object({
+  id: z.number().optional(),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  type: z.enum(["Expense", "Income"]),
+  icon: z.string().default("Package"),
+  period: z
+    .enum([
+      "daily",
+      "weekly",
+      "monthly",
+      "quarterly",
+      "semi-annually",
+      "annually",
+    ])
+    .optional(),
+  budget: z.coerce.number().optional(),
+  spent: z.coerce.number().optional(),
+  transactions: z.coerce.number().optional(),
+  balance: z.coerce.number().optional(),
+});
+
+export type CategoryFormValues = z.infer<typeof categoryFormSchema>;
+
+const emptyCategoryForm: CategoryFormValues = {
+  name: "",
+  description: "",
+  type: "Expense",
+  icon: "Package",
+  period: "monthly",
+  budget: undefined,
+  spent: undefined,
+  transactions: undefined,
+  balance: undefined,
+};
 
 const periodLabels = {
   daily: "Daily",
@@ -136,99 +167,17 @@ const periodLabels = {
   annually: "Yearly",
 };
 
-const categoryFormSchema = z.object({
-  id: z.number().optional(),
-  name: z.string().min(1, "Name is required"),
-  description: z.string().optional(),
-  period: z.enum([
-    "daily",
-    "weekly",
-    "monthly",
-    "quarterly",
-    "semi-annually",
-    "annually",
-  ]),
-  amount: z.string().min(1, "Amount is required"),
-  type: z.enum(["Expense", "Income"]),
-});
-
-type CategoryFormValues = z.infer<typeof categoryFormSchema>;
-
-const emptyCategoryForm: CategoryFormValues = {
-  name: "",
-  description: "",
-  period: "monthly",
-  amount: "",
-  type: "Expense",
-};
-
-// Create a separate component for the drag handle
-function DragHandle({ id }: { id: number }) {
-  const { attributes, listeners } = useSortable({
-    id,
-  });
-
-  return (
-    <Button
-      {...attributes}
-      {...listeners}
-      variant="ghost"
-      size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
-    >
-      <IconGripVertical className="text-muted-foreground size-3" />
-      <span className="sr-only">Drag to reorder</span>
-    </Button>
-  );
-}
-
-function DraggableRow({ row }: { row: Row<Category> }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.id,
-  });
-
-  return (
-    <TableRow
-      data-state={row.getIsSelected() && "selected"}
-      data-dragging={isDragging}
-      ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition: transition,
-      }}
-    >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
-          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-        </TableCell>
-      ))}
-    </TableRow>
-  );
-}
-
-export function CategoriesAndBudgetsTable({
-  data: initialData,
-}: {
-  data: Category[];
-}) {
+export function CategoryTable({ data: initialData }: { data: Category[] }) {
   const [activeItem, setActiveItem] = React.useState<Category | null>(null);
   const [viewMode, setViewMode] = React.useState<
     "add" | "edit" | "view" | "delete-confirm"
   >("add");
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState("expenses");
   const [data, setData] = React.useState(() => initialData);
   const [selectedCategories, setSelectedCategories] = React.useState<
     Category[]
   >([]);
-  const [activeTab, setActiveTab] = React.useState("expenses");
-  const [periodFilter, setPeriodFilter] = React.useState<string>("All Periods");
-  const sortableId = React.useId();
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  );
 
   const openTableCellViewer = (
     item: Category | null = null,
@@ -261,14 +210,14 @@ export function CategoriesAndBudgetsTable({
     const selectedIds = selectedCategories.map((item) => item.id);
 
     toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: `Deleting ${selectedIds.length} category(s)...`,
+      loading: `Deleting ${selectedIds.length} category(ies)...`,
       success: () => {
         setData((prev) =>
           prev.filter((item) => !selectedIds.includes(item.id))
         );
         table.resetRowSelection();
         closeDrawer();
-        return `${selectedIds.length} category(s) deleted successfully`;
+        return `${selectedIds.length} category(ies) deleted successfully`;
       },
       error: "Failed to delete categories",
     });
@@ -280,17 +229,8 @@ export function CategoriesAndBudgetsTable({
     setSelectedCategories([]);
   };
 
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ id }) => id) || [],
-    [data]
-  );
-
-  const columns: ColumnDef<Category>[] = [
-    {
-      id: "drag",
-      header: () => null,
-      cell: ({ row }) => <DragHandle id={row.original.id} />,
-    },
+  // Define columns for expenses
+  const expenseColumns: ColumnDef<Category>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -343,67 +283,16 @@ export function CategoriesAndBudgetsTable({
         return (
           <Button
             variant="link"
-            className="text-foreground w-fit px-0 text-left"
+            className="text-foreground w-fit px-0 text-left flex items-center"
             onClick={() => openTableCellViewer(row.original, "view")}
           >
+            {getIconBySlug(row.original.icon || "Package")}
             {row.original.name}
           </Button>
         );
       },
       enableHiding: false,
       enableSorting: true,
-    },
-    {
-      accessorKey: "description",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
-          >
-            Description
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: ({ row }) => row.original.description,
-      enableSorting: true,
-      enableHiding: true,
-    },
-    {
-      accessorKey: "period",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
-          >
-            Period
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: ({ row }) => (
-        <Badge variant="outline" className="text-muted-foreground px-1.5">
-          {periodLabels[row.original.period as keyof typeof periodLabels]}
-        </Badge>
-      ),
-      enableSorting: true,
-      enableHiding: true,
     },
     {
       accessorKey: "transactions",
@@ -425,12 +314,12 @@ export function CategoriesAndBudgetsTable({
           </Button>
         );
       },
-      cell: ({ row }) => row.original.transactions,
+      cell: ({ row }) => row.original.transactions || 0,
       enableSorting: true,
       enableHiding: true,
     },
     {
-      accessorKey: "amount",
+      accessorKey: "budget",
       header: ({ column }) => {
         return (
           <Button
@@ -438,7 +327,7 @@ export function CategoriesAndBudgetsTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="flex items-center gap-1 p-0!"
           >
-            Amount
+            Budget
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -450,77 +339,13 @@ export function CategoriesAndBudgetsTable({
         );
       },
       cell: ({ row }) => {
-        const amount = row.original.amount;
-        return (
-          <div
-            className={
-              row.original.type === "Expense"
-                ? "text-destructive"
-                : "text-green-500"
-            }
-          >
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-            }).format(amount)}
-          </div>
-        );
+        const budget = row.original.budget || 0;
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(budget);
       },
       enableSorting: true,
-      enableHiding: true,
-    },
-    {
-      accessorKey: "spent",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
-          >
-            Spent
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const spent = row.original.spent;
-        return (
-          <div>
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-            }).format(spent)}
-          </div>
-        );
-      },
-      enableSorting: true,
-      enableHiding: true,
-    },
-    {
-      accessorKey: "progress",
-      header: "Progress",
-      cell: ({ row }) => {
-        const amount = row.original.amount;
-        const spent = row.original.spent;
-        const progress = Math.min(Math.round((spent / amount) * 100), 100);
-
-        return (
-          <div className="flex items-center gap-2">
-            <Progress value={progress} className="h-2 w-full" />
-            <span className="text-xs text-muted-foreground w-10">
-              {progress}%
-            </span>
-          </div>
-        );
-      },
-      enableSorting: false,
       enableHiding: true,
     },
     {
@@ -556,7 +381,167 @@ export function CategoriesAndBudgetsTable({
               onClick={() => handleDeleteCategory(row.original.id)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete Category
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  // Define columns for incomes
+  const incomeColumns: ColumnDef<Category>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="flex items-center gap-1 p-0!"
+          >
+            Name
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        return (
+          <Button
+            variant="link"
+            className="text-foreground w-fit px-0 text-left flex items-center"
+            onClick={() => openTableCellViewer(row.original, "view")}
+          >
+            {getIconBySlug(row.original.icon || "Package")}
+            {row.original.name}
+          </Button>
+        );
+      },
+      enableHiding: false,
+      enableSorting: true,
+    },
+    {
+      accessorKey: "transactions",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="flex items-center gap-1 p-0!"
+          >
+            Transactions
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        );
+      },
+      cell: ({ row }) => row.original.transactions || 0,
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      accessorKey: "balance",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="flex items-center gap-1 p-0!"
+          >
+            Balance
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const balance = row.original.balance || 0;
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(balance);
+      },
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+              size="icon"
+            >
+              <IconDotsVertical />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem
+              onClick={() => openTableCellViewer(row.original, "edit")}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Category
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => openTableCellViewer(row.original, "view")}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => handleDeleteCategory(row.original.id)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -567,24 +552,15 @@ export function CategoriesAndBudgetsTable({
   const filteredData = React.useMemo(() => {
     let result = data;
 
-    if (activeTab !== "all") {
-      result = result.filter((item) =>
-        activeTab === "incomes"
-          ? item.type === "Income"
-          : item.type === "Expense"
-      );
-    }
-
-    if (periodFilter !== "All Periods") {
-      const periodKey = periodFilter
-        .toLowerCase()
-        .replace(/-/g, "")
-        .replace(/ /g, "-");
-      result = result.filter((item) => item.period === periodKey);
-    }
+    // Filter by tab
+    result = result.filter((item) =>
+      activeTab === "expenses"
+        ? item.type === "Expense"
+        : item.type === "Income"
+    );
 
     return result;
-  }, [data, activeTab, periodFilter]);
+  }, [data, activeTab]);
 
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -597,6 +573,8 @@ export function CategoriesAndBudgetsTable({
     pageIndex: 0,
     pageSize: 10,
   });
+
+  const columns = activeTab === "expenses" ? expenseColumns : incomeColumns;
 
   const table = useReactTable({
     data: filteredData,
@@ -622,17 +600,6 @@ export function CategoriesAndBudgetsTable({
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
   });
-
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id);
-        const newIndex = dataIds.indexOf(over.id);
-        return arrayMove(data, oldIndex, newIndex);
-      });
-    }
-  }
 
   const hasSelectedRows = table.getFilteredSelectedRowModel().rows.length > 0;
 
@@ -669,7 +636,7 @@ export function CategoriesAndBudgetsTable({
           </TabsList>
         </div>
 
-        {/* Actions */}
+        {/* Filters & Actions */}
         <div className="flex flex-wrap items-center gap-2">
           {/* Column visibility */}
           <DropdownMenu>
@@ -704,31 +671,7 @@ export function CategoriesAndBudgetsTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Period filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <span>{periodFilter}</span>
-                <IconChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem onClick={() => setPeriodFilter("All Periods")}>
-                All Periods
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {Object.entries(periodLabels).map(([key, label]) => (
-                <DropdownMenuItem
-                  key={key}
-                  onClick={() => setPeriodFilter(label)}
-                >
-                  {label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Add Category */}
+          {/* Actions */}
           <Button
             variant="outline"
             size="sm"
@@ -737,8 +680,6 @@ export function CategoriesAndBudgetsTable({
             <IconPlus />
             <span className="hidden lg:inline">Add Category</span>
           </Button>
-
-          {/* Delete Selected */}
           <Button
             variant="destructive"
             size="sm"
@@ -757,55 +698,54 @@ export function CategoriesAndBudgetsTable({
         className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
       >
         <div className="overflow-hidden rounded-lg border">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
-            <Table>
-              <TableHeader className="bg-muted sticky top-0 z-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
+          <Table>
+            <TableHeader className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
                   >
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
                     ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No expense categories found.
-                    </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DndContext>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No expense categories found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
@@ -890,55 +830,54 @@ export function CategoriesAndBudgetsTable({
         className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
       >
         <div className="overflow-hidden rounded-lg border">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
-            <Table>
-              <TableHeader className="bg-muted sticky top-0 z-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => {
-                      return (
-                        <TableHead key={header.id} colSpan={header.colSpan}>
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </TableHead>
-                      );
-                    })}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
+          <Table>
+            <TableHeader className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id} colSpan={header.colSpan}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
                   >
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
                     ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
-                    >
-                      No income categories found.
-                    </TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DndContext>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No income categories found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
         <div className="flex items-center justify-between px-4">
           <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
@@ -1027,6 +966,7 @@ export function CategoriesAndBudgetsTable({
         setData={setData}
         selectedCategories={selectedCategories}
         confirmBulkDelete={confirmBulkDelete}
+        activeTab={activeTab}
       />
     </Tabs>
   );
@@ -1041,6 +981,7 @@ function TableCellViewer({
   setData,
   selectedCategories = [],
   confirmBulkDelete,
+  activeTab,
 }: {
   activeItem: Category | null;
   viewMode: "add" | "edit" | "view" | "delete-confirm";
@@ -1050,6 +991,7 @@ function TableCellViewer({
   setData: React.Dispatch<React.SetStateAction<Category[]>>;
   selectedCategories?: Category[];
   confirmBulkDelete?: () => void;
+  activeTab: string;
 }) {
   const isMobile = useIsMobile();
 
@@ -1059,12 +1001,19 @@ function TableCellViewer({
       ? {
           id: activeItem.id,
           name: activeItem.name,
-          description: activeItem.description,
-          period: activeItem.period,
-          amount: activeItem.amount.toString(),
+          description: activeItem.description || "",
           type: activeItem.type,
+          icon: activeItem.icon || "Package",
+          period: activeItem.period,
+          budget: activeItem.budget,
+          spent: activeItem.spent,
+          transactions: activeItem.transactions,
+          balance: activeItem.balance,
         }
-      : emptyCategoryForm,
+      : {
+          ...emptyCategoryForm,
+          type: activeTab === "expenses" ? "Expense" : "Income",
+        },
     mode: "onSubmit",
   });
 
@@ -1073,26 +1022,35 @@ function TableCellViewer({
       form.reset({
         id: activeItem.id,
         name: activeItem.name,
-        description: activeItem.description,
-        period: activeItem.period,
-        amount: activeItem.amount.toString(),
+        description: activeItem.description || "",
         type: activeItem.type,
+        icon: activeItem.icon || "Package",
+        period: activeItem.period,
+        budget: activeItem.budget,
+        spent: activeItem.spent,
+        transactions: activeItem.transactions,
+        balance: activeItem.balance,
       });
     } else {
-      form.reset(emptyCategoryForm);
+      form.reset({
+        ...emptyCategoryForm,
+        type: activeTab === "expenses" ? "Expense" : "Income",
+      });
     }
-  }, [activeItem, form]);
+  }, [activeItem, form, activeTab]);
 
   const onSubmit = (values: CategoryFormValues) => {
-    const newCategory = {
+    const newCategory: Category = {
       id: values.id || Date.now(),
       name: values.name,
-      description: values.description || "",
-      period: values.period,
-      transactions: activeItem?.transactions || 0,
-      amount: Number.parseFloat(values.amount),
-      spent: activeItem?.spent || 0,
+      description: values.description,
       type: values.type,
+      icon: values.icon || "Package",
+      period: values.period,
+      budget: values.budget,
+      spent: values.spent,
+      transactions: values.transactions,
+      balance: values.balance,
     };
 
     toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
@@ -1105,7 +1063,10 @@ function TableCellViewer({
           return "Category updated successfully";
         } else {
           setData((prev) => [...prev, newCategory]);
-          form.reset(emptyCategoryForm);
+          form.reset({
+            ...emptyCategoryForm,
+            type: activeTab === "expenses" ? "Expense" : "Income",
+          });
           return "Category added successfully";
         }
       },
@@ -1117,6 +1078,7 @@ function TableCellViewer({
 
   const isReadOnly = viewMode === "view";
   const isDeleteConfirm = viewMode === "delete-confirm";
+  const isExpense = form.watch("type") === "Expense";
 
   if (isDeleteConfirm) {
     return (
@@ -1130,7 +1092,7 @@ function TableCellViewer({
             <DrawerTitle>Confirm Deletion</DrawerTitle>
             <DrawerDescription>
               Are you sure you want to delete {selectedCategories.length}{" "}
-              category(s)?
+              category(ies)?
             </DrawerDescription>
           </DrawerHeader>
           <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
@@ -1147,26 +1109,18 @@ function TableCellViewer({
                         <span className="font-medium">{category.name}</span>
                         <Badge
                           variant="outline"
-                          className="text-muted-foreground px-1.5 flex items-center"
+                          className={
+                            category.type === "Income"
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
+                              : "bg-red-100 text-destructive dark:bg-red-900 dark:text-red-200"
+                          }
                         >
                           {category.type}
                         </Badge>
                       </div>
-                      <div
-                        className={
-                          category.type === "Expense"
-                            ? "text-destructive"
-                            : "text-emerald-500"
-                        }
-                      >
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(category.amount)}
-                      </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {category.description}
+                      {category.description || "No description"}
                     </div>
                   </div>
                 ))}
@@ -1207,7 +1161,7 @@ function TableCellViewer({
           </DrawerTitle>
           <DrawerDescription>
             {viewMode === "add"
-              ? "Add a new budget category"
+              ? "Add a new category to your records"
               : viewMode === "edit"
               ? "Update category information"
               : "View category details"}
@@ -1249,7 +1203,7 @@ function TableCellViewer({
                     <FormLabel>Description</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
-                        {field.value || "No description provided."}
+                        {field.value || "No description"}
                       </div>
                     ) : (
                       <FormControl>
@@ -1261,156 +1215,215 @@ function TableCellViewer({
                 )}
               />
 
-              {/* Period & Type */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="period"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Period</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md">
-                          {
-                            periodLabels[
-                              field.value as keyof typeof periodLabels
-                            ]
-                          }
-                        </div>
-                      ) : (
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isReadOnly}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select a period" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="daily">Daily</SelectItem>
-                            <SelectItem value="weekly">Weekly</SelectItem>
-                            <SelectItem value="monthly">Monthly</SelectItem>
-                            <SelectItem value="quarterly">Quarterly</SelectItem>
-                            <SelectItem value="semi-annually">
-                              Every 6 Months
-                            </SelectItem>
-                            <SelectItem value="annually">Yearly</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Type</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md">
-                          {field.value}
-                        </div>
-                      ) : (
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isReadOnly}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select a type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Expense">Expense</SelectItem>
-                            <SelectItem value="Income">Income</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Amount */}
+              {/* Type */}
               <FormField
                 control={form.control}
-                name="amount"
+                name="type"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Type</FormLabel>
                     {isReadOnly ? (
-                      <div className="p-2 border rounded-md">
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(Number.parseFloat(field.value))}
-                      </div>
+                      <div className="p-2 border rounded-md">{field.value}</div>
                     ) : (
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          step="0.01"
-                          min={0.01}
-                        />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={isReadOnly}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Expense">Expense</SelectItem>
+                          <SelectItem value="Income">Income</SelectItem>
+                        </SelectContent>
+                      </Select>
                     )}
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Additional read-only fields for view mode */}
-              {isReadOnly && activeItem && (
-                <>
-                  <div className="flex flex-col gap-3">
-                    <Label>Transactions</Label>
-                    <div className="p-2 border rounded-md">
-                      {activeItem.transactions}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <Label>Spent</Label>
-                    <div className="p-2 border rounded-md">
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      }).format(activeItem.spent)}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <Label>Progress</Label>
-                    <div className="p-2 border rounded-md">
-                      <div className="flex items-center gap-2">
-                        <Progress
-                          value={Math.min(
-                            Math.round(
-                              (activeItem.spent / activeItem.amount) * 100
-                            ),
-                            100
-                          )}
-                          className="h-2 w-full"
-                        />
-                        <span className="text-xs text-muted-foreground w-10">
-                          {Math.min(
-                            Math.round(
-                              (activeItem.spent / activeItem.amount) * 100
-                            ),
-                            100
-                          )}
-                          %
-                        </span>
+              {/* Icon */}
+              <FormField
+                control={form.control}
+                name="icon"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Icon</FormLabel>
+                    {isReadOnly ? (
+                      <div className="p-2 border rounded-md flex items-center">
+                        {getIconBySlug(field.value)}
+                        {field.value}
                       </div>
-                    </div>
-                  </div>
-                </>
+                    ) : (
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || "Package"}
+                        disabled={isReadOnly}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select an icon" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Package">
+                            <div className="flex items-center">
+                              <Package className="mr-2 h-4 w-4" />
+                              Package
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Utensils">
+                            <div className="flex items-center">
+                              <Utensils className="mr-2 h-4 w-4" />
+                              Utensils
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Car">
+                            <div className="flex items-center">
+                              <Car className="mr-2 h-4 w-4" />
+                              Car
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Home">
+                            <div className="flex items-center">
+                              <Home className="mr-2 h-4 w-4" />
+                              Home
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Lightbulb">
+                            <div className="flex items-center">
+                              <Lightbulb className="mr-2 h-4 w-4" />
+                              Lightbulb
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Film">
+                            <div className="flex items-center">
+                              <Film className="mr-2 h-4 w-4" />
+                              Film
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Heart">
+                            <div className="flex items-center">
+                              <Heart className="mr-2 h-4 w-4" />
+                              Heart
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Briefcase">
+                            <div className="flex items-center">
+                              <Briefcase className="mr-2 h-4 w-4" />
+                              Briefcase
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="TrendingUp">
+                            <div className="flex items-center">
+                              <TrendingUp className="mr-2 h-4 w-4" />
+                              TrendingUp
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Period - Only show in view mode or for Expenses */}
+              {form.watch("type") === "Expense" &&
+                viewMode !== "add" &&
+                viewMode !== "edit" && (
+                  <FormField
+                    control={form.control}
+                    name="period"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-3">
+                        <FormLabel>Period</FormLabel>
+                        <div className="p-2 border rounded-md">
+                          {field.value ? periodLabels[field.value] : "N/A"}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+              {/* Budget - Only show in view mode or for Expenses */}
+              {form.watch("type") === "Expense" &&
+                viewMode !== "add" &&
+                viewMode !== "edit" && (
+                  <FormField
+                    control={form.control}
+                    name="budget"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-3">
+                        <FormLabel>Budget</FormLabel>
+                        <div className="p-2 border rounded-md">
+                          {field.value !== undefined
+                            ? new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                              }).format(field.value)
+                            : "N/A"}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+              {/* Transactions - View only */}
+              {isReadOnly && activeItem?.transactions !== undefined && (
+                <FormField
+                  control={form.control}
+                  name="transactions"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-3">
+                      <FormLabel>Transactions</FormLabel>
+                      <div className="p-2 border rounded-md">
+                        {field.value || 0}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
+
+              {isReadOnly &&
+                activeItem?.budget &&
+                activeItem?.spent !== undefined && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Progress</FormLabel>
+                    <div className="space-y-2">
+                      <Progress
+                        value={Math.min(
+                          100,
+                          ((activeItem.spent || 0) / activeItem.budget) * 100
+                        )}
+                        className="h-2"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(activeItem.spent || 0)}{" "}
+                        of{" "}
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(activeItem.budget)}{" "}
+                        (
+                        {Math.round(
+                          ((activeItem.spent || 0) / activeItem.budget) * 100
+                        )}
+                        %)
+                      </p>
+                    </div>
+                  </FormItem>
+                )}
             </form>
           </Form>
         </div>

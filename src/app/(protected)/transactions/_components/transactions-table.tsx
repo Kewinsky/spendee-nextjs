@@ -107,6 +107,7 @@ import {
 } from "@/lib/schemas";
 import { format } from "date-fns";
 import { DateRange } from "react-day-picker";
+import { getIconBySlug } from "@/utils/getIconBySlug";
 
 export const schema = z.object({
   id: z.number(),
@@ -114,31 +115,21 @@ export const schema = z.object({
   description: z.string(),
   amount: z.number(),
   category: z.string(),
+  icon: z.string(),
   type: z.string(),
   notes: z.string().optional(),
 });
 
-const getCategoryIcon = (category: string) => {
-  switch (category) {
-    case "Food":
-      return <Utensils className="mr-2 h-4 w-4" />;
-    case "Transportation":
-      return <Car className="mr-2 h-4 w-4" />;
-    case "Housing":
-      return <Home className="mr-2 h-4 w-4" />;
-    case "Utilities":
-      return <Lightbulb className="mr-2 h-4 w-4" />;
-    case "Entertainment":
-      return <Film className="mr-2 h-4 w-4" />;
-    case "Healthcare":
-      return <Heart className="mr-2 h-4 w-4" />;
-    case "Salary":
-      return <Briefcase className="mr-2 h-4 w-4" />;
-    case "Investment":
-      return <TrendingUp className="mr-2 h-4 w-4" />;
-    default:
-      return <Package className="mr-2 h-4 w-4" />;
-  }
+const categoryMap: Record<string, string> = {
+  Groceries: "Utensils",
+  Housing: "Home",
+  Transportation: "Car",
+  Dining: "Utensils",
+  Entertainment: "Film",
+  Healthcare: "Heart",
+  Salary: "Briefcase",
+  Investments: "TrendingUp",
+  Freelance: "DollarSign",
 };
 
 export function TransactionsTable({
@@ -362,7 +353,7 @@ export function TransactionsTable({
           variant="outline"
           className="text-muted-foreground px-1.5 flex items-center"
         >
-          {getCategoryIcon(row.original.category)}
+          {getIconBySlug(row.original.icon)}
           {row.original.category}
         </Badge>
       ),
@@ -643,19 +634,17 @@ export function TransactionsTable({
                 All Categories
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {Array.from(new Set(data.map((item) => item.category))).map(
-                (category) => (
-                  <DropdownMenuItem
-                    key={category}
-                    onClick={() => setCategoryFilter(category)}
-                  >
-                    <div className="flex items-center">
-                      {getCategoryIcon(category)}
-                      {category}
-                    </div>
-                  </DropdownMenuItem>
-                )
-              )}
+              {Object.entries(categoryMap).map(([category, icon]) => (
+                <DropdownMenuItem
+                  key={category}
+                  onClick={() => setCategoryFilter(category)}
+                >
+                  <div className="flex items-center">
+                    {getIconBySlug(icon)}
+                    {category}
+                  </div>
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -1213,7 +1202,7 @@ function TableCellViewer({
                           variant="outline"
                           className="text-muted-foreground px-1.5 flex items-center"
                         >
-                          {getCategoryIcon(transaction.category)}
+                          {getIconBySlug(transaction.category)}
                           {transaction.category}
                         </Badge>
                       </div>
@@ -1428,7 +1417,7 @@ function TableCellViewer({
                     <FormLabel>Category</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md flex items-center gap-2">
-                        {getCategoryIcon(field.value)}
+                        {getIconBySlug(activeItem?.icon || "Package")}
                         {field.value}
                       </div>
                     ) : (

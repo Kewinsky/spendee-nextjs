@@ -4,18 +4,10 @@
     "date": "2025-01-01",
     "description": "Groceries",
     "amount": 50.0,
-    "category": "Food",
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "Weekly groceries"
-  },
-  {
-    "id": 2,
-    "date": "2025-01-05",
-    "description": "Salary",
-    "amount": 2000.0,
-    "category": "Salary",
-    "type": "Income",
-    "notes": "January salary"
+    "notes": "Weekly groceries",
+    "icon": "Utensils"
   },
   {
     "id": 3,
@@ -24,25 +16,8 @@
     "amount": 30.0,
     "category": "Transportation",
     "type": "Expense",
-    "notes": "Monthly pass"
-  },
-  {
-    "id": 4,
-    "date": "2025-01-15",
-    "description": "Investment",
-    "amount": 100.0,
-    "category": "Investment",
-    "type": "Income",
-    "notes": "Stock dividends"
-  },
-  {
-    "id": 5,
-    "date": "2025-01-20",
-    "description": "Utilities",
-    "amount": 150.0,
-    "category": "Utilities",
-    "type": "Expense",
-    "notes": "Electricity bill"
+    "notes": "Monthly pass",
+    "icon": "Car"
   },
   {
     "id": 6,
@@ -51,7 +26,8 @@
     "amount": 75.0,
     "category": "Entertainment",
     "type": "Expense",
-    "notes": "Movie night"
+    "notes": "Movie night",
+    "icon": "Film"
   },
   {
     "id": 7,
@@ -60,25 +36,18 @@
     "amount": 200.0,
     "category": "Healthcare",
     "type": "Expense",
-    "notes": "Doctor's visit"
+    "notes": "Doctor's visit",
+    "icon": "Heart"
   },
   {
     "id": 8,
     "date": "2025-02-01",
     "description": "Groceries",
     "amount": 60.0,
-    "category": "Food",
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "Weekly groceries"
-  },
-  {
-    "id": 9,
-    "date": "2025-02-05",
-    "description": "Salary",
-    "amount": 2000.0,
-    "category": "Salary",
-    "type": "Income",
-    "notes": "February salary"
+    "notes": "Weekly groceries",
+    "icon": "Utensils"
   },
   {
     "id": 10,
@@ -87,366 +56,447 @@
     "amount": 30.0,
     "category": "Transportation",
     "type": "Expense",
-    "notes": "Monthly pass"
-  },
-  {
-    "id": 11,
-    "date": "2025-07-19",
-    "description": "Gym",
-    "amount": 1595.56,
-    "category": "Entertainment",
-    "type": "Expense",
-    "notes": "Monthly payment"
-  },
-  {
-    "id": 12,
-    "date": "2025-04-12",
-    "description": "Clothing",
-    "amount": 2103.57,
-    "category": "Education",
-    "type": "Expense",
-    "notes": "New subscription"
-  },
-  {
-    "id": 13,
-    "date": "2025-08-08",
-    "description": "Gym",
-    "amount": 505.92,
-    "category": "Salary",
-    "type": "Income",
-    "notes": "Birthday gift"
+    "notes": "Monthly pass",
+    "icon": "Car"
   },
   {
     "id": 14,
     "date": "2025-09-05",
     "description": "Groceries",
     "amount": 606.03,
-    "category": "Education",
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "Monthly payment"
-  },
-  {
-    "id": 15,
-    "date": "2025-03-21",
-    "description": "Coffee",
-    "amount": 618.92,
-    "category": "Housing",
-    "type": "Expense",
-    "notes": "New subscription"
-  },
-  {
-    "id": 16,
-    "date": "2025-06-14",
-    "description": "Insurance",
-    "amount": 2255.86,
-    "category": "Fitness",
-    "type": "Expense",
-    "notes": "Weekend purchase"
-  },
-  {
-    "id": 17,
-    "date": "2025-05-27",
-    "description": "Rent",
-    "amount": 1711.95,
-    "category": "Food",
-    "type": "Expense",
-    "notes": "New subscription"
+    "notes": "Monthly payment",
+    "icon": "Utensils"
   },
   {
     "id": 18,
     "date": "2025-04-23",
     "description": "Groceries",
     "amount": 1917.0,
-    "category": "Transportation",
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "Monthly payment"
-  },
-  {
-    "id": 19,
-    "date": "2025-12-12",
-    "description": "Bonus",
-    "amount": 488.82,
-    "category": "Education",
-    "type": "Expense",
-    "notes": "Monthly payment"
-  },
-  {
-    "id": 20,
-    "date": "2025-11-01",
-    "description": "Insurance",
-    "amount": 745.5,
-    "category": "Education",
-    "type": "Expense",
-    "notes": "Birthday gift"
-  },
-  {
-    "id": 21,
-    "date": "2025-02-18",
-    "description": "Bonus",
-    "amount": 180.85,
-    "category": "Gifts",
-    "type": "Expense",
-    "notes": "New subscription"
-  },
-  {
-    "id": 22,
-    "date": "2025-02-16",
-    "description": "Books",
-    "amount": 1908.6,
-    "category": "Fitness",
-    "type": "Expense",
-    "notes": "Annual bonus"
+    "notes": "Monthly payment",
+    "icon": "Utensils"
   },
   {
     "id": 23,
     "date": "2025-09-23",
     "description": "Groceries",
     "amount": 322.15,
-    "category": "Gifts",
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "Course materials"
-  },
-  {
-    "id": 24,
-    "date": "2025-05-07",
-    "description": "Gym",
-    "amount": 2186.21,
-    "category": "Transportation",
-    "type": "Expense",
-    "notes": "Weekend purchase"
+    "notes": "Course materials",
+    "icon": "Utensils"
   },
   {
     "id": 25,
     "date": "2025-07-27",
     "description": "Groceries",
     "amount": 1708.16,
-    "category": "Entertainment",
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "Course materials"
-  },
-  {
-    "id": 26,
-    "date": "2025-12-14",
-    "description": "Coffee",
-    "amount": 1658.53,
-    "category": "Education",
-    "type": "Expense",
-    "notes": "Weekend purchase"
-  },
-  {
-    "id": 27,
-    "date": "2025-03-08",
-    "description": "Dining out",
-    "amount": 1310.7,
-    "category": "Entertainment",
-    "type": "Expense",
-    "notes": "Course materials"
-  },
-  {
-    "id": 28,
-    "date": "2025-04-11",
-    "description": "Rent",
-    "amount": 799.17,
-    "category": "Gifts",
-    "type": "Expense",
-    "notes": "Monthly payment"
+    "notes": "Course materials",
+    "icon": "Utensils"
   },
   {
     "id": 29,
     "date": "2025-03-19",
     "description": "Groceries",
     "amount": 2225.73,
-    "category": "Housing",
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "Course materials"
-  },
-  {
-    "id": 30,
-    "date": "2025-03-01",
-    "description": "Freelance",
-    "amount": 1626.71,
-    "category": "Fitness",
-    "type": "Expense",
-    "notes": "Weekend purchase"
-  },
-  {
-    "id": 31,
-    "date": "2025-06-21",
-    "description": "Insurance",
-    "amount": 387.53,
-    "category": "Misc",
-    "type": "Expense",
-    "notes": "Weekend purchase"
-  },
-  {
-    "id": 32,
-    "date": "2025-12-04",
-    "description": "Clothing",
-    "amount": 407.19,
-    "category": "Fitness",
-    "type": "Expense",
-    "notes": "Annual bonus"
+    "notes": "Course materials",
+    "icon": "Utensils"
   },
   {
     "id": 33,
     "date": "2025-12-19",
     "description": "Groceries",
     "amount": 2044.9,
-    "category": "Insurance",
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "New subscription"
+    "notes": "New subscription",
+    "icon": "Utensils"
   },
   {
     "id": 34,
-    "date": "2025-06-25",
-    "description": "Books",
-    "amount": 373.65,
-    "category": "Misc",
-    "type": "Expense",
-    "notes": "Birthday gift"
+    "date": "2025-04-17",
+    "description": "Salary",
+    "amount": 2187.88,
+    "category": "Salary",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
   },
   {
     "id": 35,
-    "date": "2025-09-16",
-    "description": "Coffee",
-    "amount": 810.88,
-    "category": "Gifts",
-    "type": "Expense",
-    "notes": "New subscription"
+    "date": "2025-10-24",
+    "description": "Salary",
+    "amount": 4269.1,
+    "category": "Salary",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
   },
   {
     "id": 36,
-    "date": "2025-01-12",
-    "description": "Clothing",
-    "amount": 1767.77,
-    "category": "Entertainment",
+    "date": "2025-08-15",
+    "description": "Healthcare",
+    "amount": 997.35,
+    "category": "Healthcare",
     "type": "Expense",
-    "notes": "Birthday gift"
+    "notes": "Auto-generated",
+    "icon": "Heart"
   },
   {
     "id": 37,
-    "date": "2025-05-18",
-    "description": "Bonus",
-    "amount": 362.43,
-    "category": "Gifts",
-    "type": "Expense",
-    "notes": "New subscription"
+    "date": "2025-04-01",
+    "description": "Investments",
+    "amount": 2722.12,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
   },
   {
     "id": 38,
-    "date": "2025-11-23",
-    "description": "Clothing",
-    "amount": 1668.33,
-    "category": "Fitness",
-    "type": "Expense",
-    "notes": "Annual bonus"
+    "date": "2025-05-14",
+    "description": "Freelance",
+    "amount": 4545.47,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
   },
   {
     "id": 39,
-    "date": "2025-01-12",
-    "description": "Clothing",
-    "amount": 978.66,
-    "category": "Transportation",
-    "type": "Expense",
-    "notes": "Annual bonus"
+    "date": "2025-07-16",
+    "description": "Investments",
+    "amount": 1923.13,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
   },
   {
     "id": 40,
-    "date": "2025-07-04",
-    "description": "Bonus",
-    "amount": 1730.57,
-    "category": "Food",
+    "date": "2025-01-03",
+    "description": "Housing",
+    "amount": 1601.78,
+    "category": "Housing",
     "type": "Expense",
-    "notes": "Annual bonus"
+    "notes": "Auto-generated",
+    "icon": "Home"
   },
   {
     "id": 41,
-    "date": "2025-10-18",
-    "description": "Rent",
-    "amount": 1475.54,
-    "category": "Insurance",
-    "type": "Expense",
-    "notes": "Monthly payment"
+    "date": "2025-01-22",
+    "description": "Freelance",
+    "amount": 2021.87,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
   },
   {
     "id": 42,
-    "date": "2025-12-09",
-    "description": "Clothing",
-    "amount": 467.51,
-    "category": "Transportation",
+    "date": "2025-01-29",
+    "description": "Dining",
+    "amount": 528.17,
+    "category": "Dining",
     "type": "Expense",
-    "notes": "Course materials"
+    "notes": "Auto-generated",
+    "icon": "Utensils"
   },
   {
     "id": 43,
-    "date": "2025-04-06",
-    "description": "Bonus",
-    "amount": 377.99,
-    "category": "Gifts",
+    "date": "2025-03-20",
+    "description": "Housing",
+    "amount": 710.43,
+    "category": "Housing",
     "type": "Expense",
-    "notes": "Course materials"
+    "notes": "Auto-generated",
+    "icon": "Home"
   },
   {
     "id": 44,
-    "date": "2025-12-19",
-    "description": "Insurance",
-    "amount": 853.39,
-    "category": "Gifts",
+    "date": "2025-10-29",
+    "description": "Entertainment",
+    "amount": 155.24,
+    "category": "Entertainment",
     "type": "Expense",
-    "notes": "Birthday gift"
+    "notes": "Auto-generated",
+    "icon": "Film"
   },
   {
     "id": 45,
-    "date": "2025-10-11",
-    "description": "Dining out",
-    "amount": 1074.17,
-    "category": "Misc",
+    "date": "2025-07-25",
+    "description": "Groceries",
+    "amount": 1702.63,
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "Annual bonus"
+    "notes": "Auto-generated",
+    "icon": "Utensils"
   },
   {
     "id": 46,
-    "date": "2025-01-06",
-    "description": "Clothing",
-    "amount": 258.4,
-    "category": "Insurance",
+    "date": "2025-01-04",
+    "description": "Groceries",
+    "amount": 1476.85,
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "New subscription"
+    "notes": "Auto-generated",
+    "icon": "Utensils"
   },
   {
     "id": 47,
-    "date": "2025-05-03",
-    "description": "Gym",
-    "amount": 354.31,
-    "category": "Entertainment",
-    "type": "Expense",
-    "notes": "Birthday gift"
+    "date": "2025-03-28",
+    "description": "Investments",
+    "amount": 2167.34,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
   },
   {
     "id": 48,
-    "date": "2025-09-15",
-    "description": "Freelance",
-    "amount": 1063.34,
-    "category": "Food",
+    "date": "2025-02-06",
+    "description": "Groceries",
+    "amount": 1825.29,
+    "category": "Groceries",
     "type": "Expense",
-    "notes": "Birthday gift"
+    "notes": "Auto-generated",
+    "icon": "Utensils"
   },
   {
     "id": 49,
-    "date": "2025-10-21",
-    "description": "Gym",
-    "amount": 336.45,
-    "category": "Education",
+    "date": "2025-10-26",
+    "description": "Dining",
+    "amount": 1476.23,
+    "category": "Dining",
     "type": "Expense",
-    "notes": "Annual bonus"
+    "notes": "Auto-generated",
+    "icon": "Utensils"
   },
   {
     "id": 50,
-    "date": "2025-07-07",
-    "description": "Clothing",
-    "amount": 1812.34,
+    "date": "2025-09-27",
+    "description": "Healthcare",
+    "amount": 839.33,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 51,
+    "date": "2025-05-07",
+    "description": "Healthcare",
+    "amount": 1335.82,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 52,
+    "date": "2025-03-18",
+    "description": "Salary",
+    "amount": 2404.08,
     "category": "Salary",
     "type": "Income",
-    "notes": "New subscription"
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 53,
+    "date": "2025-12-16",
+    "description": "Housing",
+    "amount": 139.21,
+    "category": "Housing",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Home"
+  },
+  {
+    "id": 54,
+    "date": "2025-09-10",
+    "description": "Freelance",
+    "amount": 96.71,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
+  },
+  {
+    "id": 55,
+    "date": "2025-06-30",
+    "description": "Healthcare",
+    "amount": 360.68,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 56,
+    "date": "2025-07-25",
+    "description": "Healthcare",
+    "amount": 1603.73,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 57,
+    "date": "2025-07-28",
+    "description": "Groceries",
+    "amount": 1906.25,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Utensils"
+  },
+  {
+    "id": 58,
+    "date": "2025-07-29",
+    "description": "Entertainment",
+    "amount": 690.07,
+    "category": "Entertainment",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Film"
+  },
+  {
+    "id": 59,
+    "date": "2025-02-15",
+    "description": "Entertainment",
+    "amount": 671.58,
+    "category": "Entertainment",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Film"
+  },
+  {
+    "id": 60,
+    "date": "2025-08-11",
+    "description": "Housing",
+    "amount": 608.26,
+    "category": "Housing",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Home"
+  },
+  {
+    "id": 61,
+    "date": "2025-04-02",
+    "description": "Investments",
+    "amount": 1552.53,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
+  },
+  {
+    "id": 62,
+    "date": "2025-12-15",
+    "description": "Investments",
+    "amount": 3302.13,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
+  },
+  {
+    "id": 63,
+    "date": "2025-07-28",
+    "description": "Freelance",
+    "amount": 1243.83,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
+  },
+  {
+    "id": 64,
+    "date": "2025-01-23",
+    "description": "Salary",
+    "amount": 3505.13,
+    "category": "Salary",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 65,
+    "date": "2025-12-11",
+    "description": "Groceries",
+    "amount": 591.9,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Utensils"
+  },
+  {
+    "id": 66,
+    "date": "2025-08-12",
+    "description": "Transportation",
+    "amount": 1458.61,
+    "category": "Transportation",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Car"
+  },
+  {
+    "id": 67,
+    "date": "2025-04-25",
+    "description": "Salary",
+    "amount": 438.64,
+    "category": "Salary",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 68,
+    "date": "2025-10-03",
+    "description": "Entertainment",
+    "amount": 1006.39,
+    "category": "Entertainment",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Film"
+  },
+  {
+    "id": 69,
+    "date": "2025-06-26",
+    "description": "Freelance",
+    "amount": 2123.26,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
+  },
+  {
+    "id": 70,
+    "date": "2025-06-15",
+    "description": "Healthcare",
+    "amount": 1247.37,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 71,
+    "date": "2025-08-04",
+    "description": "Transportation",
+    "amount": 1400.91,
+    "category": "Transportation",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Car"
   }
 ]

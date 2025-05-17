@@ -5,9 +5,10 @@
     "description": "Food and household items",
     "period": "weekly",
     "transactions": 15,
-    "amount": 400,
+    "budget": 400,
     "spent": 350,
-    "type": "Expense"
+    "type": "Expense",
+    "icon": "Utensils"
   },
   {
     "id": 2,
@@ -15,9 +16,11 @@
     "description": "Rent, utilities, maintenance",
     "period": "monthly",
     "transactions": 3,
-    "amount": 1200,
+    "budget": 1200,
     "spent": 1180,
-    "type": "Expense"
+    "type": "Expense",
+    "icon": "Home"
+
   },
   {
     "id": 3,
@@ -25,9 +28,10 @@
     "description": "Gas, public transit, car maintenance",
     "period": "monthly",
     "transactions": 8,
-    "amount": 350,
+    "budget": 350,
     "spent": 290,
-    "type": "Expense"
+    "type": "Expense",
+    "icon": "Car"
   },
   {
     "id": 4,
@@ -35,9 +39,10 @@
     "description": "Restaurants and takeout",
     "period": "weekly",
     "transactions": 12,
-    "amount": 300,
+    "budget": 300,
     "spent": 280,
-    "type": "Expense"
+    "type": "Expense",
+    "icon": "Utensils"
   },
   {
     "id": 5,
@@ -45,9 +50,10 @@
     "description": "Movies, events, subscriptions",
     "period": "monthly",
     "transactions": 5,
-    "amount": 150,
+    "budget": 150,
     "spent": 100,
-    "type": "Expense"
+    "type": "Expense",
+    "icon": "Film"
   },
   {
     "id": 6,
@@ -55,8 +61,42 @@
     "description": "Medical expenses, insurance",
     "period": "monthly",
     "transactions": 2,
-    "amount": 200,
+    "budget": 200,
     "spent": 180,
-    "type": "Expense"
+    "type": "Expense",
+    "icon": "Heart"
+  },
+  {
+    "id": 7,
+    "name": "Salary",
+    "description": "Monthly paycheck from employer",
+    "period": "monthly",
+    "transactions": 2,
+    "budget": 4000,
+    "spent": 0,
+    "type": "Income",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 8,
+    "name": "Investments",
+    "description": "Dividends, stock gains, etc.",
+    "period": "quarterly",
+    "transactions": 1,
+    "budget": 1500,
+    "spent": 0,
+    "type": "Income",
+    "icon": "TrendingUp"
+  },
+  {
+    "id": 9,
+    "name": "Freelance",
+    "description": "Income from freelance projects",
+    "period": "monthly",
+    "transactions": 3,
+    "budget": 1200,
+    "spent": 0,
+    "type": "Income",
+    "icon": "DollarSign"
   }
 ]
