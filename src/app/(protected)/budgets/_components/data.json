@@ -36,7 +36,7 @@
     "category": "Entertainment",
     "period": "monthly",
     "amount": 150,
-    "spent": 100,
+    "spent": 200,
     "icon": "Film"
   },
   {
@@ -44,7 +44,7 @@
     "category": "Healthcare",
     "period": "monthly",
     "amount": 200,
-    "spent": 180,
+    "spent": 200,
     "icon": "Heart"
   }
 ]

@@ -92,6 +92,7 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { Tabs } from "@/components/ui/tabs";
 import { getIconBySlug } from "@/utils/getIconBySlug";
+import { getStatusColorByPercentage } from "@/utils/getStatusColorByPercentage";
 
 // Schema for budget data
 export const budgetSchema = z.object({
@@ -356,11 +357,16 @@ export function BudgetTable({
       cell: ({ row }) => {
         const amount = row.original.amount;
         const spent = row.original.spent || 0;
-        const progress = amount > 0 ? Math.min(100, (spent / amount) * 100) : 0;
+        const progress = amount > 0 ? (spent / amount) * 100 : 0;
 
         return (
           <div className="w-full space-y-1">
-            <Progress value={progress} className="h-2" />
+            <Progress
+              value={progress}
+              className={`h-2 ${getStatusColorByPercentage(
+                Math.round(progress)
+              )}`}
+            />
             <p className="text-xs text-muted-foreground">
               {Math.round(progress)}%
             </p>
@@ -1045,7 +1051,9 @@ function TableCellViewer({
                           100,
                           ((activeItem.spent || 0) / activeItem.amount) * 100
                         )}
-                        className="h-2"
+                        className={`h-2 ${getStatusColorByPercentage(
+                          ((activeItem.spent || 0) / activeItem.amount) * 100
+                        )}`}
                       />
                       <p className="text-sm text-muted-foreground">
                         {new Intl.NumberFormat("en-US", {

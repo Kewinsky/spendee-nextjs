@@ -7,7 +7,9 @@
     "expectedRate": 1.25,
     "balance": 5000,
     "growth": 125,
-    "type": "Savings"
+    "type": "Savings",
+    "growthPercentage": 2.5
+
   },
   {
     "id": 2,
@@ -17,7 +19,8 @@
     "expectedRate": 1.5,
     "balance": 2500,
     "growth": 75,
-    "type": "Savings"
+    "type": "Savings",
+    "growthPercentage": 3.0
   },
   {
     "id": 3,
@@ -27,7 +30,8 @@
     "expectedRate": 7.0,
     "balance": 45000,
     "growth": 3500,
-    "type": "Investment"
+    "type": "Investment",
+    "growthPercentage": 7.8
   },
   {
     "id": 4,
@@ -37,7 +41,8 @@
     "expectedRate": 5.5,
     "balance": 12000,
     "growth": 650,
-    "type": "Investment"
+    "type": "Investment",
+    "growthPercentage": 5.4
   },
   {
     "id": 5,
@@ -47,6 +52,7 @@
     "expectedRate": 0,
     "balance": 8500,
     "growth": -250,
-    "type": "Investment"
+    "type": "Investment",
+    "growthPercentage": -2.9
   }
 ]

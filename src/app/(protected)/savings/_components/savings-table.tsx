@@ -99,6 +99,7 @@ export const accountSchema = z.object({
   expectedRate: z.number(),
   balance: z.number(),
   growth: z.number(),
+  growthPercentage: z.number(),
   type: z.enum(["Savings", "Investment"]),
 });
 
@@ -142,30 +143,6 @@ const getCategoryIcon = (category: string) => {
   }
 };
 
-// Sample data for when initialData is undefined
-const sampleData: Account[] = [
-  {
-    id: 1,
-    accountName: "Checking Account",
-    institution: "Bank of America",
-    category: "Bank Account",
-    expectedRate: 0.01,
-    balance: 5000,
-    growth: 0.5,
-    type: "Savings",
-  },
-  {
-    id: 2,
-    accountName: "401(k)",
-    institution: "Fidelity",
-    category: "Retirement",
-    expectedRate: 7.0,
-    balance: 85000,
-    growth: 12.3,
-    type: "Investment",
-  },
-];
-
 export function SavingsTable({ data: initialData }: { data?: Account[] }) {
   const [activeItem, setActiveItem] = React.useState<Account | null>(null);
   const [viewMode, setViewMode] = React.useState<
@@ -173,9 +150,7 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
   >("add");
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   // Ensure data is always an array, even if initialData is undefined
-  const [data, setData] = React.useState<Account[]>(
-    () => initialData || sampleData
-  );
+  const [data, setData] = React.useState<Account[]>(() => initialData);
   const [selectedAccounts, setSelectedAccounts] = React.useState<Account[]>([]);
   const [activeTab, setActiveTab] = React.useState("savings");
   const [categoryFilter, setCategoryFilter] =
@@ -437,9 +412,23 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
         const growth = row.original.growth;
         const isPositive = growth >= 0;
         return (
-          <div className={isPositive ? "text-green-500" : "text-destructive"}>
-            {isPositive ? "+" : ""}
+          <div>
             {growth.toFixed(2)}%
+            <span className="ml-2 text-xs">
+              {row.original.growthPercentage > 0 ? (
+                <span className="text-emerald-500">
+                  <ArrowUp className="inline h-3 w-3 mr-1" />
+                  {row.original.growthPercentage}%
+                </span>
+              ) : row.original.growthPercentage < 0 ? (
+                <span className="text-desctructive">
+                  <ArrowDown className="inline h-3 w-3 mr-1" />
+                  {Math.abs(row.original.growthPercentage)}%
+                </span>
+              ) : (
+                <span className="text-gray-500">0%</span>
+              )}
+            </span>
           </div>
         );
       },
@@ -1317,15 +1306,23 @@ function TableCellViewer({
                 <div className="flex flex-col gap-3">
                   <Label>Growth</Label>
                   <div className="p-2 border rounded-md">
-                    <span
-                      className={
-                        activeItem.growth >= 0
-                          ? "text-green-500"
-                          : "text-destructive"
-                      }
-                    >
-                      {activeItem.growth >= 0 ? "+" : ""}
+                    <span>
                       {activeItem.growth.toFixed(2)}%
+                      <span className="ml-2 text-xs">
+                        {activeItem.growthPercentage > 0 ? (
+                          <span className="text-emerald-500">
+                            <ArrowUp className="inline h-3 w-3 mr-1" />
+                            {activeItem.growthPercentage}%
+                          </span>
+                        ) : activeItem.growthPercentage < 0 ? (
+                          <span className="text-desctructive">
+                            <ArrowDown className="inline h-3 w-3 mr-1" />
+                            {Math.abs(activeItem.growthPercentage)}%
+                          </span>
+                        ) : (
+                          <span className="text-gray-500">0%</span>
+                        )}
+                      </span>
                     </span>
                   </div>
                 </div>
