@@ -1,0 +1,502 @@
+[
+  {
+    "id": 1,
+    "date": "2025-01-01",
+    "description": "Groceries",
+    "amount": 50.0,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Weekly groceries",
+    "icon": "Utensils"
+  },
+  {
+    "id": 3,
+    "date": "2025-01-10",
+    "description": "Transportation",
+    "amount": 30.0,
+    "category": "Transportation",
+    "type": "Expense",
+    "notes": "Monthly pass",
+    "icon": "Car"
+  },
+  {
+    "id": 6,
+    "date": "2025-01-25",
+    "description": "Entertainment",
+    "amount": 75.0,
+    "category": "Entertainment",
+    "type": "Expense",
+    "notes": "Movie night",
+    "icon": "Film"
+  },
+  {
+    "id": 7,
+    "date": "2025-01-30",
+    "description": "Healthcare",
+    "amount": 200.0,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Doctor's visit",
+    "icon": "Heart"
+  },
+  {
+    "id": 8,
+    "date": "2025-02-01",
+    "description": "Groceries",
+    "amount": 60.0,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Weekly groceries",
+    "icon": "Utensils"
+  },
+  {
+    "id": 10,
+    "date": "2025-02-10",
+    "description": "Transportation",
+    "amount": 30.0,
+    "category": "Transportation",
+    "type": "Expense",
+    "notes": "Monthly pass",
+    "icon": "Car"
+  },
+  {
+    "id": 14,
+    "date": "2025-09-05",
+    "description": "Groceries",
+    "amount": 606.03,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Monthly payment",
+    "icon": "Utensils"
+  },
+  {
+    "id": 18,
+    "date": "2025-04-23",
+    "description": "Groceries",
+    "amount": 1917.0,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Monthly payment",
+    "icon": "Utensils"
+  },
+  {
+    "id": 23,
+    "date": "2025-09-23",
+    "description": "Groceries",
+    "amount": 322.15,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Course materials",
+    "icon": "Utensils"
+  },
+  {
+    "id": 25,
+    "date": "2025-07-27",
+    "description": "Groceries",
+    "amount": 1708.16,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Course materials",
+    "icon": "Utensils"
+  },
+  {
+    "id": 29,
+    "date": "2025-03-19",
+    "description": "Groceries",
+    "amount": 2225.73,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Course materials",
+    "icon": "Utensils"
+  },
+  {
+    "id": 33,
+    "date": "2025-12-19",
+    "description": "Groceries",
+    "amount": 2044.9,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "New subscription",
+    "icon": "Utensils"
+  },
+  {
+    "id": 34,
+    "date": "2025-04-17",
+    "description": "Salary",
+    "amount": 2187.88,
+    "category": "Salary",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 35,
+    "date": "2025-10-24",
+    "description": "Salary",
+    "amount": 4269.1,
+    "category": "Salary",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 36,
+    "date": "2025-08-15",
+    "description": "Healthcare",
+    "amount": 997.35,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 37,
+    "date": "2025-04-01",
+    "description": "Investments",
+    "amount": 2722.12,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
+  },
+  {
+    "id": 38,
+    "date": "2025-05-14",
+    "description": "Freelance",
+    "amount": 4545.47,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
+  },
+  {
+    "id": 39,
+    "date": "2025-07-16",
+    "description": "Investments",
+    "amount": 1923.13,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
+  },
+  {
+    "id": 40,
+    "date": "2025-01-03",
+    "description": "Housing",
+    "amount": 1601.78,
+    "category": "Housing",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Home"
+  },
+  {
+    "id": 41,
+    "date": "2025-01-22",
+    "description": "Freelance",
+    "amount": 2021.87,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
+  },
+  {
+    "id": 42,
+    "date": "2025-01-29",
+    "description": "Dining",
+    "amount": 528.17,
+    "category": "Dining",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Utensils"
+  },
+  {
+    "id": 43,
+    "date": "2025-03-20",
+    "description": "Housing",
+    "amount": 710.43,
+    "category": "Housing",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Home"
+  },
+  {
+    "id": 44,
+    "date": "2025-10-29",
+    "description": "Entertainment",
+    "amount": 155.24,
+    "category": "Entertainment",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Film"
+  },
+  {
+    "id": 45,
+    "date": "2025-07-25",
+    "description": "Groceries",
+    "amount": 1702.63,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Utensils"
+  },
+  {
+    "id": 46,
+    "date": "2025-01-04",
+    "description": "Groceries",
+    "amount": 1476.85,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Utensils"
+  },
+  {
+    "id": 47,
+    "date": "2025-03-28",
+    "description": "Investments",
+    "amount": 2167.34,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
+  },
+  {
+    "id": 48,
+    "date": "2025-02-06",
+    "description": "Groceries",
+    "amount": 1825.29,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Utensils"
+  },
+  {
+    "id": 49,
+    "date": "2025-10-26",
+    "description": "Dining",
+    "amount": 1476.23,
+    "category": "Dining",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Utensils"
+  },
+  {
+    "id": 50,
+    "date": "2025-09-27",
+    "description": "Healthcare",
+    "amount": 839.33,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 51,
+    "date": "2025-05-07",
+    "description": "Healthcare",
+    "amount": 1335.82,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 52,
+    "date": "2025-03-18",
+    "description": "Salary",
+    "amount": 2404.08,
+    "category": "Salary",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 53,
+    "date": "2025-12-16",
+    "description": "Housing",
+    "amount": 139.21,
+    "category": "Housing",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Home"
+  },
+  {
+    "id": 54,
+    "date": "2025-09-10",
+    "description": "Freelance",
+    "amount": 96.71,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
+  },
+  {
+    "id": 55,
+    "date": "2025-06-30",
+    "description": "Healthcare",
+    "amount": 360.68,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 56,
+    "date": "2025-07-25",
+    "description": "Healthcare",
+    "amount": 1603.73,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 57,
+    "date": "2025-07-28",
+    "description": "Groceries",
+    "amount": 1906.25,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Utensils"
+  },
+  {
+    "id": 58,
+    "date": "2025-07-29",
+    "description": "Entertainment",
+    "amount": 690.07,
+    "category": "Entertainment",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Film"
+  },
+  {
+    "id": 59,
+    "date": "2025-02-15",
+    "description": "Entertainment",
+    "amount": 671.58,
+    "category": "Entertainment",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Film"
+  },
+  {
+    "id": 60,
+    "date": "2025-08-11",
+    "description": "Housing",
+    "amount": 608.26,
+    "category": "Housing",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Home"
+  },
+  {
+    "id": 61,
+    "date": "2025-04-02",
+    "description": "Investments",
+    "amount": 1552.53,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
+  },
+  {
+    "id": 62,
+    "date": "2025-12-15",
+    "description": "Investments",
+    "amount": 3302.13,
+    "category": "Investments",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "TrendingUp"
+  },
+  {
+    "id": 63,
+    "date": "2025-07-28",
+    "description": "Freelance",
+    "amount": 1243.83,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
+  },
+  {
+    "id": 64,
+    "date": "2025-01-23",
+    "description": "Salary",
+    "amount": 3505.13,
+    "category": "Salary",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 65,
+    "date": "2025-12-11",
+    "description": "Groceries",
+    "amount": 591.9,
+    "category": "Groceries",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Utensils"
+  },
+  {
+    "id": 66,
+    "date": "2025-08-12",
+    "description": "Transportation",
+    "amount": 1458.61,
+    "category": "Transportation",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Car"
+  },
+  {
+    "id": 67,
+    "date": "2025-04-25",
+    "description": "Salary",
+    "amount": 438.64,
+    "category": "Salary",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 68,
+    "date": "2025-10-03",
+    "description": "Entertainment",
+    "amount": 1006.39,
+    "category": "Entertainment",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Film"
+  },
+  {
+    "id": 69,
+    "date": "2025-06-26",
+    "description": "Freelance",
+    "amount": 2123.26,
+    "category": "Freelance",
+    "type": "Income",
+    "notes": "Auto-generated",
+    "icon": "DollarSign"
+  },
+  {
+    "id": 70,
+    "date": "2025-06-15",
+    "description": "Healthcare",
+    "amount": 1247.37,
+    "category": "Healthcare",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Heart"
+  },
+  {
+    "id": 71,
+    "date": "2025-08-04",
+    "description": "Transportation",
+    "amount": 1400.91,
+    "category": "Transportation",
+    "type": "Expense",
+    "notes": "Auto-generated",
+    "icon": "Car"
+  }
+]

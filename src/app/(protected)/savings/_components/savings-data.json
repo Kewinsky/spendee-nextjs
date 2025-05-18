@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "accountName": "Emergency Fund",
+    "institution": "First National Bank",
+    "category": "Savings",
+    "expectedRate": 1.25,
+    "balance": 5000,
+    "growth": 125,
+    "type": "Savings",
+    "growthPercentage": 2.5
+
+  },
+  {
+    "id": 2,
+    "accountName": "Vacation Fund",
+    "institution": "Community Credit Union",
+    "category": "Savings",
+    "expectedRate": 1.5,
+    "balance": 2500,
+    "growth": 75,
+    "type": "Savings",
+    "growthPercentage": 3.0
+  },
+  {
+    "id": 3,
+    "accountName": "Retirement Fund",
+    "institution": "Fidelity",
+    "category": "401k",
+    "expectedRate": 7.0,
+    "balance": 45000,
+    "growth": 3500,
+    "type": "Investment",
+    "growthPercentage": 7.8
+  },
+  {
+    "id": 4,
+    "accountName": "Index Fund",
+    "institution": "Vanguard",
+    "category": "Investment",
+    "expectedRate": 5.5,
+    "balance": 12000,
+    "growth": 650,
+    "type": "Investment",
+    "growthPercentage": 5.4
+  },
+  {
+    "id": 5,
+    "accountName": "Tech Stocks",
+    "institution": "Robinhood",
+    "category": "Stocks",
+    "expectedRate": 0,
+    "balance": 8500,
+    "growth": -250,
+    "type": "Investment",
+    "growthPercentage": -2.9
+  }
+]

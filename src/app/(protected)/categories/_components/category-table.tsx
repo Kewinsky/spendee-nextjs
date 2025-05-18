@@ -12,6 +12,13 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Edit,
+  Eye,
+  Trash2,
+  Package,
   Utensils,
   Car,
   Home,
@@ -20,14 +27,6 @@ import {
   Heart,
   Briefcase,
   TrendingUp,
-  Package,
-  CalendarIcon,
-  Trash2,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Edit,
-  Eye,
 } from "lucide-react";
 import {
   type ColumnDef,
@@ -51,7 +50,6 @@ import { useForm } from "react-hook-form";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Drawer,
@@ -80,11 +78,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -100,65 +93,94 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  transactionFormSchema,
-  type TransactionFormValues,
-  emptyTransactionForm,
-} from "@/lib/schemas";
-import { format } from "date-fns";
-import { DateRange } from "react-day-picker";
+import { Progress } from "@/components/ui/progress";
 import { getIconBySlug } from "@/utils/getIconBySlug";
 
-export const schema = z.object({
+// Schema for category data
+export const categorySchema = z.object({
   id: z.number(),
-  date: z.string(),
-  description: z.string(),
-  amount: z.number(),
-  category: z.string(),
-  icon: z.string(),
-  type: z.string(),
-  notes: z.string().optional(),
+  name: z.string(),
+  description: z.string().optional(),
+  type: z.enum(["Expense", "Income"]),
+  icon: z.string().default("Package"),
+  period: z
+    .enum([
+      "daily",
+      "weekly",
+      "monthly",
+      "quarterly",
+      "semi-annually",
+      "annually",
+    ])
+    .optional(),
+  budget: z.number().optional(),
+  spent: z.number().optional(),
+  transactions: z.number().optional(),
+  balance: z.number().optional(),
 });
 
-const categoryMap: Record<string, string> = {
-  Groceries: "Utensils",
-  Housing: "Home",
-  Transportation: "Car",
-  Dining: "Utensils",
-  Entertainment: "Film",
-  Healthcare: "Heart",
-  Salary: "Briefcase",
-  Investments: "TrendingUp",
-  Freelance: "DollarSign",
+export type Category = z.infer<typeof categorySchema>;
+
+// Form schema for adding/editing categories
+const categoryFormSchema = z.object({
+  id: z.number().optional(),
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  type: z.enum(["Expense", "Income"]),
+  icon: z.string().default("Package"),
+  period: z
+    .enum([
+      "daily",
+      "weekly",
+      "monthly",
+      "quarterly",
+      "semi-annually",
+      "annually",
+    ])
+    .optional(),
+  budget: z.coerce.number().optional(),
+  spent: z.coerce.number().optional(),
+  transactions: z.coerce.number().optional(),
+  balance: z.coerce.number().optional(),
+});
+
+export type CategoryFormValues = z.infer<typeof categoryFormSchema>;
+
+const emptyCategoryForm: CategoryFormValues = {
+  name: "",
+  description: "",
+  type: "Expense",
+  icon: "Package",
+  period: "monthly",
+  budget: undefined,
+  spent: undefined,
+  transactions: undefined,
+  balance: undefined,
 };
 
-export function TransactionsTable({
-  data: initialData,
-}: {
-  data: z.infer<typeof schema>[];
-}) {
-  const [activeItem, setActiveItem] = React.useState<z.infer<
-    typeof schema
-  > | null>(null);
+const periodLabels = {
+  daily: "Daily",
+  weekly: "Weekly",
+  monthly: "Monthly",
+  quarterly: "Quarterly",
+  "semi-annually": "Every 6 Months",
+  annually: "Yearly",
+};
+
+export function CategoryTable({ data: initialData }: { data: Category[] }) {
+  const [activeItem, setActiveItem] = React.useState<Category | null>(null);
   const [viewMode, setViewMode] = React.useState<
     "add" | "edit" | "view" | "delete-confirm"
   >("add");
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-  const [categoryFilter, setCategoryFilter] =
-    React.useState<string>("All Categories");
-  const [descriptionFilter, setDescriptionFilter] = React.useState<string>("");
-  const [activeTab, setActiveTab] = React.useState("all");
+  const [activeTab, setActiveTab] = React.useState("expenses");
   const [data, setData] = React.useState(() => initialData);
-  const [selectedTransactions, setSelectedTransactions] = React.useState<
-    z.infer<typeof schema>[]
+  const [selectedCategories, setSelectedCategories] = React.useState<
+    Category[]
   >([]);
-  const [dateRange, setDateRange] = React.useState<DateRange>({
-    from: undefined,
-    to: undefined,
-  });
 
   const openTableCellViewer = (
-    item: z.infer<typeof schema> | null = null,
+    item: Category | null = null,
     mode: "add" | "edit" | "view" | "delete-confirm" = "view"
   ) => {
     setActiveItem(item);
@@ -166,61 +188,49 @@ export function TransactionsTable({
     setIsDrawerOpen(true);
   };
 
-  const handleDeleteTransaction = (id: number) => {
+  const handleDeleteCategory = (id: number) => {
     toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: "Deleting transaction...",
+      loading: "Deleting category...",
       success: () => {
         setData((prev) => prev.filter((item) => item.id !== id));
-        return "Transaction deleted successfully";
+        return "Category deleted successfully";
       },
-      error: "Failed to delete transaction",
+      error: "Failed to delete category",
     });
   };
 
   const handleBulkDelete = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
     const selectedItems = selectedRows.map((row) => row.original);
-    setSelectedTransactions(selectedItems);
+    setSelectedCategories(selectedItems);
     openTableCellViewer(null, "delete-confirm");
   };
 
-  const handleRangeSelect = (range: { from?: Date; to?: Date } | undefined) => {
-    if (range?.from && range?.to) {
-      setDateRange({ from: range.from, to: range.to });
-    } else if (range?.from && dateRange?.from && dateRange?.to) {
-      setDateRange({ from: range.from, to: undefined });
-    } else {
-      setDateRange({
-        from: range?.from ?? undefined,
-        to: range?.to ?? undefined,
-      });
-    }
-  };
-
   const confirmBulkDelete = () => {
-    const selectedIds = selectedTransactions.map((item) => item.id);
+    const selectedIds = selectedCategories.map((item) => item.id);
 
     toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: `Deleting ${selectedIds.length} transaction(s)...`,
+      loading: `Deleting ${selectedIds.length} category(ies)...`,
       success: () => {
         setData((prev) =>
           prev.filter((item) => !selectedIds.includes(item.id))
         );
         table.resetRowSelection();
         closeDrawer();
-        return `${selectedIds.length} transaction(s) deleted successfully`;
+        return `${selectedIds.length} category(ies) deleted successfully`;
       },
-      error: "Failed to delete transactions",
+      error: "Failed to delete categories",
     });
   };
 
   const closeDrawer = () => {
     setIsDrawerOpen(false);
     setActiveItem(null);
-    setSelectedTransactions([]);
+    setSelectedCategories([]);
   };
 
-  const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  // Define columns for expenses
+  const expenseColumns: ColumnDef<Category>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -250,7 +260,7 @@ export function TransactionsTable({
       enableHiding: false,
     },
     {
-      accessorKey: "date",
+      accessorKey: "name",
       header: ({ column }) => {
         return (
           <Button
@@ -258,32 +268,7 @@ export function TransactionsTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="flex items-center gap-1 p-0!"
           >
-            Date
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: ({ row }) => format(new Date(row.original.date), "MMM d, yyyy"),
-      enableSorting: true,
-      enableHiding: true,
-      sortingFn: "datetime",
-    },
-    {
-      accessorKey: "description",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
-          >
-            Description
+            Name
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -298,10 +283,11 @@ export function TransactionsTable({
         return (
           <Button
             variant="link"
-            className="text-foreground w-fit px-0 text-left"
+            className="text-foreground w-fit px-0 text-left flex items-center"
             onClick={() => openTableCellViewer(row.original, "view")}
           >
-            {row.original.description}
+            {getIconBySlug(row.original.icon || "Package")}
+            {row.original.name}
           </Button>
         );
       },
@@ -309,7 +295,7 @@ export function TransactionsTable({
       enableSorting: true,
     },
     {
-      accessorKey: "amount",
+      accessorKey: "transactions",
       header: ({ column }) => {
         return (
           <Button
@@ -317,7 +303,31 @@ export function TransactionsTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="flex items-center gap-1 p-0!"
           >
-            Amount
+            Transactions
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        );
+      },
+      cell: ({ row }) => row.original.transactions || 0,
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      accessorKey: "budget",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="flex items-center gap-1 p-0!"
+          >
+            Budget
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -329,51 +339,13 @@ export function TransactionsTable({
         );
       },
       cell: ({ row }) => {
-        const amount = row.original.amount;
-        const isExpense = row.original.type === "Expense";
-        return (
-          <div className={isExpense ? "text-destructive" : "text-green-500"}>
-            {isExpense ? "-" : "+"}
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-            }).format(Math.abs(amount))}
-          </div>
-        );
+        const budget = row.original.budget || 0;
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(budget);
       },
       enableSorting: true,
-      enableHiding: true,
-      sortingFn: "basic",
-    },
-    {
-      accessorKey: "category",
-      header: "Category",
-      cell: ({ row }) => (
-        <Badge
-          variant="outline"
-          className="text-muted-foreground px-1.5 flex items-center"
-        >
-          {getIconBySlug(row.original.icon)}
-          {row.original.category}
-        </Badge>
-      ),
-      enableHiding: true,
-    },
-    {
-      accessorKey: "type",
-      header: "Type",
-      cell: ({ row }) => (
-        <Badge
-          variant="outline"
-          className={
-            row.original.type === "Income"
-              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
-              : "bg-red-100 text-destructive dark:bg-red-900 dark:text-red-200"
-          }
-        >
-          {row.original.type}
-        </Badge>
-      ),
       enableHiding: true,
     },
     {
@@ -395,18 +367,178 @@ export function TransactionsTable({
               onClick={() => openTableCellViewer(row.original, "edit")}
             >
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              Edit Category
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => openTableCellViewer(row.original, "view")}
             >
               <Eye className="mr-2 h-4 w-4" />
-              View details
+              View Details
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
-              onClick={() => handleDeleteTransaction(row.original.id)}
+              onClick={() => handleDeleteCategory(row.original.id)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ),
+    },
+  ];
+
+  // Define columns for incomes
+  const incomeColumns: ColumnDef<Category>[] = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+          />
+        </div>
+      ),
+      cell: ({ row }) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        </div>
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "name",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="flex items-center gap-1 p-0!"
+          >
+            Name
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        return (
+          <Button
+            variant="link"
+            className="text-foreground w-fit px-0 text-left flex items-center"
+            onClick={() => openTableCellViewer(row.original, "view")}
+          >
+            {getIconBySlug(row.original.icon || "Package")}
+            {row.original.name}
+          </Button>
+        );
+      },
+      enableHiding: false,
+      enableSorting: true,
+    },
+    {
+      accessorKey: "transactions",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="flex items-center gap-1 p-0!"
+          >
+            Transactions
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        );
+      },
+      cell: ({ row }) => row.original.transactions || 0,
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      accessorKey: "balance",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="flex items-center gap-1 p-0!"
+          >
+            Balance
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const balance = row.original.balance || 0;
+        return new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(balance);
+      },
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
+      id: "actions",
+      cell: ({ row }) => (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+              size="icon"
+            >
+              <IconDotsVertical />
+              <span className="sr-only">Open menu</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem
+              onClick={() => openTableCellViewer(row.original, "edit")}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Category
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => openTableCellViewer(row.original, "view")}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => handleDeleteCategory(row.original.id)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
               Delete
@@ -420,26 +552,15 @@ export function TransactionsTable({
   const filteredData = React.useMemo(() => {
     let result = data;
 
-    if (activeTab !== "all") {
-      result = result.filter((item) =>
-        activeTab === "incomes"
-          ? item.type === "Income"
-          : item.type === "Expense"
-      );
-    }
-
-    if (dateRange.from || dateRange.to) {
-      result = result.filter((item) => {
-        const itemDate = new Date(item.date);
-        const from = dateRange.from;
-        const to = dateRange.to;
-
-        return (!from || itemDate >= from) && (!to || itemDate <= to);
-      });
-    }
+    // Filter by tab
+    result = result.filter((item) =>
+      activeTab === "expenses"
+        ? item.type === "Expense"
+        : item.type === "Income"
+    );
 
     return result;
-  }, [data, activeTab, dateRange]);
+  }, [data, activeTab]);
 
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -452,6 +573,8 @@ export function TransactionsTable({
     pageIndex: 0,
     pageSize: 10,
   });
+
+  const columns = activeTab === "expenses" ? expenseColumns : incomeColumns;
 
   const table = useReactTable({
     data: filteredData,
@@ -480,23 +603,9 @@ export function TransactionsTable({
 
   const hasSelectedRows = table.getFilteredSelectedRowModel().rows.length > 0;
 
-  React.useEffect(() => {
-    if (categoryFilter !== "All Categories") {
-      table.getColumn("category")?.setFilterValue(categoryFilter);
-    } else {
-      table.getColumn("category")?.setFilterValue(undefined);
-    }
-
-    if (descriptionFilter) {
-      table.getColumn("description")?.setFilterValue(descriptionFilter);
-    } else {
-      table.getColumn("description")?.setFilterValue(undefined);
-    }
-  }, [table, categoryFilter, descriptionFilter]);
-
   return (
     <Tabs
-      defaultValue="all"
+      defaultValue="expenses"
       className="w-full flex-col justify-start gap-6"
       onValueChange={setActiveTab}
     >
@@ -507,7 +616,7 @@ export function TransactionsTable({
             View
           </Label>
 
-          <Select defaultValue="all" onValueChange={setActiveTab}>
+          <Select defaultValue="expenses" onValueChange={setActiveTab}>
             <SelectTrigger
               className="w-fit sm:w-40 @4xl/main:hidden"
               size="sm"
@@ -516,76 +625,19 @@ export function TransactionsTable({
               <SelectValue placeholder="Select a view" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              <SelectItem value="incomes">Incomes</SelectItem>
               <SelectItem value="expenses">Expenses</SelectItem>
+              <SelectItem value="incomes">Incomes</SelectItem>
             </SelectContent>
           </Select>
 
           <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-            <TabsTrigger value="all">All</TabsTrigger>
-            <TabsTrigger value="incomes">Incomes</TabsTrigger>
             <TabsTrigger value="expenses">Expenses</TabsTrigger>
+            <TabsTrigger value="incomes">Incomes</TabsTrigger>
           </TabsList>
         </div>
 
         {/* Filters & Actions */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Description filter */}
-          <div className="flex items-center gap-2">
-            <Label htmlFor="description-filter" className="sr-only">
-              Filter by description
-            </Label>
-            <Input
-              id="description-filter"
-              placeholder="Filter by description"
-              value={descriptionFilter}
-              onChange={(e) => setDescriptionFilter(e.target.value)}
-              className="w-40 lg:w-60"
-            />
-          </div>
-
-          {/* Range picker */}
-          <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="w-[170px] justify-start text-left font-normal"
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange.from && dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "LLL dd")} -{" "}
-                      {format(dateRange.to, "LLL dd")}
-                    </>
-                  ) : (
-                    <span>Select date range</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={handleRangeSelect}
-                  numberOfMonths={1}
-                />
-              </PopoverContent>
-            </Popover>
-
-            {dateRange.from || dateRange.to ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDateRange({ from: undefined, to: undefined })}
-              >
-                Clear
-              </Button>
-            ) : null}
-          </div>
-
           {/* Column visibility */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -619,35 +671,6 @@ export function TransactionsTable({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Category filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <span>{categoryFilter}</span>
-                <IconChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem
-                onClick={() => setCategoryFilter("All Categories")}
-              >
-                All Categories
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {Object.entries(categoryMap).map(([category, icon]) => (
-                <DropdownMenuItem
-                  key={category}
-                  onClick={() => setCategoryFilter(category)}
-                >
-                  <div className="flex items-center">
-                    {getIconBySlug(icon)}
-                    {category}
-                  </div>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {/* Actions */}
           <Button
             variant="outline"
@@ -655,7 +678,7 @@ export function TransactionsTable({
             onClick={() => openTableCellViewer(null, "add")}
           >
             <IconPlus />
-            <span className="hidden lg:inline">Add transaction</span>
+            <span className="hidden lg:inline">Add Category</span>
           </Button>
           <Button
             variant="destructive"
@@ -671,7 +694,7 @@ export function TransactionsTable({
       </div>
 
       <TabsContent
-        value="all"
+        value="expenses"
         className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
       >
         <div className="overflow-hidden rounded-lg border">
@@ -717,7 +740,7 @@ export function TransactionsTable({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    No expense categories found.
                   </TableCell>
                 </TableRow>
               )}
@@ -849,139 +872,7 @@ export function TransactionsTable({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No income transactions found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <div className="flex items-center justify-between px-4">
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
-          <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
-              </Label>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
-                }}
-              >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                  <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
-                  />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
-            </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to first page</span>
-                <IconChevronsLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to previous page</span>
-                <IconChevronLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to next page</span>
-                <IconChevronRight />
-              </Button>
-              <Button
-                variant="outline"
-                className="hidden size-8 lg:flex"
-                size="icon"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to last page</span>
-                <IconChevronsRight />
-              </Button>
-            </div>
-          </div>
-        </div>
-      </TabsContent>
-      <TabsContent
-        value="expenses"
-        className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
-      >
-        <div className="overflow-hidden rounded-lg border">
-          <Table>
-            <TableHeader className="bg-muted sticky top-0 z-10">
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id} colSpan={header.colSpan}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    );
-                  })}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className="h-24 text-center"
-                  >
-                    No expense transactions found.
+                    No income categories found.
                   </TableCell>
                 </TableRow>
               )}
@@ -1073,8 +964,9 @@ export function TransactionsTable({
         setIsDrawerOpen={setIsDrawerOpen}
         closeDrawer={closeDrawer}
         setData={setData}
-        selectedTransactions={selectedTransactions}
+        selectedCategories={selectedCategories}
         confirmBulkDelete={confirmBulkDelete}
+        activeTab={activeTab}
       />
     </Tabs>
   );
@@ -1087,33 +979,41 @@ function TableCellViewer({
   setIsDrawerOpen,
   closeDrawer,
   setData,
-  selectedTransactions = [],
+  selectedCategories = [],
   confirmBulkDelete,
+  activeTab,
 }: {
-  activeItem: z.infer<typeof schema> | null;
+  activeItem: Category | null;
   viewMode: "add" | "edit" | "view" | "delete-confirm";
   isDrawerOpen: boolean;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   closeDrawer: () => void;
-  setData: React.Dispatch<React.SetStateAction<z.infer<typeof schema>[]>>;
-  selectedTransactions?: z.infer<typeof schema>[];
+  setData: React.Dispatch<React.SetStateAction<Category[]>>;
+  selectedCategories?: Category[];
   confirmBulkDelete?: () => void;
+  activeTab: string;
 }) {
   const isMobile = useIsMobile();
 
-  const form = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionFormSchema),
+  const form = useForm<CategoryFormValues>({
+    resolver: zodResolver(categoryFormSchema),
     defaultValues: activeItem
       ? {
           id: activeItem.id,
-          date: activeItem.date,
-          description: activeItem.description,
-          amount: activeItem.amount.toString(),
-          category: activeItem.category,
-          type: activeItem.type as "Income" | "Expense",
-          notes: activeItem.notes || "",
+          name: activeItem.name,
+          description: activeItem.description || "",
+          type: activeItem.type,
+          icon: activeItem.icon || "Package",
+          period: activeItem.period,
+          budget: activeItem.budget,
+          spent: activeItem.spent,
+          transactions: activeItem.transactions,
+          balance: activeItem.balance,
         }
-      : emptyTransactionForm,
+      : {
+          ...emptyCategoryForm,
+          type: activeTab === "expenses" ? "Expense" : "Income",
+        },
     mode: "onSubmit",
   });
 
@@ -1121,46 +1021,56 @@ function TableCellViewer({
     if (activeItem) {
       form.reset({
         id: activeItem.id,
-        date: activeItem.date,
-        description: activeItem.description,
-        amount: activeItem.amount.toString(),
-        category: activeItem.category,
-        type: activeItem.type as "Income" | "Expense",
-        notes: activeItem.notes || "",
+        name: activeItem.name,
+        description: activeItem.description || "",
+        type: activeItem.type,
+        icon: activeItem.icon || "Package",
+        period: activeItem.period,
+        budget: activeItem.budget,
+        spent: activeItem.spent,
+        transactions: activeItem.transactions,
+        balance: activeItem.balance,
       });
     } else {
-      form.reset(emptyTransactionForm);
+      form.reset({
+        ...emptyCategoryForm,
+        type: activeTab === "expenses" ? "Expense" : "Income",
+      });
     }
-  }, [activeItem, form]);
+  }, [activeItem, form, activeTab]);
 
-  const onSubmit = (values: TransactionFormValues) => {
-    const newTransaction = {
+  const onSubmit = (values: CategoryFormValues) => {
+    const newCategory: Category = {
       id: values.id || Date.now(),
-      date: values.date,
+      name: values.name,
       description: values.description,
-      amount: values.amount,
-      category: values.category,
       type: values.type,
-      notes: values.notes || "",
+      icon: values.icon || "Package",
+      period: values.period,
+      budget: values.budget,
+      spent: values.spent,
+      transactions: values.transactions,
+      balance: values.balance,
     };
 
     toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: activeItem ? "Updating transaction..." : "Adding transaction...",
+      loading: activeItem ? "Updating category..." : "Adding category...",
       success: () => {
         if (activeItem) {
           setData((prev) =>
-            prev.map((item) =>
-              item.id === activeItem.id ? newTransaction : item
-            )
+            prev.map((item) => (item.id === activeItem.id ? newCategory : item))
           );
-          return "Transaction updated successfully";
+          return "Category updated successfully";
         } else {
-          setData((prev) => [...prev, newTransaction]);
-          form.reset(emptyTransactionForm);
-          return "Transaction added successfully";
+          setData((prev) => [...prev, newCategory]);
+          form.reset({
+            ...emptyCategoryForm,
+            type: activeTab === "expenses" ? "Expense" : "Income",
+          });
+          return "Category added successfully";
         }
       },
-      error: "Failed to save transaction",
+      error: "Failed to save category",
     });
 
     closeDrawer();
@@ -1168,6 +1078,7 @@ function TableCellViewer({
 
   const isReadOnly = viewMode === "view";
   const isDeleteConfirm = viewMode === "delete-confirm";
+  const isExpense = form.watch("type") === "Expense";
 
   if (isDeleteConfirm) {
     return (
@@ -1180,56 +1091,44 @@ function TableCellViewer({
           <DrawerHeader className="gap-1">
             <DrawerTitle>Confirm Deletion</DrawerTitle>
             <DrawerDescription>
-              Are you sure you want to delete {selectedTransactions.length}{" "}
-              transaction(s)?
+              Are you sure you want to delete {selectedCategories.length}{" "}
+              category(ies)?
             </DrawerDescription>
           </DrawerHeader>
           <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
             <div className="rounded-md border p-4">
-              <h3 className="font-medium mb-2">Selected transactions:</h3>
+              <h3 className="font-medium mb-2">Selected categories:</h3>
               <div className="max-h-[300px] overflow-y-auto">
-                {selectedTransactions.map((transaction) => (
+                {selectedCategories.map((category) => (
                   <div
-                    key={transaction.id}
+                    key={category.id}
                     className="py-2 border-b last:border-b-0"
                   >
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">
-                          {transaction.description}
-                        </span>
+                        <span className="font-medium">{category.name}</span>
                         <Badge
                           variant="outline"
-                          className="text-muted-foreground px-1.5 flex items-center"
+                          className={
+                            category.type === "Income"
+                              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
+                              : "bg-red-100 text-destructive dark:bg-red-900 dark:text-red-200"
+                          }
                         >
-                          {getIconBySlug(transaction.category)}
-                          {transaction.category}
+                          {category.type}
                         </Badge>
-                      </div>
-                      <div
-                        className={
-                          transaction.type === "Expense"
-                            ? "text-destructive"
-                            : "text-emerald-500"
-                        }
-                      >
-                        {transaction.type === "Expense" ? "-" : "+"}
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(Math.abs(transaction.amount))}
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {format(new Date(transaction.date), "MMM d, yyyy")}
+                      {category.description || "No description"}
                     </div>
                   </div>
                 ))}
               </div>
             </div>
             <div className="text-muted-foreground text-sm">
-              This action cannot be undone. These transactions will be
-              permanently deleted.
+              This action cannot be undone. These categories will be permanently
+              deleted.
             </div>
           </div>
           <DrawerFooter>
@@ -1255,72 +1154,40 @@ function TableCellViewer({
         <DrawerHeader className="gap-1">
           <DrawerTitle>
             {viewMode === "add"
-              ? "Add Transaction"
+              ? "Add Category"
               : viewMode === "edit"
-              ? "Edit Transaction"
-              : "Transaction Details"}
+              ? "Edit Category"
+              : "Category Details"}
           </DrawerTitle>
           <DrawerDescription>
             {viewMode === "add"
-              ? "Add a new transaction to your records"
+              ? "Add a new category to your records"
               : viewMode === "edit"
-              ? "Update transaction information"
-              : "View transaction details"}
+              ? "Update category information"
+              : "View category details"}
           </DrawerDescription>
         </DrawerHeader>
 
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
           <Form {...form}>
             <form
-              id="transaction-form"
+              id="category-form"
               onSubmit={form.handleSubmit(onSubmit)}
               className="flex flex-col gap-4"
             >
-              {/* Date */}
+              {/* Name */}
               <FormField
                 control={form.control}
-                name="date"
+                name="name"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     {isReadOnly ? (
-                      <div className="p-2 border rounded-md">
-                        {format(new Date(field.value), "PPP")}
-                      </div>
+                      <div className="p-2 border rounded-md">{field.value}</div>
                     ) : (
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={`w-full justify-start text-left font-normal ${
-                                !field.value && "text-muted-foreground"
-                              }`}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value ? (
-                                format(new Date(field.value), "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
-                          <Calendar
-                            mode="single"
-                            selected={
-                              field.value ? new Date(field.value) : undefined
-                            }
-                            onSelect={(date) =>
-                              field.onChange(
-                                date ? format(date, "yyyy-MM-dd") : ""
-                              )
-                            }
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -1335,7 +1202,9 @@ function TableCellViewer({
                   <FormItem className="flex flex-col gap-3">
                     <FormLabel>Description</FormLabel>
                     {isReadOnly ? (
-                      <div className="p-2 border rounded-md">{field.value}</div>
+                      <div className="p-2 border rounded-md">
+                        {field.value || "No description"}
+                      </div>
                     ) : (
                       <FormControl>
                         <Input {...field} />
@@ -1346,80 +1215,15 @@ function TableCellViewer({
                 )}
               />
 
-              {/* Amount & Type */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Amount</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md">
-                          {new Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: "USD",
-                          }).format(Number(field.value))}
-                        </div>
-                      ) : (
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            step="0.01"
-                            min={0.01}
-                          />
-                        </FormControl>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Type</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md">
-                          {field.value}
-                        </div>
-                      ) : (
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isReadOnly}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select a type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Income">Income</SelectItem>
-                            <SelectItem value="Expense">Expense</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Category */}
+              {/* Type */}
               <FormField
                 control={form.control}
-                name="category"
+                name="type"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Category</FormLabel>
+                    <FormLabel>Type</FormLabel>
                     {isReadOnly ? (
-                      <div className="p-2 border rounded-md flex items-center gap-2">
-                        {getIconBySlug(activeItem?.icon || "Package")}
-                        {field.value}
-                      </div>
+                      <div className="p-2 border rounded-md">{field.value}</div>
                     ) : (
                       <Select
                         onValueChange={field.onChange}
@@ -1428,62 +1232,96 @@ function TableCellViewer({
                       >
                         <FormControl>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a category" />
+                            <SelectValue placeholder="Select a type" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Food">
-                            <div className="flex items-center">
-                              <Utensils className="mr-2 h-4 w-4" />
-                              Food
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Transportation">
-                            <div className="flex items-center">
-                              <Car className="mr-2 h-4 w-4" />
-                              Transportation
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Housing">
-                            <div className="flex items-center">
-                              <Home className="mr-2 h-4 w-4" />
-                              Housing
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Utilities">
-                            <div className="flex items-center">
-                              <Lightbulb className="mr-2 h-4 w-4" />
-                              Utilities
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Entertainment">
-                            <div className="flex items-center">
-                              <Film className="mr-2 h-4 w-4" />
-                              Entertainment
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Healthcare">
-                            <div className="flex items-center">
-                              <Heart className="mr-2 h-4 w-4" />
-                              Healthcare
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Salary">
-                            <div className="flex items-center">
-                              <Briefcase className="mr-2 h-4 w-4" />
-                              Salary
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Investment">
-                            <div className="flex items-center">
-                              <TrendingUp className="mr-2 h-4 w-4" />
-                              Investment
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Other">
+                          <SelectItem value="Expense">Expense</SelectItem>
+                          <SelectItem value="Income">Income</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Icon */}
+              <FormField
+                control={form.control}
+                name="icon"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Icon</FormLabel>
+                    {isReadOnly ? (
+                      <div className="p-2 border rounded-md flex items-center">
+                        {getIconBySlug(field.value)}
+                        {field.value}
+                      </div>
+                    ) : (
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value || "Package"}
+                        disabled={isReadOnly}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select an icon" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Package">
                             <div className="flex items-center">
                               <Package className="mr-2 h-4 w-4" />
-                              Other
+                              Package
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Utensils">
+                            <div className="flex items-center">
+                              <Utensils className="mr-2 h-4 w-4" />
+                              Utensils
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Car">
+                            <div className="flex items-center">
+                              <Car className="mr-2 h-4 w-4" />
+                              Car
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Home">
+                            <div className="flex items-center">
+                              <Home className="mr-2 h-4 w-4" />
+                              Home
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Lightbulb">
+                            <div className="flex items-center">
+                              <Lightbulb className="mr-2 h-4 w-4" />
+                              Lightbulb
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Film">
+                            <div className="flex items-center">
+                              <Film className="mr-2 h-4 w-4" />
+                              Film
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Heart">
+                            <div className="flex items-center">
+                              <Heart className="mr-2 h-4 w-4" />
+                              Heart
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Briefcase">
+                            <div className="flex items-center">
+                              <Briefcase className="mr-2 h-4 w-4" />
+                              Briefcase
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="TrendingUp">
+                            <div className="flex items-center">
+                              <TrendingUp className="mr-2 h-4 w-4" />
+                              TrendingUp
                             </div>
                           </SelectItem>
                         </SelectContent>
@@ -1494,26 +1332,98 @@ function TableCellViewer({
                 )}
               />
 
-              {/* Notes */}
-              <FormField
-                control={form.control}
-                name="notes"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Notes (Optional)</FormLabel>
-                    {isReadOnly ? (
-                      <div className="p-2 border rounded-md min-h-[80px]">
-                        {field.value || "No notes provided."}
-                      </div>
-                    ) : (
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
+              {/* Period - Only show in view mode or for Expenses */}
+              {form.watch("type") === "Expense" &&
+                viewMode !== "add" &&
+                viewMode !== "edit" && (
+                  <FormField
+                    control={form.control}
+                    name="period"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-3">
+                        <FormLabel>Period</FormLabel>
+                        <div className="p-2 border rounded-md">
+                          {field.value ? periodLabels[field.value] : "N/A"}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                    <FormMessage />
+                  />
+                )}
+
+              {/* Budget - Only show in view mode or for Expenses */}
+              {form.watch("type") === "Expense" &&
+                viewMode !== "add" &&
+                viewMode !== "edit" && (
+                  <FormField
+                    control={form.control}
+                    name="budget"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-3">
+                        <FormLabel>Budget</FormLabel>
+                        <div className="p-2 border rounded-md">
+                          {field.value !== undefined
+                            ? new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                              }).format(field.value)
+                            : "N/A"}
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+              {/* Transactions - View only */}
+              {isReadOnly && activeItem?.transactions !== undefined && (
+                <FormField
+                  control={form.control}
+                  name="transactions"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-3">
+                      <FormLabel>Transactions</FormLabel>
+                      <div className="p-2 border rounded-md">
+                        {field.value || 0}
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {isReadOnly &&
+                activeItem?.budget &&
+                activeItem?.spent !== undefined && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Progress</FormLabel>
+                    <div className="space-y-2">
+                      <Progress
+                        value={Math.min(
+                          100,
+                          ((activeItem.spent || 0) / activeItem.budget) * 100
+                        )}
+                        className="h-2"
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(activeItem.spent || 0)}{" "}
+                        of{" "}
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(activeItem.budget)}{" "}
+                        (
+                        {Math.round(
+                          ((activeItem.spent || 0) / activeItem.budget) * 100
+                        )}
+                        %)
+                      </p>
+                    </div>
                   </FormItem>
                 )}
-              />
             </form>
           </Form>
         </div>
@@ -1525,8 +1435,8 @@ function TableCellViewer({
             </Button>
           ) : (
             <>
-              <Button type="submit" form="transaction-form">
-                {activeItem ? "Update Transaction" : "Add Transaction"}
+              <Button type="submit" form="category-form">
+                {activeItem ? "Update Category" : "Add Category"}
               </Button>
               <Button variant="outline" onClick={closeDrawer}>
                 Cancel

@@ -1,9 +1,12 @@
-const Savings = () => {
+"use client";
+
+import data from "./_components/savings-data.json";
+import { SavingsTable } from "./_components/savings-table";
+
+export default function SavingsPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Savings</h1>
+    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+      <SavingsTable data={data} />
     </div>
   );
-};
-
-export default Savings;
+}

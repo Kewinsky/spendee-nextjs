@@ -7,11 +7,11 @@ import { redirect } from "next/navigation";
 import { CSSProperties, ReactNode } from "react";
 
 const ProtectedLayout = async ({ children }: { children: ReactNode }) => {
-  const session = await auth();
+  // const session = await auth();
 
-  if (!session?.user) {
-    redirect("/login");
-  }
+  // if (!session?.user) {
+  //   redirect("/login");
+  // }
 
   return (
     <SidebarProvider

@@ -58,6 +58,11 @@ const data = {
       icon: ListOrdered,
     },
     {
+      title: "Categories",
+      url: "/categories",
+      icon: Shapes,
+    },
+    {
       title: "Budgets",
       url: "/budgets",
       icon: Wallet,
@@ -66,11 +71,6 @@ const data = {
       title: "Savings",
       url: "/savings",
       icon: PiggyBank,
-    },
-    {
-      title: "Categories",
-      url: "/categories",
-      icon: Shapes,
     },
     {
       title: "AI Agent",

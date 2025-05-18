@@ -1,0 +1,102 @@
+[
+  {
+    "id": 1,
+    "name": "Groceries",
+    "description": "Food and household items",
+    "period": "weekly",
+    "transactions": 15,
+    "budget": 400,
+    "spent": 350,
+    "type": "Expense",
+    "icon": "Utensils"
+  },
+  {
+    "id": 2,
+    "name": "Housing",
+    "description": "Rent, utilities, maintenance",
+    "period": "monthly",
+    "transactions": 3,
+    "budget": 1200,
+    "spent": 1180,
+    "type": "Expense",
+    "icon": "Home"
+
+  },
+  {
+    "id": 3,
+    "name": "Transportation",
+    "description": "Gas, public transit, car maintenance",
+    "period": "monthly",
+    "transactions": 8,
+    "budget": 350,
+    "spent": 290,
+    "type": "Expense",
+    "icon": "Car"
+  },
+  {
+    "id": 4,
+    "name": "Dining",
+    "description": "Restaurants and takeout",
+    "period": "weekly",
+    "transactions": 12,
+    "budget": 300,
+    "spent": 280,
+    "type": "Expense",
+    "icon": "Utensils"
+  },
+  {
+    "id": 5,
+    "name": "Entertainment",
+    "description": "Movies, events, subscriptions",
+    "period": "monthly",
+    "transactions": 5,
+    "budget": 150,
+    "spent": 100,
+    "type": "Expense",
+    "icon": "Film"
+  },
+  {
+    "id": 6,
+    "name": "Healthcare",
+    "description": "Medical expenses, insurance",
+    "period": "monthly",
+    "transactions": 2,
+    "budget": 200,
+    "spent": 180,
+    "type": "Expense",
+    "icon": "Heart"
+  },
+  {
+    "id": 7,
+    "name": "Salary",
+    "description": "Monthly paycheck from employer",
+    "period": "monthly",
+    "transactions": 2,
+    "budget": 4000,
+    "spent": 0,
+    "type": "Income",
+    "icon": "Briefcase"
+  },
+  {
+    "id": 8,
+    "name": "Investments",
+    "description": "Dividends, stock gains, etc.",
+    "period": "quarterly",
+    "transactions": 1,
+    "budget": 1500,
+    "spent": 0,
+    "type": "Income",
+    "icon": "TrendingUp"
+  },
+  {
+    "id": 9,
+    "name": "Freelance",
+    "description": "Income from freelance projects",
+    "period": "monthly",
+    "transactions": 3,
+    "budget": 1200,
+    "spent": 0,
+    "type": "Income",
+    "icon": "DollarSign"
+  }
+]
