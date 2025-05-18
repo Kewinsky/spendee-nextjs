@@ -1,7 +1,7 @@
 "use client";
 
 import { BudgetTable } from "./_components/budget-table";
-import data from "./_components/data.json";
+import data from "./_components/budget-data.json";
 
 export default function BudgetsPage() {
   return (

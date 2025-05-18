@@ -1,7 +1,7 @@
 "use client";
 
 import { CategoryTable } from "./_components/category-table";
-import data from "./_components/data.json";
+import data from "./_components/category-data.json";
 
 export default function CategoriesAndBudgetsPage() {
   return (

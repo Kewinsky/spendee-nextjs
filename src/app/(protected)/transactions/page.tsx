@@ -1,5 +1,5 @@
 "use client";
-import data from "./_components/data.json";
+import data from "./_components/transactions-data.json";
 import { TransactionsTable } from "./_components/transactions-table";
 
 export default function TransactionsPage() {

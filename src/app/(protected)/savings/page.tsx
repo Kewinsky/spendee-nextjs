@@ -1,6 +1,6 @@
 "use client";
 
-import data from "./_components/data.json";
+import data from "./_components/savings-data.json";
 import { SavingsTable } from "./_components/savings-table";
 
 export default function SavingsPage() {
