@@ -1,4 +1,3 @@
-// utils/getIconBySlug.ts
 import {
   Briefcase,
   Car,

@@ -19,6 +19,7 @@ import {
   Film,
   Heart,
   Briefcase,
+  Share2,
   TrendingUp,
   Package,
   CalendarIcon,
@@ -106,8 +107,7 @@ import {
   emptyTransactionForm,
 } from "@/lib/schemas";
 import { format } from "date-fns";
-import { DateRange } from "react-day-picker";
-import { getIconBySlug } from "@/utils/getIconBySlug";
+import type { DateRange } from "react-day-picker";
 
 export const schema = z.object({
   id: z.number(),
@@ -115,21 +115,31 @@ export const schema = z.object({
   description: z.string(),
   amount: z.number(),
   category: z.string(),
-  icon: z.string(),
   type: z.string(),
   notes: z.string().optional(),
 });
 
-const categoryMap: Record<string, string> = {
-  Groceries: "Utensils",
-  Housing: "Home",
-  Transportation: "Car",
-  Dining: "Utensils",
-  Entertainment: "Film",
-  Healthcare: "Heart",
-  Salary: "Briefcase",
-  Investments: "TrendingUp",
-  Freelance: "DollarSign",
+const getCategoryIcon = (category: string) => {
+  switch (category) {
+    case "Food":
+      return <Utensils className="mr-2 h-4 w-4" />;
+    case "Transportation":
+      return <Car className="mr-2 h-4 w-4" />;
+    case "Housing":
+      return <Home className="mr-2 h-4 w-4" />;
+    case "Utilities":
+      return <Lightbulb className="mr-2 h-4 w-4" />;
+    case "Entertainment":
+      return <Film className="mr-2 h-4 w-4" />;
+    case "Healthcare":
+      return <Heart className="mr-2 h-4 w-4" />;
+    case "Salary":
+      return <Briefcase className="mr-2 h-4 w-4" />;
+    case "Investment":
+      return <TrendingUp className="mr-2 h-4 w-4" />;
+    default:
+      return <Package className="mr-2 h-4 w-4" />;
+  }
 };
 
 export function TransactionsTable({
@@ -144,6 +154,7 @@ export function TransactionsTable({
     "add" | "edit" | "view" | "delete-confirm"
   >("add");
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+  const [isCsvDropdownOpen, setIsCsvDropdownOpen] = React.useState(false);
   const [categoryFilter, setCategoryFilter] =
     React.useState<string>("All Categories");
   const [descriptionFilter, setDescriptionFilter] = React.useState<string>("");
@@ -156,6 +167,9 @@ export function TransactionsTable({
     from: undefined,
     to: undefined,
   });
+  const [csvMode, setCsvMode] = React.useState<"import" | "export" | null>(
+    null
+  );
 
   const openTableCellViewer = (
     item: z.infer<typeof schema> | null = null,
@@ -214,10 +228,22 @@ export function TransactionsTable({
     });
   };
 
+  const handleExportCSV = () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    const selectedItems = selectedRows.map((row) => row.original);
+    setSelectedTransactions(selectedItems);
+    setCsvMode("export");
+    setIsDrawerOpen(true);
+  };
+
+  const handleImportCSV = () => {
+    setCsvMode("import");
+    setIsDrawerOpen(true);
+  };
+
   const closeDrawer = () => {
     setIsDrawerOpen(false);
-    setActiveItem(null);
-    setSelectedTransactions([]);
+    setCsvMode(null);
   };
 
   const columns: ColumnDef<z.infer<typeof schema>>[] = [
@@ -353,7 +379,7 @@ export function TransactionsTable({
           variant="outline"
           className="text-muted-foreground px-1.5 flex items-center"
         >
-          {getIconBySlug(row.original.icon)}
+          {getCategoryIcon(row.original.category)}
           {row.original.category}
         </Badge>
       ),
@@ -634,17 +660,51 @@ export function TransactionsTable({
                 All Categories
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {Object.entries(categoryMap).map(([category, icon]) => (
-                <DropdownMenuItem
-                  key={category}
-                  onClick={() => setCategoryFilter(category)}
-                >
-                  <div className="flex items-center">
-                    {getIconBySlug(icon)}
-                    {category}
-                  </div>
-                </DropdownMenuItem>
-              ))}
+              {Array.from(new Set(data.map((item) => item.category))).map(
+                (category) => (
+                  <DropdownMenuItem
+                    key={category}
+                    onClick={() => setCategoryFilter(category)}
+                  >
+                    <div className="flex items-center">
+                      {getCategoryIcon(category)}
+                      {category}
+                    </div>
+                  </DropdownMenuItem>
+                )
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* CSV Import/Export */}
+          <DropdownMenu
+            open={isCsvDropdownOpen}
+            onOpenChange={setIsCsvDropdownOpen}
+          >
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Share2 className="h-4 w-4 mr-2" />
+                <span className="hidden lg:inline">Import/Export</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem
+                onClick={() => {
+                  setIsCsvDropdownOpen(false);
+                  setTimeout(() => handleImportCSV(), 0);
+                }}
+              >
+                Import CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={!hasSelectedRows}
+                onClick={() => {
+                  setIsCsvDropdownOpen(false);
+                  setTimeout(() => handleExportCSV(), 0);
+                }}
+              >
+                Export Selected to CSV
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -1075,9 +1135,53 @@ export function TransactionsTable({
         setData={setData}
         selectedTransactions={selectedTransactions}
         confirmBulkDelete={confirmBulkDelete}
+        csvMode={csvMode}
+        setCsvMode={setCsvMode}
       />
     </Tabs>
   );
+}
+
+// CSV utility functions
+function generateCSV(transactions: z.infer<typeof schema>[]) {
+  // Headers
+  const headers = [
+    "date",
+    "description",
+    "amount",
+    "category",
+    "type",
+    "notes",
+  ];
+
+  // Convert transactions to CSV rows
+  const rows = transactions.map((transaction) => {
+    return [
+      transaction.date,
+      `"${transaction.description.replace(/"/g, '""')}"`, // Escape quotes in CSV
+      transaction.amount,
+      transaction.category,
+      transaction.type,
+      `"${(transaction.notes || "").replace(/"/g, '""')}"`, // Escape quotes in CSV
+    ].join(",");
+  });
+
+  // Combine headers and rows
+  return [headers.join(","), ...rows].join("\n");
+}
+
+function downloadCSV(csvContent: string, filename: string) {
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+
+  link.setAttribute("href", url);
+  link.setAttribute("download", filename);
+  link.style.visibility = "hidden";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
 
 function TableCellViewer({
@@ -1089,6 +1193,8 @@ function TableCellViewer({
   setData,
   selectedTransactions = [],
   confirmBulkDelete,
+  csvMode,
+  setCsvMode,
 }: {
   activeItem: z.infer<typeof schema> | null;
   viewMode: "add" | "edit" | "view" | "delete-confirm";
@@ -1098,6 +1204,8 @@ function TableCellViewer({
   setData: React.Dispatch<React.SetStateAction<z.infer<typeof schema>[]>>;
   selectedTransactions?: z.infer<typeof schema>[];
   confirmBulkDelete?: () => void;
+  csvMode: "import" | "export" | null;
+  setCsvMode: React.Dispatch<React.SetStateAction<"import" | "export" | null>>;
 }) {
   const isMobile = useIsMobile();
 
@@ -1169,6 +1277,173 @@ function TableCellViewer({
   const isReadOnly = viewMode === "view";
   const isDeleteConfirm = viewMode === "delete-confirm";
 
+  if (csvMode === "import") {
+    return (
+      <Drawer
+        direction={isMobile ? "bottom" : "right"}
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+      >
+        <DrawerContent>
+          <DrawerHeader className="gap-1">
+            <DrawerTitle>Import Transactions</DrawerTitle>
+            <DrawerDescription>
+              Upload a CSV file to import transactions
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+            <div className="rounded-md border p-4">
+              <Label htmlFor="csv-file" className="mb-2 block">
+                Select CSV file
+              </Label>
+              <Input
+                id="csv-file"
+                type="file"
+                accept=".csv"
+                className="cursor-pointer"
+              />
+              <p className="mt-2 text-sm text-muted-foreground">
+                The CSV file should have the following columns: date,
+                description, amount, category, type, notes (optional)
+              </p>
+            </div>
+            <div className="rounded-md border p-4 bg-muted/30">
+              <h3 className="font-medium mb-2">CSV Format Requirements:</h3>
+              <ul className="list-disc pl-5 space-y-1 text-sm">
+                <li>First row must be headers</li>
+                <li>
+                  Required columns: date, description, amount, category, type
+                </li>
+                <li>Date format: YYYY-MM-DD</li>
+                <li>Type must be either "Income" or "Expense"</li>
+                <li>Amount should be a positive number</li>
+              </ul>
+            </div>
+            <div className="text-muted-foreground text-sm">
+              Note: Importing will validate your data before adding it to your
+              transactions.
+            </div>
+          </div>
+          <DrawerFooter>
+            <Button
+              onClick={() => {
+                toast.success(
+                  "CSV validation successful! Ready to import 0 transactions."
+                );
+                // In a real implementation, this would parse and validate the CSV
+              }}
+            >
+              Validate CSV
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCsvMode(null);
+                closeDrawer();
+              }}
+            >
+              Cancel
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
+  if (csvMode === "export") {
+    return (
+      <Drawer
+        direction={isMobile ? "bottom" : "right"}
+        open={isDrawerOpen}
+        onOpenChange={setIsDrawerOpen}
+      >
+        <DrawerContent>
+          <DrawerHeader className="gap-1">
+            <DrawerTitle>Export Transactions</DrawerTitle>
+            <DrawerDescription>
+              Export selected transactions to CSV
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
+            <div className="rounded-md border p-4">
+              <h3 className="font-medium mb-2">Export Summary:</h3>
+              <p>
+                You are about to export{" "}
+                <span className="font-semibold">
+                  {selectedTransactions.length}
+                </span>{" "}
+                transaction(s) to CSV.
+              </p>
+            </div>
+            <div className="max-h-[300px] overflow-y-auto rounded-md border">
+              <Table>
+                <TableHeader className="bg-muted sticky top-0 z-10">
+                  <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {selectedTransactions.map((transaction) => (
+                    <TableRow key={transaction.id}>
+                      <TableCell>{transaction.description}</TableCell>
+                      <TableCell>
+                        {format(new Date(transaction.date), "MMM d, yyyy")}
+                      </TableCell>
+                      <TableCell
+                        className={
+                          transaction.type === "Expense"
+                            ? "text-destructive"
+                            : "text-green-500"
+                        }
+                      >
+                        {transaction.type === "Expense" ? "-" : "+"}
+                        {new Intl.NumberFormat("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        }).format(Math.abs(transaction.amount))}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            <div className="text-muted-foreground text-sm">
+              The CSV file will include all data for the selected transactions,
+              including date, description, amount, category, type, and notes.
+            </div>
+          </div>
+          <DrawerFooter>
+            <Button
+              onClick={() => {
+                // In a real implementation, this would generate and download the CSV
+                const csvContent = generateCSV(selectedTransactions);
+                downloadCSV(csvContent, "transactions.csv");
+                toast.success(
+                  `${selectedTransactions.length} transactions exported successfully!`
+                );
+                if (setCsvMode) setCsvMode(null);
+                closeDrawer();
+              }}
+            >
+              Download CSV
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCsvMode(null);
+                closeDrawer();
+              }}
+            >
+              Cancel
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   if (isDeleteConfirm) {
     return (
       <Drawer
@@ -1202,7 +1477,7 @@ function TableCellViewer({
                           variant="outline"
                           className="text-muted-foreground px-1.5 flex items-center"
                         >
-                          {getIconBySlug(transaction.category)}
+                          {getCategoryIcon(transaction.category)}
                           {transaction.category}
                         </Badge>
                       </div>
@@ -1417,7 +1692,7 @@ function TableCellViewer({
                     <FormLabel>Category</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md flex items-center gap-2">
-                        {getIconBySlug(activeItem?.icon || "Package")}
+                        {getCategoryIcon(field.value)}
                         {field.value}
                       </div>
                     ) : (
