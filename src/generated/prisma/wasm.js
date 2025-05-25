@@ -167,14 +167,34 @@ exports.Prisma.PasswordResetTokenScalarFieldEnum = {
   expires: 'expires'
 };
 
-exports.Prisma.ExpenseScalarFieldEnum = {
+exports.Prisma.CategoryScalarFieldEnum = {
   id: 'id',
-  title: 'title',
-  amount: 'amount',
-  category: 'category',
-  date: 'date',
+  name: 'name',
+  description: 'description',
+  type: 'type',
+  icon: 'icon',
+  userId: 'userId'
+};
+
+exports.Prisma.BudgetScalarFieldEnum = {
+  id: 'id',
+  categoryId: 'categoryId',
   userId: 'userId',
+  amount: 'amount',
+  description: 'description',
+  month: 'month',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.TransactionScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  categoryId: 'categoryId',
+  amount: 'amount',
+  date: 'date',
+  description: 'description',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {
@@ -191,7 +211,10 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
-
+exports.CategoryType = exports.$Enums.CategoryType = {
+  Expense: 'Expense',
+  Income: 'Income'
+};
 
 exports.Prisma.ModelName = {
   User: 'User',
@@ -199,7 +222,9 @@ exports.Prisma.ModelName = {
   Session: 'Session',
   VerificationToken: 'VerificationToken',
   PasswordResetToken: 'PasswordResetToken',
-  Expense: 'Expense'
+  Category: 'Category',
+  Budget: 'Budget',
+  Transaction: 'Transaction'
 };
 
 /**

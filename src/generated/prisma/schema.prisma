@@ -15,20 +15,22 @@ datasource db {
 }
 
 model User {
-  id                 String               @id @default(cuid())
-  name               String?
-  email              String               @unique
-  emailVerified      DateTime?
-  image              String?
-  password           String?
-  expenses           Expense[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  transactions       Transaction[]
+  Category           Category[]
+  Budget             Budget[]
   accounts           Account[]
   sessions           Session[]
   verificationTokens VerificationToken[]
   passwordResetToken PasswordResetToken[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Account {
@@ -83,13 +85,50 @@ model PasswordResetToken {
   @@index([token])
 }
 
-model Expense {
-  id        String   @id @default(cuid())
-  title     String
-  amount    Float
-  category  String
-  date      DateTime
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+model Category {
+  id          String       @id @default(cuid())
+  name        String
+  description String?      @default("")
+  type        CategoryType
+  icon        String       @default("Package")
+  userId      String
+
+  budgets      Budget[]
+  transactions Transaction[]
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum CategoryType {
+  Expense
+  Income
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  categoryId  String
+  userId      String
+  amount      Float
+  description String?
+  month       String // "YYYY-MM"
+  createdAt   DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([categoryId, month])
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  categoryId  String
+  amount      Float
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
 }
