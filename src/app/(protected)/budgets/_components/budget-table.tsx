@@ -99,14 +99,6 @@ export const budgetSchema = z.object({
   id: z.number(),
   category: z.string(),
   icon: z.string().default("Package"),
-  period: z.enum([
-    "daily",
-    "weekly",
-    "monthly",
-    "quarterly",
-    "semi-annually",
-    "annually",
-  ]),
   amount: z.number(),
   spent: z.number().optional(),
   progress: z.number().optional(),
@@ -118,14 +110,6 @@ export type Budget = z.infer<typeof budgetSchema>;
 const budgetFormSchema = z.object({
   id: z.number().optional(),
   category: z.string().min(1, "Category is required"),
-  period: z.enum([
-    "daily",
-    "weekly",
-    "monthly",
-    "quarterly",
-    "semi-annually",
-    "annually",
-  ]),
   amount: z.coerce.number().min(0.01, "Amount must be at least 0.01"),
   spent: z.coerce.number().optional(),
   progress: z.coerce.number().optional(),
@@ -135,19 +119,9 @@ export type BudgetFormValues = z.infer<typeof budgetFormSchema>;
 
 const emptyBudgetForm: BudgetFormValues = {
   category: "",
-  period: "monthly",
   amount: 0,
   spent: 0,
   progress: 0,
-};
-
-const periodLabels = {
-  daily: "Daily",
-  weekly: "Weekly",
-  monthly: "Monthly",
-  quarterly: "Quarterly",
-  "semi-annually": "Every 6 Months",
-  annually: "Yearly",
 };
 
 export function BudgetTable({
@@ -162,8 +136,6 @@ export function BudgetTable({
     "add" | "edit" | "view" | "delete-confirm"
   >("add");
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-  const [categoryFilter, setCategoryFilter] =
-    React.useState<string>("All Categories");
   const [data, setData] = React.useState(() => initialData);
   const [selectedBudgets, setSelectedBudgets] = React.useState<Budget[]>([]);
 
@@ -280,16 +252,6 @@ export function BudgetTable({
       },
       enableHiding: false,
       enableSorting: true,
-    },
-    {
-      accessorKey: "period",
-      header: "Period",
-      cell: ({ row }) => (
-        <Badge variant="outline" className="text-muted-foreground">
-          {periodLabels[row.original.period]}
-        </Badge>
-      ),
-      enableHiding: true,
     },
     {
       accessorKey: "amount",
@@ -417,17 +379,6 @@ export function BudgetTable({
     },
   ];
 
-  const filteredData = React.useMemo(() => {
-    let result = data;
-
-    // Filter by period
-    if (categoryFilter !== "All Categories") {
-      result = result.filter((item) => item.period === categoryFilter);
-    }
-
-    return result;
-  }, [data, categoryFilter]);
-
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -441,7 +392,7 @@ export function BudgetTable({
   });
 
   const table = useReactTable({
-    data: filteredData,
+    data: data,
     columns,
     state: {
       sorting,
@@ -472,70 +423,7 @@ export function BudgetTable({
       <div className="flex flex-wrap items-start justify-end gap-4 px-4 lg:px-6">
         {/* Filters & Actions */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Period filter */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <span>
-                  {categoryFilter !== "All Categories"
-                    ? periodLabels[categoryFilter]
-                    : "All Periods"}
-                </span>
-                <IconChevronDown />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuItem
-                onClick={() => setCategoryFilter("All Categories")}
-              >
-                All Periods
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              {Object.entries(periodLabels).map(([period, label]) => (
-                <DropdownMenuItem
-                  key={period}
-                  onClick={() => setCategoryFilter(period)}
-                >
-                  {label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           <div className="flex flex-wrap items-center gap-2">
-            {/* Column visibility */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <IconLayoutColumns />
-                  <span className="hidden lg:inline">Customize Columns</span>
-                  <span className="lg:hidden">Columns</span>
-                  <IconChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {table
-                  .getAllColumns()
-                  .filter(
-                    (column) =>
-                      typeof column.accessorFn !== "undefined" &&
-                      column.getCanHide()
-                  )
-                  .map((column) => (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id}
-                    </DropdownMenuCheckboxItem>
-                  ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             {/* Actions */}
             <Button
               variant="outline"
@@ -610,83 +498,6 @@ export function BudgetTable({
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-between px-4">
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
-          <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
-              </Label>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
-                }}
-              >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                  <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
-                  />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
-            </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to first page</span>
-                <IconChevronsLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to previous page</span>
-                <IconChevronLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to next page</span>
-                <IconChevronRight />
-              </Button>
-              <Button
-                variant="outline"
-                className="hidden size-8 lg:flex"
-                size="icon"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to last page</span>
-                <IconChevronsRight />
-              </Button>
-            </div>
-          </div>
-        </div>
       </div>
       <TableCellViewer
         activeItem={activeItem}
@@ -732,7 +543,6 @@ function TableCellViewer({
       ? {
           id: activeItem.id,
           category: activeItem.category,
-          period: activeItem.period,
           amount: activeItem.amount,
           spent: activeItem.spent,
           progress: activeItem.progress,
@@ -746,7 +556,6 @@ function TableCellViewer({
       form.reset({
         id: activeItem.id,
         category: activeItem.category,
-        period: activeItem.period,
         amount: activeItem.amount,
         spent: activeItem.spent,
         progress: activeItem.progress,
@@ -760,7 +569,6 @@ function TableCellViewer({
     const newBudget: Budget = {
       id: values.id || Date.now(),
       category: values.category,
-      period: values.period,
       amount: values.amount,
       spent: values.spent || 0,
       progress: values.progress || 0,
@@ -816,12 +624,6 @@ function TableCellViewer({
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{budget.category}</span>
-                        <Badge
-                          variant="outline"
-                          className="text-muted-foreground"
-                        >
-                          {periodLabels[budget.period]}
-                        </Badge>
                       </div>
                       <div>
                         {new Intl.NumberFormat("en-US", {
@@ -943,45 +745,6 @@ function TableCellViewer({
                               Healthcare
                             </div>
                           </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {/* Period */}
-              <FormField
-                control={form.control}
-                name="period"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Period</FormLabel>
-                    {isReadOnly ? (
-                      <div className="p-2 border rounded-md">
-                        {periodLabels[field.value]}
-                      </div>
-                    ) : (
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        disabled={isReadOnly}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select a period" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="daily">Daily</SelectItem>
-                          <SelectItem value="weekly">Weekly</SelectItem>
-                          <SelectItem value="monthly">Monthly</SelectItem>
-                          <SelectItem value="quarterly">Quarterly</SelectItem>
-                          <SelectItem value="semi-annually">
-                            Every 6 Months
-                          </SelectItem>
-                          <SelectItem value="annually">Yearly</SelectItem>
                         </SelectContent>
                       </Select>
                     )}
