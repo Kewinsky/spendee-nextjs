@@ -27,6 +27,7 @@ model User {
   transactions       Transaction[]
   Category           Category[]
   Budget             Budget[]
+  Savings            Savings[]
   accounts           Account[]
   sessions           Session[]
   verificationTokens VerificationToken[]
@@ -95,17 +96,19 @@ model Category {
 
   budgets      Budget[]
   transactions Transaction[]
+  savings      Savings[]
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum CategoryType {
-  Expense
-  Income
+  EXPENSE
+  INCOME
 }
 
 model Budget {
   id          String   @id @default(cuid())
+  name        String   @default("Monthly Budget")
   categoryId  String
   userId      String
   amount      Float
@@ -117,6 +120,28 @@ model Budget {
   category Category @relation(fields: [categoryId], references: [id])
 
   @@unique([categoryId, month])
+}
+
+model Savings {
+  id           String      @id @default(cuid())
+  accountName  String
+  categoryId   String
+  userId       String
+  balance      Float
+  interestRate Float
+  growth       Float       @default(0)
+  accountType  AccountType @default(SAVINGS)
+  institution  String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
+enum AccountType {
+  SAVINGS
+  INVESTMENT
 }
 
 model Transaction {
