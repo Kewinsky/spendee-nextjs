@@ -49,6 +49,11 @@ export type Category = $Result.DefaultSelection<Prisma.$CategoryPayload>
  */
 export type Budget = $Result.DefaultSelection<Prisma.$BudgetPayload>
 /**
+ * Model Savings
+ * 
+ */
+export type Savings = $Result.DefaultSelection<Prisma.$SavingsPayload>
+/**
  * Model Transaction
  * 
  */
@@ -59,17 +64,29 @@ export type Transaction = $Result.DefaultSelection<Prisma.$TransactionPayload>
  */
 export namespace $Enums {
   export const CategoryType: {
-  Expense: 'Expense',
-  Income: 'Income'
+  EXPENSE: 'EXPENSE',
+  INCOME: 'INCOME'
 };
 
 export type CategoryType = (typeof CategoryType)[keyof typeof CategoryType]
+
+
+export const AccountType: {
+  SAVINGS: 'SAVINGS',
+  INVESTMENT: 'INVESTMENT'
+};
+
+export type AccountType = (typeof AccountType)[keyof typeof AccountType]
 
 }
 
 export type CategoryType = $Enums.CategoryType
 
 export const CategoryType: typeof $Enums.CategoryType
+
+export type AccountType = $Enums.AccountType
+
+export const AccountType: typeof $Enums.AccountType
 
 /**
  * ##  Prisma Client ʲˢ
@@ -265,6 +282,16 @@ export class PrismaClient<
     * ```
     */
   get budget(): Prisma.BudgetDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.savings`: Exposes CRUD operations for the **Savings** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Savings
+    * const savings = await prisma.savings.findMany()
+    * ```
+    */
+  get savings(): Prisma.SavingsDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.transaction`: Exposes CRUD operations for the **Transaction** model.
@@ -722,6 +749,7 @@ export namespace Prisma {
     PasswordResetToken: 'PasswordResetToken',
     Category: 'Category',
     Budget: 'Budget',
+    Savings: 'Savings',
     Transaction: 'Transaction'
   };
 
@@ -741,7 +769,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "account" | "session" | "verificationToken" | "passwordResetToken" | "category" | "budget" | "transaction"
+      modelProps: "user" | "account" | "session" | "verificationToken" | "passwordResetToken" | "category" | "budget" | "savings" | "transaction"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1263,6 +1291,80 @@ export namespace Prisma {
           }
         }
       }
+      Savings: {
+        payload: Prisma.$SavingsPayload<ExtArgs>
+        fields: Prisma.SavingsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SavingsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SavingsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload>
+          }
+          findFirst: {
+            args: Prisma.SavingsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SavingsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload>
+          }
+          findMany: {
+            args: Prisma.SavingsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload>[]
+          }
+          create: {
+            args: Prisma.SavingsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload>
+          }
+          createMany: {
+            args: Prisma.SavingsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SavingsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload>[]
+          }
+          delete: {
+            args: Prisma.SavingsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload>
+          }
+          update: {
+            args: Prisma.SavingsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload>
+          }
+          deleteMany: {
+            args: Prisma.SavingsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SavingsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SavingsUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload>[]
+          }
+          upsert: {
+            args: Prisma.SavingsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SavingsPayload>
+          }
+          aggregate: {
+            args: Prisma.SavingsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSavings>
+          }
+          groupBy: {
+            args: Prisma.SavingsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SavingsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SavingsCountArgs<ExtArgs>
+            result: $Utils.Optional<SavingsCountAggregateOutputType> | number
+          }
+        }
+      }
       Transaction: {
         payload: Prisma.$TransactionPayload<ExtArgs>
         fields: Prisma.TransactionFieldRefs
@@ -1428,6 +1530,7 @@ export namespace Prisma {
     passwordResetToken?: PasswordResetTokenOmit
     category?: CategoryOmit
     budget?: BudgetOmit
+    savings?: SavingsOmit
     transaction?: TransactionOmit
   }
 
@@ -1526,6 +1629,7 @@ export namespace Prisma {
     transactions: number
     Category: number
     Budget: number
+    Savings: number
     accounts: number
     sessions: number
     verificationTokens: number
@@ -1536,6 +1640,7 @@ export namespace Prisma {
     transactions?: boolean | UserCountOutputTypeCountTransactionsArgs
     Category?: boolean | UserCountOutputTypeCountCategoryArgs
     Budget?: boolean | UserCountOutputTypeCountBudgetArgs
+    Savings?: boolean | UserCountOutputTypeCountSavingsArgs
     accounts?: boolean | UserCountOutputTypeCountAccountsArgs
     sessions?: boolean | UserCountOutputTypeCountSessionsArgs
     verificationTokens?: boolean | UserCountOutputTypeCountVerificationTokensArgs
@@ -1577,6 +1682,13 @@ export namespace Prisma {
   /**
    * UserCountOutputType without action
    */
+  export type UserCountOutputTypeCountSavingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SavingsWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
   export type UserCountOutputTypeCountAccountsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AccountWhereInput
   }
@@ -1610,11 +1722,13 @@ export namespace Prisma {
   export type CategoryCountOutputType = {
     budgets: number
     transactions: number
+    savings: number
   }
 
   export type CategoryCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     budgets?: boolean | CategoryCountOutputTypeCountBudgetsArgs
     transactions?: boolean | CategoryCountOutputTypeCountTransactionsArgs
+    savings?: boolean | CategoryCountOutputTypeCountSavingsArgs
   }
 
   // Custom InputTypes
@@ -1640,6 +1754,13 @@ export namespace Prisma {
    */
   export type CategoryCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TransactionWhereInput
+  }
+
+  /**
+   * CategoryCountOutputType without action
+   */
+  export type CategoryCountOutputTypeCountSavingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SavingsWhereInput
   }
 
 
@@ -1838,6 +1959,7 @@ export namespace Prisma {
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     Category?: boolean | User$CategoryArgs<ExtArgs>
     Budget?: boolean | User$BudgetArgs<ExtArgs>
+    Savings?: boolean | User$SavingsArgs<ExtArgs>
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     verificationTokens?: boolean | User$verificationTokensArgs<ExtArgs>
@@ -1883,6 +2005,7 @@ export namespace Prisma {
     transactions?: boolean | User$transactionsArgs<ExtArgs>
     Category?: boolean | User$CategoryArgs<ExtArgs>
     Budget?: boolean | User$BudgetArgs<ExtArgs>
+    Savings?: boolean | User$SavingsArgs<ExtArgs>
     accounts?: boolean | User$accountsArgs<ExtArgs>
     sessions?: boolean | User$sessionsArgs<ExtArgs>
     verificationTokens?: boolean | User$verificationTokensArgs<ExtArgs>
@@ -1898,6 +2021,7 @@ export namespace Prisma {
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
       Category: Prisma.$CategoryPayload<ExtArgs>[]
       Budget: Prisma.$BudgetPayload<ExtArgs>[]
+      Savings: Prisma.$SavingsPayload<ExtArgs>[]
       accounts: Prisma.$AccountPayload<ExtArgs>[]
       sessions: Prisma.$SessionPayload<ExtArgs>[]
       verificationTokens: Prisma.$VerificationTokenPayload<ExtArgs>[]
@@ -2309,6 +2433,7 @@ export namespace Prisma {
     transactions<T extends User$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, User$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     Category<T extends User$CategoryArgs<ExtArgs> = {}>(args?: Subset<T, User$CategoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     Budget<T extends User$BudgetArgs<ExtArgs> = {}>(args?: Subset<T, User$BudgetArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    Savings<T extends User$SavingsArgs<ExtArgs> = {}>(args?: Subset<T, User$SavingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     accounts<T extends User$accountsArgs<ExtArgs> = {}>(args?: Subset<T, User$accountsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     sessions<T extends User$sessionsArgs<ExtArgs> = {}>(args?: Subset<T, User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     verificationTokens<T extends User$verificationTokensArgs<ExtArgs> = {}>(args?: Subset<T, User$verificationTokensArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$VerificationTokenPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2807,6 +2932,30 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: BudgetScalarFieldEnum | BudgetScalarFieldEnum[]
+  }
+
+  /**
+   * User.Savings
+   */
+  export type User$SavingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    where?: SavingsWhereInput
+    orderBy?: SavingsOrderByWithRelationInput | SavingsOrderByWithRelationInput[]
+    cursor?: SavingsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SavingsScalarFieldEnum | SavingsScalarFieldEnum[]
   }
 
   /**
@@ -7455,6 +7604,7 @@ export namespace Prisma {
     userId?: boolean
     budgets?: boolean | Category$budgetsArgs<ExtArgs>
     transactions?: boolean | Category$transactionsArgs<ExtArgs>
+    savings?: boolean | Category$savingsArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     _count?: boolean | CategoryCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["category"]>
@@ -7492,6 +7642,7 @@ export namespace Prisma {
   export type CategoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     budgets?: boolean | Category$budgetsArgs<ExtArgs>
     transactions?: boolean | Category$transactionsArgs<ExtArgs>
+    savings?: boolean | Category$savingsArgs<ExtArgs>
     user?: boolean | UserDefaultArgs<ExtArgs>
     _count?: boolean | CategoryCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -7507,6 +7658,7 @@ export namespace Prisma {
     objects: {
       budgets: Prisma.$BudgetPayload<ExtArgs>[]
       transactions: Prisma.$TransactionPayload<ExtArgs>[]
+      savings: Prisma.$SavingsPayload<ExtArgs>[]
       user: Prisma.$UserPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -7912,6 +8064,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     budgets<T extends Category$budgetsArgs<ExtArgs> = {}>(args?: Subset<T, Category$budgetsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$BudgetPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     transactions<T extends Category$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Category$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    savings<T extends Category$savingsArgs<ExtArgs> = {}>(args?: Subset<T, Category$savingsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -8392,6 +8545,30 @@ export namespace Prisma {
   }
 
   /**
+   * Category.savings
+   */
+  export type Category$savingsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    where?: SavingsWhereInput
+    orderBy?: SavingsOrderByWithRelationInput | SavingsOrderByWithRelationInput[]
+    cursor?: SavingsWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: SavingsScalarFieldEnum | SavingsScalarFieldEnum[]
+  }
+
+  /**
    * Category without action
    */
   export type CategoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8432,6 +8609,7 @@ export namespace Prisma {
 
   export type BudgetMinAggregateOutputType = {
     id: string | null
+    name: string | null
     categoryId: string | null
     userId: string | null
     amount: number | null
@@ -8442,6 +8620,7 @@ export namespace Prisma {
 
   export type BudgetMaxAggregateOutputType = {
     id: string | null
+    name: string | null
     categoryId: string | null
     userId: string | null
     amount: number | null
@@ -8452,6 +8631,7 @@ export namespace Prisma {
 
   export type BudgetCountAggregateOutputType = {
     id: number
+    name: number
     categoryId: number
     userId: number
     amount: number
@@ -8472,6 +8652,7 @@ export namespace Prisma {
 
   export type BudgetMinAggregateInputType = {
     id?: true
+    name?: true
     categoryId?: true
     userId?: true
     amount?: true
@@ -8482,6 +8663,7 @@ export namespace Prisma {
 
   export type BudgetMaxAggregateInputType = {
     id?: true
+    name?: true
     categoryId?: true
     userId?: true
     amount?: true
@@ -8492,6 +8674,7 @@ export namespace Prisma {
 
   export type BudgetCountAggregateInputType = {
     id?: true
+    name?: true
     categoryId?: true
     userId?: true
     amount?: true
@@ -8589,6 +8772,7 @@ export namespace Prisma {
 
   export type BudgetGroupByOutputType = {
     id: string
+    name: string
     categoryId: string
     userId: string
     amount: number
@@ -8618,6 +8802,7 @@ export namespace Prisma {
 
   export type BudgetSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    name?: boolean
     categoryId?: boolean
     userId?: boolean
     amount?: boolean
@@ -8630,6 +8815,7 @@ export namespace Prisma {
 
   export type BudgetSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    name?: boolean
     categoryId?: boolean
     userId?: boolean
     amount?: boolean
@@ -8642,6 +8828,7 @@ export namespace Prisma {
 
   export type BudgetSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    name?: boolean
     categoryId?: boolean
     userId?: boolean
     amount?: boolean
@@ -8654,6 +8841,7 @@ export namespace Prisma {
 
   export type BudgetSelectScalar = {
     id?: boolean
+    name?: boolean
     categoryId?: boolean
     userId?: boolean
     amount?: boolean
@@ -8662,7 +8850,7 @@ export namespace Prisma {
     createdAt?: boolean
   }
 
-  export type BudgetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "categoryId" | "userId" | "amount" | "description" | "month" | "createdAt", ExtArgs["result"]["budget"]>
+  export type BudgetOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "categoryId" | "userId" | "amount" | "description" | "month" | "createdAt", ExtArgs["result"]["budget"]>
   export type BudgetInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     category?: boolean | CategoryDefaultArgs<ExtArgs>
@@ -8684,6 +8872,7 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      name: string
       categoryId: string
       userId: string
       amount: number
@@ -9116,6 +9305,7 @@ export namespace Prisma {
    */
   interface BudgetFieldRefs {
     readonly id: FieldRef<"Budget", 'String'>
+    readonly name: FieldRef<"Budget", 'String'>
     readonly categoryId: FieldRef<"Budget", 'String'>
     readonly userId: FieldRef<"Budget", 'String'>
     readonly amount: FieldRef<"Budget", 'Float'>
@@ -9533,6 +9723,1192 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: BudgetInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Savings
+   */
+
+  export type AggregateSavings = {
+    _count: SavingsCountAggregateOutputType | null
+    _avg: SavingsAvgAggregateOutputType | null
+    _sum: SavingsSumAggregateOutputType | null
+    _min: SavingsMinAggregateOutputType | null
+    _max: SavingsMaxAggregateOutputType | null
+  }
+
+  export type SavingsAvgAggregateOutputType = {
+    balance: number | null
+    interestRate: number | null
+    growth: number | null
+  }
+
+  export type SavingsSumAggregateOutputType = {
+    balance: number | null
+    interestRate: number | null
+    growth: number | null
+  }
+
+  export type SavingsMinAggregateOutputType = {
+    id: string | null
+    accountName: string | null
+    categoryId: string | null
+    userId: string | null
+    balance: number | null
+    interestRate: number | null
+    growth: number | null
+    accountType: $Enums.AccountType | null
+    institution: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SavingsMaxAggregateOutputType = {
+    id: string | null
+    accountName: string | null
+    categoryId: string | null
+    userId: string | null
+    balance: number | null
+    interestRate: number | null
+    growth: number | null
+    accountType: $Enums.AccountType | null
+    institution: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type SavingsCountAggregateOutputType = {
+    id: number
+    accountName: number
+    categoryId: number
+    userId: number
+    balance: number
+    interestRate: number
+    growth: number
+    accountType: number
+    institution: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type SavingsAvgAggregateInputType = {
+    balance?: true
+    interestRate?: true
+    growth?: true
+  }
+
+  export type SavingsSumAggregateInputType = {
+    balance?: true
+    interestRate?: true
+    growth?: true
+  }
+
+  export type SavingsMinAggregateInputType = {
+    id?: true
+    accountName?: true
+    categoryId?: true
+    userId?: true
+    balance?: true
+    interestRate?: true
+    growth?: true
+    accountType?: true
+    institution?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SavingsMaxAggregateInputType = {
+    id?: true
+    accountName?: true
+    categoryId?: true
+    userId?: true
+    balance?: true
+    interestRate?: true
+    growth?: true
+    accountType?: true
+    institution?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type SavingsCountAggregateInputType = {
+    id?: true
+    accountName?: true
+    categoryId?: true
+    userId?: true
+    balance?: true
+    interestRate?: true
+    growth?: true
+    accountType?: true
+    institution?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type SavingsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Savings to aggregate.
+     */
+    where?: SavingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Savings to fetch.
+     */
+    orderBy?: SavingsOrderByWithRelationInput | SavingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SavingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Savings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Savings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Savings
+    **/
+    _count?: true | SavingsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: SavingsAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: SavingsSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SavingsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SavingsMaxAggregateInputType
+  }
+
+  export type GetSavingsAggregateType<T extends SavingsAggregateArgs> = {
+        [P in keyof T & keyof AggregateSavings]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSavings[P]>
+      : GetScalarType<T[P], AggregateSavings[P]>
+  }
+
+
+
+
+  export type SavingsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SavingsWhereInput
+    orderBy?: SavingsOrderByWithAggregationInput | SavingsOrderByWithAggregationInput[]
+    by: SavingsScalarFieldEnum[] | SavingsScalarFieldEnum
+    having?: SavingsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SavingsCountAggregateInputType | true
+    _avg?: SavingsAvgAggregateInputType
+    _sum?: SavingsSumAggregateInputType
+    _min?: SavingsMinAggregateInputType
+    _max?: SavingsMaxAggregateInputType
+  }
+
+  export type SavingsGroupByOutputType = {
+    id: string
+    accountName: string
+    categoryId: string
+    userId: string
+    balance: number
+    interestRate: number
+    growth: number
+    accountType: $Enums.AccountType
+    institution: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: SavingsCountAggregateOutputType | null
+    _avg: SavingsAvgAggregateOutputType | null
+    _sum: SavingsSumAggregateOutputType | null
+    _min: SavingsMinAggregateOutputType | null
+    _max: SavingsMaxAggregateOutputType | null
+  }
+
+  type GetSavingsGroupByPayload<T extends SavingsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SavingsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SavingsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SavingsGroupByOutputType[P]>
+            : GetScalarType<T[P], SavingsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SavingsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    accountName?: boolean
+    categoryId?: boolean
+    userId?: boolean
+    balance?: boolean
+    interestRate?: boolean
+    growth?: boolean
+    accountType?: boolean
+    institution?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["savings"]>
+
+  export type SavingsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    accountName?: boolean
+    categoryId?: boolean
+    userId?: boolean
+    balance?: boolean
+    interestRate?: boolean
+    growth?: boolean
+    accountType?: boolean
+    institution?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["savings"]>
+
+  export type SavingsSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    accountName?: boolean
+    categoryId?: boolean
+    userId?: boolean
+    balance?: boolean
+    interestRate?: boolean
+    growth?: boolean
+    accountType?: boolean
+    institution?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["savings"]>
+
+  export type SavingsSelectScalar = {
+    id?: boolean
+    accountName?: boolean
+    categoryId?: boolean
+    userId?: boolean
+    balance?: boolean
+    interestRate?: boolean
+    growth?: boolean
+    accountType?: boolean
+    institution?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type SavingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "accountName" | "categoryId" | "userId" | "balance" | "interestRate" | "growth" | "accountType" | "institution" | "createdAt" | "updatedAt", ExtArgs["result"]["savings"]>
+  export type SavingsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }
+  export type SavingsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }
+  export type SavingsIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+    category?: boolean | CategoryDefaultArgs<ExtArgs>
+  }
+
+  export type $SavingsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Savings"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+      category: Prisma.$CategoryPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      accountName: string
+      categoryId: string
+      userId: string
+      balance: number
+      interestRate: number
+      growth: number
+      accountType: $Enums.AccountType
+      institution: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["savings"]>
+    composites: {}
+  }
+
+  type SavingsGetPayload<S extends boolean | null | undefined | SavingsDefaultArgs> = $Result.GetResult<Prisma.$SavingsPayload, S>
+
+  type SavingsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SavingsFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SavingsCountAggregateInputType | true
+    }
+
+  export interface SavingsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Savings'], meta: { name: 'Savings' } }
+    /**
+     * Find zero or one Savings that matches the filter.
+     * @param {SavingsFindUniqueArgs} args - Arguments to find a Savings
+     * @example
+     * // Get one Savings
+     * const savings = await prisma.savings.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SavingsFindUniqueArgs>(args: SelectSubset<T, SavingsFindUniqueArgs<ExtArgs>>): Prisma__SavingsClient<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Savings that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SavingsFindUniqueOrThrowArgs} args - Arguments to find a Savings
+     * @example
+     * // Get one Savings
+     * const savings = await prisma.savings.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SavingsFindUniqueOrThrowArgs>(args: SelectSubset<T, SavingsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SavingsClient<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Savings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingsFindFirstArgs} args - Arguments to find a Savings
+     * @example
+     * // Get one Savings
+     * const savings = await prisma.savings.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SavingsFindFirstArgs>(args?: SelectSubset<T, SavingsFindFirstArgs<ExtArgs>>): Prisma__SavingsClient<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Savings that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingsFindFirstOrThrowArgs} args - Arguments to find a Savings
+     * @example
+     * // Get one Savings
+     * const savings = await prisma.savings.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SavingsFindFirstOrThrowArgs>(args?: SelectSubset<T, SavingsFindFirstOrThrowArgs<ExtArgs>>): Prisma__SavingsClient<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Savings that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Savings
+     * const savings = await prisma.savings.findMany()
+     * 
+     * // Get first 10 Savings
+     * const savings = await prisma.savings.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const savingsWithIdOnly = await prisma.savings.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SavingsFindManyArgs>(args?: SelectSubset<T, SavingsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Savings.
+     * @param {SavingsCreateArgs} args - Arguments to create a Savings.
+     * @example
+     * // Create one Savings
+     * const Savings = await prisma.savings.create({
+     *   data: {
+     *     // ... data to create a Savings
+     *   }
+     * })
+     * 
+     */
+    create<T extends SavingsCreateArgs>(args: SelectSubset<T, SavingsCreateArgs<ExtArgs>>): Prisma__SavingsClient<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Savings.
+     * @param {SavingsCreateManyArgs} args - Arguments to create many Savings.
+     * @example
+     * // Create many Savings
+     * const savings = await prisma.savings.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SavingsCreateManyArgs>(args?: SelectSubset<T, SavingsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Savings and returns the data saved in the database.
+     * @param {SavingsCreateManyAndReturnArgs} args - Arguments to create many Savings.
+     * @example
+     * // Create many Savings
+     * const savings = await prisma.savings.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Savings and only return the `id`
+     * const savingsWithIdOnly = await prisma.savings.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SavingsCreateManyAndReturnArgs>(args?: SelectSubset<T, SavingsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Savings.
+     * @param {SavingsDeleteArgs} args - Arguments to delete one Savings.
+     * @example
+     * // Delete one Savings
+     * const Savings = await prisma.savings.delete({
+     *   where: {
+     *     // ... filter to delete one Savings
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SavingsDeleteArgs>(args: SelectSubset<T, SavingsDeleteArgs<ExtArgs>>): Prisma__SavingsClient<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Savings.
+     * @param {SavingsUpdateArgs} args - Arguments to update one Savings.
+     * @example
+     * // Update one Savings
+     * const savings = await prisma.savings.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SavingsUpdateArgs>(args: SelectSubset<T, SavingsUpdateArgs<ExtArgs>>): Prisma__SavingsClient<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Savings.
+     * @param {SavingsDeleteManyArgs} args - Arguments to filter Savings to delete.
+     * @example
+     * // Delete a few Savings
+     * const { count } = await prisma.savings.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SavingsDeleteManyArgs>(args?: SelectSubset<T, SavingsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Savings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Savings
+     * const savings = await prisma.savings.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SavingsUpdateManyArgs>(args: SelectSubset<T, SavingsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Savings and returns the data updated in the database.
+     * @param {SavingsUpdateManyAndReturnArgs} args - Arguments to update many Savings.
+     * @example
+     * // Update many Savings
+     * const savings = await prisma.savings.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Savings and only return the `id`
+     * const savingsWithIdOnly = await prisma.savings.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SavingsUpdateManyAndReturnArgs>(args: SelectSubset<T, SavingsUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Savings.
+     * @param {SavingsUpsertArgs} args - Arguments to update or create a Savings.
+     * @example
+     * // Update or create a Savings
+     * const savings = await prisma.savings.upsert({
+     *   create: {
+     *     // ... data to create a Savings
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Savings we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SavingsUpsertArgs>(args: SelectSubset<T, SavingsUpsertArgs<ExtArgs>>): Prisma__SavingsClient<$Result.GetResult<Prisma.$SavingsPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Savings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingsCountArgs} args - Arguments to filter Savings to count.
+     * @example
+     * // Count the number of Savings
+     * const count = await prisma.savings.count({
+     *   where: {
+     *     // ... the filter for the Savings we want to count
+     *   }
+     * })
+    **/
+    count<T extends SavingsCountArgs>(
+      args?: Subset<T, SavingsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SavingsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Savings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SavingsAggregateArgs>(args: Subset<T, SavingsAggregateArgs>): Prisma.PrismaPromise<GetSavingsAggregateType<T>>
+
+    /**
+     * Group by Savings.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SavingsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SavingsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SavingsGroupByArgs['orderBy'] }
+        : { orderBy?: SavingsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SavingsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSavingsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Savings model
+   */
+  readonly fields: SavingsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Savings.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SavingsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    category<T extends CategoryDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CategoryDefaultArgs<ExtArgs>>): Prisma__CategoryClient<$Result.GetResult<Prisma.$CategoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Savings model
+   */
+  interface SavingsFieldRefs {
+    readonly id: FieldRef<"Savings", 'String'>
+    readonly accountName: FieldRef<"Savings", 'String'>
+    readonly categoryId: FieldRef<"Savings", 'String'>
+    readonly userId: FieldRef<"Savings", 'String'>
+    readonly balance: FieldRef<"Savings", 'Float'>
+    readonly interestRate: FieldRef<"Savings", 'Float'>
+    readonly growth: FieldRef<"Savings", 'Float'>
+    readonly accountType: FieldRef<"Savings", 'AccountType'>
+    readonly institution: FieldRef<"Savings", 'String'>
+    readonly createdAt: FieldRef<"Savings", 'DateTime'>
+    readonly updatedAt: FieldRef<"Savings", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Savings findUnique
+   */
+  export type SavingsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    /**
+     * Filter, which Savings to fetch.
+     */
+    where: SavingsWhereUniqueInput
+  }
+
+  /**
+   * Savings findUniqueOrThrow
+   */
+  export type SavingsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    /**
+     * Filter, which Savings to fetch.
+     */
+    where: SavingsWhereUniqueInput
+  }
+
+  /**
+   * Savings findFirst
+   */
+  export type SavingsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    /**
+     * Filter, which Savings to fetch.
+     */
+    where?: SavingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Savings to fetch.
+     */
+    orderBy?: SavingsOrderByWithRelationInput | SavingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Savings.
+     */
+    cursor?: SavingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Savings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Savings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Savings.
+     */
+    distinct?: SavingsScalarFieldEnum | SavingsScalarFieldEnum[]
+  }
+
+  /**
+   * Savings findFirstOrThrow
+   */
+  export type SavingsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    /**
+     * Filter, which Savings to fetch.
+     */
+    where?: SavingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Savings to fetch.
+     */
+    orderBy?: SavingsOrderByWithRelationInput | SavingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Savings.
+     */
+    cursor?: SavingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Savings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Savings.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Savings.
+     */
+    distinct?: SavingsScalarFieldEnum | SavingsScalarFieldEnum[]
+  }
+
+  /**
+   * Savings findMany
+   */
+  export type SavingsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    /**
+     * Filter, which Savings to fetch.
+     */
+    where?: SavingsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Savings to fetch.
+     */
+    orderBy?: SavingsOrderByWithRelationInput | SavingsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Savings.
+     */
+    cursor?: SavingsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Savings from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Savings.
+     */
+    skip?: number
+    distinct?: SavingsScalarFieldEnum | SavingsScalarFieldEnum[]
+  }
+
+  /**
+   * Savings create
+   */
+  export type SavingsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Savings.
+     */
+    data: XOR<SavingsCreateInput, SavingsUncheckedCreateInput>
+  }
+
+  /**
+   * Savings createMany
+   */
+  export type SavingsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Savings.
+     */
+    data: SavingsCreateManyInput | SavingsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Savings createManyAndReturn
+   */
+  export type SavingsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * The data used to create many Savings.
+     */
+    data: SavingsCreateManyInput | SavingsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Savings update
+   */
+  export type SavingsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Savings.
+     */
+    data: XOR<SavingsUpdateInput, SavingsUncheckedUpdateInput>
+    /**
+     * Choose, which Savings to update.
+     */
+    where: SavingsWhereUniqueInput
+  }
+
+  /**
+   * Savings updateMany
+   */
+  export type SavingsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Savings.
+     */
+    data: XOR<SavingsUpdateManyMutationInput, SavingsUncheckedUpdateManyInput>
+    /**
+     * Filter which Savings to update
+     */
+    where?: SavingsWhereInput
+    /**
+     * Limit how many Savings to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Savings updateManyAndReturn
+   */
+  export type SavingsUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * The data used to update Savings.
+     */
+    data: XOR<SavingsUpdateManyMutationInput, SavingsUncheckedUpdateManyInput>
+    /**
+     * Filter which Savings to update
+     */
+    where?: SavingsWhereInput
+    /**
+     * Limit how many Savings to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Savings upsert
+   */
+  export type SavingsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Savings to update in case it exists.
+     */
+    where: SavingsWhereUniqueInput
+    /**
+     * In case the Savings found by the `where` argument doesn't exist, create a new Savings with this data.
+     */
+    create: XOR<SavingsCreateInput, SavingsUncheckedCreateInput>
+    /**
+     * In case the Savings was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SavingsUpdateInput, SavingsUncheckedUpdateInput>
+  }
+
+  /**
+   * Savings delete
+   */
+  export type SavingsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
+    /**
+     * Filter which Savings to delete.
+     */
+    where: SavingsWhereUniqueInput
+  }
+
+  /**
+   * Savings deleteMany
+   */
+  export type SavingsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Savings to delete
+     */
+    where?: SavingsWhereInput
+    /**
+     * Limit how many Savings to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Savings without action
+   */
+  export type SavingsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Savings
+     */
+    select?: SavingsSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Savings
+     */
+    omit?: SavingsOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SavingsInclude<ExtArgs> | null
   }
 
 
@@ -10768,6 +12144,7 @@ export namespace Prisma {
 
   export const BudgetScalarFieldEnum: {
     id: 'id',
+    name: 'name',
     categoryId: 'categoryId',
     userId: 'userId',
     amount: 'amount',
@@ -10777,6 +12154,23 @@ export namespace Prisma {
   };
 
   export type BudgetScalarFieldEnum = (typeof BudgetScalarFieldEnum)[keyof typeof BudgetScalarFieldEnum]
+
+
+  export const SavingsScalarFieldEnum: {
+    id: 'id',
+    accountName: 'accountName',
+    categoryId: 'categoryId',
+    userId: 'userId',
+    balance: 'balance',
+    interestRate: 'interestRate',
+    growth: 'growth',
+    accountType: 'accountType',
+    institution: 'institution',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type SavingsScalarFieldEnum = (typeof SavingsScalarFieldEnum)[keyof typeof SavingsScalarFieldEnum]
 
 
   export const TransactionScalarFieldEnum: {
@@ -10890,6 +12284,20 @@ export namespace Prisma {
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
+
+
+  /**
+   * Reference to a field of type 'AccountType'
+   */
+  export type EnumAccountTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountType'>
+    
+
+
+  /**
+   * Reference to a field of type 'AccountType[]'
+   */
+  export type ListEnumAccountTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountType[]'>
+    
   /**
    * Deep Input Types
    */
@@ -10910,6 +12318,7 @@ export namespace Prisma {
     transactions?: TransactionListRelationFilter
     Category?: CategoryListRelationFilter
     Budget?: BudgetListRelationFilter
+    Savings?: SavingsListRelationFilter
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
     verificationTokens?: VerificationTokenListRelationFilter
@@ -10928,6 +12337,7 @@ export namespace Prisma {
     transactions?: TransactionOrderByRelationAggregateInput
     Category?: CategoryOrderByRelationAggregateInput
     Budget?: BudgetOrderByRelationAggregateInput
+    Savings?: SavingsOrderByRelationAggregateInput
     accounts?: AccountOrderByRelationAggregateInput
     sessions?: SessionOrderByRelationAggregateInput
     verificationTokens?: VerificationTokenOrderByRelationAggregateInput
@@ -10949,6 +12359,7 @@ export namespace Prisma {
     transactions?: TransactionListRelationFilter
     Category?: CategoryListRelationFilter
     Budget?: BudgetListRelationFilter
+    Savings?: SavingsListRelationFilter
     accounts?: AccountListRelationFilter
     sessions?: SessionListRelationFilter
     verificationTokens?: VerificationTokenListRelationFilter
@@ -11253,6 +12664,7 @@ export namespace Prisma {
     userId?: StringFilter<"Category"> | string
     budgets?: BudgetListRelationFilter
     transactions?: TransactionListRelationFilter
+    savings?: SavingsListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }
 
@@ -11265,6 +12677,7 @@ export namespace Prisma {
     userId?: SortOrder
     budgets?: BudgetOrderByRelationAggregateInput
     transactions?: TransactionOrderByRelationAggregateInput
+    savings?: SavingsOrderByRelationAggregateInput
     user?: UserOrderByWithRelationInput
   }
 
@@ -11280,6 +12693,7 @@ export namespace Prisma {
     userId?: StringFilter<"Category"> | string
     budgets?: BudgetListRelationFilter
     transactions?: TransactionListRelationFilter
+    savings?: SavingsListRelationFilter
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
   }, "id">
 
@@ -11312,6 +12726,7 @@ export namespace Prisma {
     OR?: BudgetWhereInput[]
     NOT?: BudgetWhereInput | BudgetWhereInput[]
     id?: StringFilter<"Budget"> | string
+    name?: StringFilter<"Budget"> | string
     categoryId?: StringFilter<"Budget"> | string
     userId?: StringFilter<"Budget"> | string
     amount?: FloatFilter<"Budget"> | number
@@ -11324,6 +12739,7 @@ export namespace Prisma {
 
   export type BudgetOrderByWithRelationInput = {
     id?: SortOrder
+    name?: SortOrder
     categoryId?: SortOrder
     userId?: SortOrder
     amount?: SortOrder
@@ -11340,6 +12756,7 @@ export namespace Prisma {
     AND?: BudgetWhereInput | BudgetWhereInput[]
     OR?: BudgetWhereInput[]
     NOT?: BudgetWhereInput | BudgetWhereInput[]
+    name?: StringFilter<"Budget"> | string
     categoryId?: StringFilter<"Budget"> | string
     userId?: StringFilter<"Budget"> | string
     amount?: FloatFilter<"Budget"> | number
@@ -11352,6 +12769,7 @@ export namespace Prisma {
 
   export type BudgetOrderByWithAggregationInput = {
     id?: SortOrder
+    name?: SortOrder
     categoryId?: SortOrder
     userId?: SortOrder
     amount?: SortOrder
@@ -11370,12 +12788,103 @@ export namespace Prisma {
     OR?: BudgetScalarWhereWithAggregatesInput[]
     NOT?: BudgetScalarWhereWithAggregatesInput | BudgetScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Budget"> | string
+    name?: StringWithAggregatesFilter<"Budget"> | string
     categoryId?: StringWithAggregatesFilter<"Budget"> | string
     userId?: StringWithAggregatesFilter<"Budget"> | string
     amount?: FloatWithAggregatesFilter<"Budget"> | number
     description?: StringNullableWithAggregatesFilter<"Budget"> | string | null
     month?: StringWithAggregatesFilter<"Budget"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Budget"> | Date | string
+  }
+
+  export type SavingsWhereInput = {
+    AND?: SavingsWhereInput | SavingsWhereInput[]
+    OR?: SavingsWhereInput[]
+    NOT?: SavingsWhereInput | SavingsWhereInput[]
+    id?: StringFilter<"Savings"> | string
+    accountName?: StringFilter<"Savings"> | string
+    categoryId?: StringFilter<"Savings"> | string
+    userId?: StringFilter<"Savings"> | string
+    balance?: FloatFilter<"Savings"> | number
+    interestRate?: FloatFilter<"Savings"> | number
+    growth?: FloatFilter<"Savings"> | number
+    accountType?: EnumAccountTypeFilter<"Savings"> | $Enums.AccountType
+    institution?: StringNullableFilter<"Savings"> | string | null
+    createdAt?: DateTimeFilter<"Savings"> | Date | string
+    updatedAt?: DateTimeFilter<"Savings"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
+  }
+
+  export type SavingsOrderByWithRelationInput = {
+    id?: SortOrder
+    accountName?: SortOrder
+    categoryId?: SortOrder
+    userId?: SortOrder
+    balance?: SortOrder
+    interestRate?: SortOrder
+    growth?: SortOrder
+    accountType?: SortOrder
+    institution?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+    category?: CategoryOrderByWithRelationInput
+  }
+
+  export type SavingsWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SavingsWhereInput | SavingsWhereInput[]
+    OR?: SavingsWhereInput[]
+    NOT?: SavingsWhereInput | SavingsWhereInput[]
+    accountName?: StringFilter<"Savings"> | string
+    categoryId?: StringFilter<"Savings"> | string
+    userId?: StringFilter<"Savings"> | string
+    balance?: FloatFilter<"Savings"> | number
+    interestRate?: FloatFilter<"Savings"> | number
+    growth?: FloatFilter<"Savings"> | number
+    accountType?: EnumAccountTypeFilter<"Savings"> | $Enums.AccountType
+    institution?: StringNullableFilter<"Savings"> | string | null
+    createdAt?: DateTimeFilter<"Savings"> | Date | string
+    updatedAt?: DateTimeFilter<"Savings"> | Date | string
+    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
+  }, "id">
+
+  export type SavingsOrderByWithAggregationInput = {
+    id?: SortOrder
+    accountName?: SortOrder
+    categoryId?: SortOrder
+    userId?: SortOrder
+    balance?: SortOrder
+    interestRate?: SortOrder
+    growth?: SortOrder
+    accountType?: SortOrder
+    institution?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: SavingsCountOrderByAggregateInput
+    _avg?: SavingsAvgOrderByAggregateInput
+    _max?: SavingsMaxOrderByAggregateInput
+    _min?: SavingsMinOrderByAggregateInput
+    _sum?: SavingsSumOrderByAggregateInput
+  }
+
+  export type SavingsScalarWhereWithAggregatesInput = {
+    AND?: SavingsScalarWhereWithAggregatesInput | SavingsScalarWhereWithAggregatesInput[]
+    OR?: SavingsScalarWhereWithAggregatesInput[]
+    NOT?: SavingsScalarWhereWithAggregatesInput | SavingsScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Savings"> | string
+    accountName?: StringWithAggregatesFilter<"Savings"> | string
+    categoryId?: StringWithAggregatesFilter<"Savings"> | string
+    userId?: StringWithAggregatesFilter<"Savings"> | string
+    balance?: FloatWithAggregatesFilter<"Savings"> | number
+    interestRate?: FloatWithAggregatesFilter<"Savings"> | number
+    growth?: FloatWithAggregatesFilter<"Savings"> | number
+    accountType?: EnumAccountTypeWithAggregatesFilter<"Savings"> | $Enums.AccountType
+    institution?: StringNullableWithAggregatesFilter<"Savings"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Savings"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Savings"> | Date | string
   }
 
   export type TransactionWhereInput = {
@@ -11465,6 +12974,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutUserInput
     Category?: CategoryCreateNestedManyWithoutUserInput
     Budget?: BudgetCreateNestedManyWithoutUserInput
+    Savings?: SavingsCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenCreateNestedManyWithoutUserInput
@@ -11483,6 +12993,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     Category?: CategoryUncheckedCreateNestedManyWithoutUserInput
     Budget?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    Savings?: SavingsUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenUncheckedCreateNestedManyWithoutUserInput
@@ -11501,6 +13012,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     Category?: CategoryUpdateManyWithoutUserNestedInput
     Budget?: BudgetUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUpdateManyWithoutUserNestedInput
@@ -11519,6 +13031,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     Category?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     Budget?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -11835,6 +13348,7 @@ export namespace Prisma {
     icon?: string
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
+    savings?: SavingsCreateNestedManyWithoutCategoryInput
     user: UserCreateNestedOneWithoutCategoryInput
   }
 
@@ -11847,6 +13361,7 @@ export namespace Prisma {
     userId: string
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
+    savings?: SavingsUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUpdateInput = {
@@ -11857,6 +13372,7 @@ export namespace Prisma {
     icon?: StringFieldUpdateOperationsInput | string
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
+    savings?: SavingsUpdateManyWithoutCategoryNestedInput
     user?: UserUpdateOneRequiredWithoutCategoryNestedInput
   }
 
@@ -11869,6 +13385,7 @@ export namespace Prisma {
     userId?: StringFieldUpdateOperationsInput | string
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
+    savings?: SavingsUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryCreateManyInput = {
@@ -11899,6 +13416,7 @@ export namespace Prisma {
 
   export type BudgetCreateInput = {
     id?: string
+    name?: string
     amount: number
     description?: string | null
     month: string
@@ -11909,6 +13427,7 @@ export namespace Prisma {
 
   export type BudgetUncheckedCreateInput = {
     id?: string
+    name?: string
     categoryId: string
     userId: string
     amount: number
@@ -11919,6 +13438,7 @@ export namespace Prisma {
 
   export type BudgetUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
     month?: StringFieldUpdateOperationsInput | string
@@ -11929,6 +13449,7 @@ export namespace Prisma {
 
   export type BudgetUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     categoryId?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
@@ -11939,6 +13460,7 @@ export namespace Prisma {
 
   export type BudgetCreateManyInput = {
     id?: string
+    name?: string
     categoryId: string
     userId: string
     amount: number
@@ -11949,6 +13471,7 @@ export namespace Prisma {
 
   export type BudgetUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
     month?: StringFieldUpdateOperationsInput | string
@@ -11957,12 +13480,109 @@ export namespace Prisma {
 
   export type BudgetUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     categoryId?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
     month?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingsCreateInput = {
+    id?: string
+    accountName: string
+    balance: number
+    interestRate: number
+    growth?: number
+    accountType?: $Enums.AccountType
+    institution?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutSavingsInput
+    category: CategoryCreateNestedOneWithoutSavingsInput
+  }
+
+  export type SavingsUncheckedCreateInput = {
+    id?: string
+    accountName: string
+    categoryId: string
+    userId: string
+    balance: number
+    interestRate: number
+    growth?: number
+    accountType?: $Enums.AccountType
+    institution?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SavingsUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSavingsNestedInput
+    category?: CategoryUpdateOneRequiredWithoutSavingsNestedInput
+  }
+
+  export type SavingsUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingsCreateManyInput = {
+    id?: string
+    accountName: string
+    categoryId: string
+    userId: string
+    balance: number
+    interestRate: number
+    growth?: number
+    accountType?: $Enums.AccountType
+    institution?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SavingsUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingsUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionCreateInput = {
@@ -12110,6 +13730,12 @@ export namespace Prisma {
     none?: BudgetWhereInput
   }
 
+  export type SavingsListRelationFilter = {
+    every?: SavingsWhereInput
+    some?: SavingsWhereInput
+    none?: SavingsWhereInput
+  }
+
   export type AccountListRelationFilter = {
     every?: AccountWhereInput
     some?: AccountWhereInput
@@ -12148,6 +13774,10 @@ export namespace Prisma {
   }
 
   export type BudgetOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type SavingsOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -12493,6 +14123,7 @@ export namespace Prisma {
 
   export type BudgetCountOrderByAggregateInput = {
     id?: SortOrder
+    name?: SortOrder
     categoryId?: SortOrder
     userId?: SortOrder
     amount?: SortOrder
@@ -12507,6 +14138,7 @@ export namespace Prisma {
 
   export type BudgetMaxOrderByAggregateInput = {
     id?: SortOrder
+    name?: SortOrder
     categoryId?: SortOrder
     userId?: SortOrder
     amount?: SortOrder
@@ -12517,6 +14149,7 @@ export namespace Prisma {
 
   export type BudgetMinOrderByAggregateInput = {
     id?: SortOrder
+    name?: SortOrder
     categoryId?: SortOrder
     userId?: SortOrder
     amount?: SortOrder
@@ -12543,6 +14176,77 @@ export namespace Prisma {
     _sum?: NestedFloatFilter<$PrismaModel>
     _min?: NestedFloatFilter<$PrismaModel>
     _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type EnumAccountTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.AccountType | EnumAccountTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AccountType[] | ListEnumAccountTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AccountType[] | ListEnumAccountTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAccountTypeFilter<$PrismaModel> | $Enums.AccountType
+  }
+
+  export type SavingsCountOrderByAggregateInput = {
+    id?: SortOrder
+    accountName?: SortOrder
+    categoryId?: SortOrder
+    userId?: SortOrder
+    balance?: SortOrder
+    interestRate?: SortOrder
+    growth?: SortOrder
+    accountType?: SortOrder
+    institution?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SavingsAvgOrderByAggregateInput = {
+    balance?: SortOrder
+    interestRate?: SortOrder
+    growth?: SortOrder
+  }
+
+  export type SavingsMaxOrderByAggregateInput = {
+    id?: SortOrder
+    accountName?: SortOrder
+    categoryId?: SortOrder
+    userId?: SortOrder
+    balance?: SortOrder
+    interestRate?: SortOrder
+    growth?: SortOrder
+    accountType?: SortOrder
+    institution?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SavingsMinOrderByAggregateInput = {
+    id?: SortOrder
+    accountName?: SortOrder
+    categoryId?: SortOrder
+    userId?: SortOrder
+    balance?: SortOrder
+    interestRate?: SortOrder
+    growth?: SortOrder
+    accountType?: SortOrder
+    institution?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type SavingsSumOrderByAggregateInput = {
+    balance?: SortOrder
+    interestRate?: SortOrder
+    growth?: SortOrder
+  }
+
+  export type EnumAccountTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AccountType | EnumAccountTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AccountType[] | ListEnumAccountTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AccountType[] | ListEnumAccountTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAccountTypeWithAggregatesFilter<$PrismaModel> | $Enums.AccountType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAccountTypeFilter<$PrismaModel>
+    _max?: NestedEnumAccountTypeFilter<$PrismaModel>
   }
 
   export type TransactionCountOrderByAggregateInput = {
@@ -12607,6 +14311,13 @@ export namespace Prisma {
     connect?: BudgetWhereUniqueInput | BudgetWhereUniqueInput[]
   }
 
+  export type SavingsCreateNestedManyWithoutUserInput = {
+    create?: XOR<SavingsCreateWithoutUserInput, SavingsUncheckedCreateWithoutUserInput> | SavingsCreateWithoutUserInput[] | SavingsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavingsCreateOrConnectWithoutUserInput | SavingsCreateOrConnectWithoutUserInput[]
+    createMany?: SavingsCreateManyUserInputEnvelope
+    connect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+  }
+
   export type AccountCreateNestedManyWithoutUserInput = {
     create?: XOR<AccountCreateWithoutUserInput, AccountUncheckedCreateWithoutUserInput> | AccountCreateWithoutUserInput[] | AccountUncheckedCreateWithoutUserInput[]
     connectOrCreate?: AccountCreateOrConnectWithoutUserInput | AccountCreateOrConnectWithoutUserInput[]
@@ -12654,6 +14365,13 @@ export namespace Prisma {
     connectOrCreate?: BudgetCreateOrConnectWithoutUserInput | BudgetCreateOrConnectWithoutUserInput[]
     createMany?: BudgetCreateManyUserInputEnvelope
     connect?: BudgetWhereUniqueInput | BudgetWhereUniqueInput[]
+  }
+
+  export type SavingsUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<SavingsCreateWithoutUserInput, SavingsUncheckedCreateWithoutUserInput> | SavingsCreateWithoutUserInput[] | SavingsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavingsCreateOrConnectWithoutUserInput | SavingsCreateOrConnectWithoutUserInput[]
+    createMany?: SavingsCreateManyUserInputEnvelope
+    connect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
   }
 
   export type AccountUncheckedCreateNestedManyWithoutUserInput = {
@@ -12740,6 +14458,20 @@ export namespace Prisma {
     update?: BudgetUpdateWithWhereUniqueWithoutUserInput | BudgetUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: BudgetUpdateManyWithWhereWithoutUserInput | BudgetUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: BudgetScalarWhereInput | BudgetScalarWhereInput[]
+  }
+
+  export type SavingsUpdateManyWithoutUserNestedInput = {
+    create?: XOR<SavingsCreateWithoutUserInput, SavingsUncheckedCreateWithoutUserInput> | SavingsCreateWithoutUserInput[] | SavingsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavingsCreateOrConnectWithoutUserInput | SavingsCreateOrConnectWithoutUserInput[]
+    upsert?: SavingsUpsertWithWhereUniqueWithoutUserInput | SavingsUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: SavingsCreateManyUserInputEnvelope
+    set?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    disconnect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    delete?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    connect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    update?: SavingsUpdateWithWhereUniqueWithoutUserInput | SavingsUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: SavingsUpdateManyWithWhereWithoutUserInput | SavingsUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: SavingsScalarWhereInput | SavingsScalarWhereInput[]
   }
 
   export type AccountUpdateManyWithoutUserNestedInput = {
@@ -12838,6 +14570,20 @@ export namespace Prisma {
     update?: BudgetUpdateWithWhereUniqueWithoutUserInput | BudgetUpdateWithWhereUniqueWithoutUserInput[]
     updateMany?: BudgetUpdateManyWithWhereWithoutUserInput | BudgetUpdateManyWithWhereWithoutUserInput[]
     deleteMany?: BudgetScalarWhereInput | BudgetScalarWhereInput[]
+  }
+
+  export type SavingsUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<SavingsCreateWithoutUserInput, SavingsUncheckedCreateWithoutUserInput> | SavingsCreateWithoutUserInput[] | SavingsUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: SavingsCreateOrConnectWithoutUserInput | SavingsCreateOrConnectWithoutUserInput[]
+    upsert?: SavingsUpsertWithWhereUniqueWithoutUserInput | SavingsUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: SavingsCreateManyUserInputEnvelope
+    set?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    disconnect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    delete?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    connect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    update?: SavingsUpdateWithWhereUniqueWithoutUserInput | SavingsUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: SavingsUpdateManyWithWhereWithoutUserInput | SavingsUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: SavingsScalarWhereInput | SavingsScalarWhereInput[]
   }
 
   export type AccountUncheckedUpdateManyWithoutUserNestedInput = {
@@ -12974,6 +14720,13 @@ export namespace Prisma {
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
   }
 
+  export type SavingsCreateNestedManyWithoutCategoryInput = {
+    create?: XOR<SavingsCreateWithoutCategoryInput, SavingsUncheckedCreateWithoutCategoryInput> | SavingsCreateWithoutCategoryInput[] | SavingsUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: SavingsCreateOrConnectWithoutCategoryInput | SavingsCreateOrConnectWithoutCategoryInput[]
+    createMany?: SavingsCreateManyCategoryInputEnvelope
+    connect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+  }
+
   export type UserCreateNestedOneWithoutCategoryInput = {
     create?: XOR<UserCreateWithoutCategoryInput, UserUncheckedCreateWithoutCategoryInput>
     connectOrCreate?: UserCreateOrConnectWithoutCategoryInput
@@ -12992,6 +14745,13 @@ export namespace Prisma {
     connectOrCreate?: TransactionCreateOrConnectWithoutCategoryInput | TransactionCreateOrConnectWithoutCategoryInput[]
     createMany?: TransactionCreateManyCategoryInputEnvelope
     connect?: TransactionWhereUniqueInput | TransactionWhereUniqueInput[]
+  }
+
+  export type SavingsUncheckedCreateNestedManyWithoutCategoryInput = {
+    create?: XOR<SavingsCreateWithoutCategoryInput, SavingsUncheckedCreateWithoutCategoryInput> | SavingsCreateWithoutCategoryInput[] | SavingsUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: SavingsCreateOrConnectWithoutCategoryInput | SavingsCreateOrConnectWithoutCategoryInput[]
+    createMany?: SavingsCreateManyCategoryInputEnvelope
+    connect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
   }
 
   export type EnumCategoryTypeFieldUpdateOperationsInput = {
@@ -13024,6 +14784,20 @@ export namespace Prisma {
     update?: TransactionUpdateWithWhereUniqueWithoutCategoryInput | TransactionUpdateWithWhereUniqueWithoutCategoryInput[]
     updateMany?: TransactionUpdateManyWithWhereWithoutCategoryInput | TransactionUpdateManyWithWhereWithoutCategoryInput[]
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
+  }
+
+  export type SavingsUpdateManyWithoutCategoryNestedInput = {
+    create?: XOR<SavingsCreateWithoutCategoryInput, SavingsUncheckedCreateWithoutCategoryInput> | SavingsCreateWithoutCategoryInput[] | SavingsUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: SavingsCreateOrConnectWithoutCategoryInput | SavingsCreateOrConnectWithoutCategoryInput[]
+    upsert?: SavingsUpsertWithWhereUniqueWithoutCategoryInput | SavingsUpsertWithWhereUniqueWithoutCategoryInput[]
+    createMany?: SavingsCreateManyCategoryInputEnvelope
+    set?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    disconnect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    delete?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    connect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    update?: SavingsUpdateWithWhereUniqueWithoutCategoryInput | SavingsUpdateWithWhereUniqueWithoutCategoryInput[]
+    updateMany?: SavingsUpdateManyWithWhereWithoutCategoryInput | SavingsUpdateManyWithWhereWithoutCategoryInput[]
+    deleteMany?: SavingsScalarWhereInput | SavingsScalarWhereInput[]
   }
 
   export type UserUpdateOneRequiredWithoutCategoryNestedInput = {
@@ -13062,6 +14836,20 @@ export namespace Prisma {
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
   }
 
+  export type SavingsUncheckedUpdateManyWithoutCategoryNestedInput = {
+    create?: XOR<SavingsCreateWithoutCategoryInput, SavingsUncheckedCreateWithoutCategoryInput> | SavingsCreateWithoutCategoryInput[] | SavingsUncheckedCreateWithoutCategoryInput[]
+    connectOrCreate?: SavingsCreateOrConnectWithoutCategoryInput | SavingsCreateOrConnectWithoutCategoryInput[]
+    upsert?: SavingsUpsertWithWhereUniqueWithoutCategoryInput | SavingsUpsertWithWhereUniqueWithoutCategoryInput[]
+    createMany?: SavingsCreateManyCategoryInputEnvelope
+    set?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    disconnect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    delete?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    connect?: SavingsWhereUniqueInput | SavingsWhereUniqueInput[]
+    update?: SavingsUpdateWithWhereUniqueWithoutCategoryInput | SavingsUpdateWithWhereUniqueWithoutCategoryInput[]
+    updateMany?: SavingsUpdateManyWithWhereWithoutCategoryInput | SavingsUpdateManyWithWhereWithoutCategoryInput[]
+    deleteMany?: SavingsScalarWhereInput | SavingsScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutBudgetInput = {
     create?: XOR<UserCreateWithoutBudgetInput, UserUncheckedCreateWithoutBudgetInput>
     connectOrCreate?: UserCreateOrConnectWithoutBudgetInput
@@ -13096,6 +14884,38 @@ export namespace Prisma {
     upsert?: CategoryUpsertWithoutBudgetsInput
     connect?: CategoryWhereUniqueInput
     update?: XOR<XOR<CategoryUpdateToOneWithWhereWithoutBudgetsInput, CategoryUpdateWithoutBudgetsInput>, CategoryUncheckedUpdateWithoutBudgetsInput>
+  }
+
+  export type UserCreateNestedOneWithoutSavingsInput = {
+    create?: XOR<UserCreateWithoutSavingsInput, UserUncheckedCreateWithoutSavingsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSavingsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type CategoryCreateNestedOneWithoutSavingsInput = {
+    create?: XOR<CategoryCreateWithoutSavingsInput, CategoryUncheckedCreateWithoutSavingsInput>
+    connectOrCreate?: CategoryCreateOrConnectWithoutSavingsInput
+    connect?: CategoryWhereUniqueInput
+  }
+
+  export type EnumAccountTypeFieldUpdateOperationsInput = {
+    set?: $Enums.AccountType
+  }
+
+  export type UserUpdateOneRequiredWithoutSavingsNestedInput = {
+    create?: XOR<UserCreateWithoutSavingsInput, UserUncheckedCreateWithoutSavingsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutSavingsInput
+    upsert?: UserUpsertWithoutSavingsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSavingsInput, UserUpdateWithoutSavingsInput>, UserUncheckedUpdateWithoutSavingsInput>
+  }
+
+  export type CategoryUpdateOneRequiredWithoutSavingsNestedInput = {
+    create?: XOR<CategoryCreateWithoutSavingsInput, CategoryUncheckedCreateWithoutSavingsInput>
+    connectOrCreate?: CategoryCreateOrConnectWithoutSavingsInput
+    upsert?: CategoryUpsertWithoutSavingsInput
+    connect?: CategoryWhereUniqueInput
+    update?: XOR<XOR<CategoryUpdateToOneWithWhereWithoutSavingsInput, CategoryUpdateWithoutSavingsInput>, CategoryUncheckedUpdateWithoutSavingsInput>
   }
 
   export type UserCreateNestedOneWithoutTransactionsInput = {
@@ -13331,6 +15151,23 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type NestedEnumAccountTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.AccountType | EnumAccountTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AccountType[] | ListEnumAccountTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AccountType[] | ListEnumAccountTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAccountTypeFilter<$PrismaModel> | $Enums.AccountType
+  }
+
+  export type NestedEnumAccountTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AccountType | EnumAccountTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.AccountType[] | ListEnumAccountTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AccountType[] | ListEnumAccountTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumAccountTypeWithAggregatesFilter<$PrismaModel> | $Enums.AccountType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAccountTypeFilter<$PrismaModel>
+    _max?: NestedEnumAccountTypeFilter<$PrismaModel>
+  }
+
   export type TransactionCreateWithoutUserInput = {
     id?: string
     amount: number
@@ -13369,6 +15206,7 @@ export namespace Prisma {
     icon?: string
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
+    savings?: SavingsCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryUncheckedCreateWithoutUserInput = {
@@ -13379,6 +15217,7 @@ export namespace Prisma {
     icon?: string
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
+    savings?: SavingsUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutUserInput = {
@@ -13393,6 +15232,7 @@ export namespace Prisma {
 
   export type BudgetCreateWithoutUserInput = {
     id?: string
+    name?: string
     amount: number
     description?: string | null
     month: string
@@ -13402,6 +15242,7 @@ export namespace Prisma {
 
   export type BudgetUncheckedCreateWithoutUserInput = {
     id?: string
+    name?: string
     categoryId: string
     amount: number
     description?: string | null
@@ -13416,6 +15257,42 @@ export namespace Prisma {
 
   export type BudgetCreateManyUserInputEnvelope = {
     data: BudgetCreateManyUserInput | BudgetCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type SavingsCreateWithoutUserInput = {
+    id?: string
+    accountName: string
+    balance: number
+    interestRate: number
+    growth?: number
+    accountType?: $Enums.AccountType
+    institution?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    category: CategoryCreateNestedOneWithoutSavingsInput
+  }
+
+  export type SavingsUncheckedCreateWithoutUserInput = {
+    id?: string
+    accountName: string
+    categoryId: string
+    balance: number
+    interestRate: number
+    growth?: number
+    accountType?: $Enums.AccountType
+    institution?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SavingsCreateOrConnectWithoutUserInput = {
+    where: SavingsWhereUniqueInput
+    create: XOR<SavingsCreateWithoutUserInput, SavingsUncheckedCreateWithoutUserInput>
+  }
+
+  export type SavingsCreateManyUserInputEnvelope = {
+    data: SavingsCreateManyUserInput | SavingsCreateManyUserInput[]
     skipDuplicates?: boolean
   }
 
@@ -13608,12 +15485,46 @@ export namespace Prisma {
     OR?: BudgetScalarWhereInput[]
     NOT?: BudgetScalarWhereInput | BudgetScalarWhereInput[]
     id?: StringFilter<"Budget"> | string
+    name?: StringFilter<"Budget"> | string
     categoryId?: StringFilter<"Budget"> | string
     userId?: StringFilter<"Budget"> | string
     amount?: FloatFilter<"Budget"> | number
     description?: StringNullableFilter<"Budget"> | string | null
     month?: StringFilter<"Budget"> | string
     createdAt?: DateTimeFilter<"Budget"> | Date | string
+  }
+
+  export type SavingsUpsertWithWhereUniqueWithoutUserInput = {
+    where: SavingsWhereUniqueInput
+    update: XOR<SavingsUpdateWithoutUserInput, SavingsUncheckedUpdateWithoutUserInput>
+    create: XOR<SavingsCreateWithoutUserInput, SavingsUncheckedCreateWithoutUserInput>
+  }
+
+  export type SavingsUpdateWithWhereUniqueWithoutUserInput = {
+    where: SavingsWhereUniqueInput
+    data: XOR<SavingsUpdateWithoutUserInput, SavingsUncheckedUpdateWithoutUserInput>
+  }
+
+  export type SavingsUpdateManyWithWhereWithoutUserInput = {
+    where: SavingsScalarWhereInput
+    data: XOR<SavingsUpdateManyMutationInput, SavingsUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type SavingsScalarWhereInput = {
+    AND?: SavingsScalarWhereInput | SavingsScalarWhereInput[]
+    OR?: SavingsScalarWhereInput[]
+    NOT?: SavingsScalarWhereInput | SavingsScalarWhereInput[]
+    id?: StringFilter<"Savings"> | string
+    accountName?: StringFilter<"Savings"> | string
+    categoryId?: StringFilter<"Savings"> | string
+    userId?: StringFilter<"Savings"> | string
+    balance?: FloatFilter<"Savings"> | number
+    interestRate?: FloatFilter<"Savings"> | number
+    growth?: FloatFilter<"Savings"> | number
+    accountType?: EnumAccountTypeFilter<"Savings"> | $Enums.AccountType
+    institution?: StringNullableFilter<"Savings"> | string | null
+    createdAt?: DateTimeFilter<"Savings"> | Date | string
+    updatedAt?: DateTimeFilter<"Savings"> | Date | string
   }
 
   export type AccountUpsertWithWhereUniqueWithoutUserInput = {
@@ -13743,6 +15654,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutUserInput
     Category?: CategoryCreateNestedManyWithoutUserInput
     Budget?: BudgetCreateNestedManyWithoutUserInput
+    Savings?: SavingsCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenCreateNestedManyWithoutUserInput
     passwordResetToken?: PasswordResetTokenCreateNestedManyWithoutUserInput
@@ -13760,6 +15672,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     Category?: CategoryUncheckedCreateNestedManyWithoutUserInput
     Budget?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    Savings?: SavingsUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenUncheckedCreateNestedManyWithoutUserInput
     passwordResetToken?: PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
@@ -13793,6 +15706,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     Category?: CategoryUpdateManyWithoutUserNestedInput
     Budget?: BudgetUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUpdateManyWithoutUserNestedInput
     passwordResetToken?: PasswordResetTokenUpdateManyWithoutUserNestedInput
@@ -13810,6 +15724,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     Category?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     Budget?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
     passwordResetToken?: PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -13827,6 +15742,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutUserInput
     Category?: CategoryCreateNestedManyWithoutUserInput
     Budget?: BudgetCreateNestedManyWithoutUserInput
+    Savings?: SavingsCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenCreateNestedManyWithoutUserInput
     passwordResetToken?: PasswordResetTokenCreateNestedManyWithoutUserInput
@@ -13844,6 +15760,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     Category?: CategoryUncheckedCreateNestedManyWithoutUserInput
     Budget?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    Savings?: SavingsUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenUncheckedCreateNestedManyWithoutUserInput
     passwordResetToken?: PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
@@ -13877,6 +15794,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     Category?: CategoryUpdateManyWithoutUserNestedInput
     Budget?: BudgetUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUpdateManyWithoutUserNestedInput
     passwordResetToken?: PasswordResetTokenUpdateManyWithoutUserNestedInput
@@ -13894,6 +15812,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     Category?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     Budget?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
     passwordResetToken?: PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -13911,6 +15830,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutUserInput
     Category?: CategoryCreateNestedManyWithoutUserInput
     Budget?: BudgetCreateNestedManyWithoutUserInput
+    Savings?: SavingsCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     passwordResetToken?: PasswordResetTokenCreateNestedManyWithoutUserInput
@@ -13928,6 +15848,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     Category?: CategoryUncheckedCreateNestedManyWithoutUserInput
     Budget?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    Savings?: SavingsUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     passwordResetToken?: PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
@@ -13961,6 +15882,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     Category?: CategoryUpdateManyWithoutUserNestedInput
     Budget?: BudgetUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     passwordResetToken?: PasswordResetTokenUpdateManyWithoutUserNestedInput
@@ -13978,6 +15900,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     Category?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     Budget?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     passwordResetToken?: PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -13995,6 +15918,7 @@ export namespace Prisma {
     transactions?: TransactionCreateNestedManyWithoutUserInput
     Category?: CategoryCreateNestedManyWithoutUserInput
     Budget?: BudgetCreateNestedManyWithoutUserInput
+    Savings?: SavingsCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenCreateNestedManyWithoutUserInput
@@ -14012,6 +15936,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     Category?: CategoryUncheckedCreateNestedManyWithoutUserInput
     Budget?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    Savings?: SavingsUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenUncheckedCreateNestedManyWithoutUserInput
@@ -14045,6 +15970,7 @@ export namespace Prisma {
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     Category?: CategoryUpdateManyWithoutUserNestedInput
     Budget?: BudgetUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUpdateManyWithoutUserNestedInput
@@ -14062,6 +15988,7 @@ export namespace Prisma {
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     Category?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     Budget?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -14069,6 +15996,7 @@ export namespace Prisma {
 
   export type BudgetCreateWithoutCategoryInput = {
     id?: string
+    name?: string
     amount: number
     description?: string | null
     month: string
@@ -14078,6 +16006,7 @@ export namespace Prisma {
 
   export type BudgetUncheckedCreateWithoutCategoryInput = {
     id?: string
+    name?: string
     userId: string
     amount: number
     description?: string | null
@@ -14125,6 +16054,42 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type SavingsCreateWithoutCategoryInput = {
+    id?: string
+    accountName: string
+    balance: number
+    interestRate: number
+    growth?: number
+    accountType?: $Enums.AccountType
+    institution?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutSavingsInput
+  }
+
+  export type SavingsUncheckedCreateWithoutCategoryInput = {
+    id?: string
+    accountName: string
+    userId: string
+    balance: number
+    interestRate: number
+    growth?: number
+    accountType?: $Enums.AccountType
+    institution?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type SavingsCreateOrConnectWithoutCategoryInput = {
+    where: SavingsWhereUniqueInput
+    create: XOR<SavingsCreateWithoutCategoryInput, SavingsUncheckedCreateWithoutCategoryInput>
+  }
+
+  export type SavingsCreateManyCategoryInputEnvelope = {
+    data: SavingsCreateManyCategoryInput | SavingsCreateManyCategoryInput[]
+    skipDuplicates?: boolean
+  }
+
   export type UserCreateWithoutCategoryInput = {
     id?: string
     name?: string | null
@@ -14136,6 +16101,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     transactions?: TransactionCreateNestedManyWithoutUserInput
     Budget?: BudgetCreateNestedManyWithoutUserInput
+    Savings?: SavingsCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenCreateNestedManyWithoutUserInput
@@ -14153,6 +16119,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     Budget?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    Savings?: SavingsUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenUncheckedCreateNestedManyWithoutUserInput
@@ -14196,6 +16163,22 @@ export namespace Prisma {
     data: XOR<TransactionUpdateManyMutationInput, TransactionUncheckedUpdateManyWithoutCategoryInput>
   }
 
+  export type SavingsUpsertWithWhereUniqueWithoutCategoryInput = {
+    where: SavingsWhereUniqueInput
+    update: XOR<SavingsUpdateWithoutCategoryInput, SavingsUncheckedUpdateWithoutCategoryInput>
+    create: XOR<SavingsCreateWithoutCategoryInput, SavingsUncheckedCreateWithoutCategoryInput>
+  }
+
+  export type SavingsUpdateWithWhereUniqueWithoutCategoryInput = {
+    where: SavingsWhereUniqueInput
+    data: XOR<SavingsUpdateWithoutCategoryInput, SavingsUncheckedUpdateWithoutCategoryInput>
+  }
+
+  export type SavingsUpdateManyWithWhereWithoutCategoryInput = {
+    where: SavingsScalarWhereInput
+    data: XOR<SavingsUpdateManyMutationInput, SavingsUncheckedUpdateManyWithoutCategoryInput>
+  }
+
   export type UserUpsertWithoutCategoryInput = {
     update: XOR<UserUpdateWithoutCategoryInput, UserUncheckedUpdateWithoutCategoryInput>
     create: XOR<UserCreateWithoutCategoryInput, UserUncheckedCreateWithoutCategoryInput>
@@ -14218,6 +16201,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     Budget?: BudgetUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUpdateManyWithoutUserNestedInput
@@ -14235,6 +16219,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     Budget?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -14252,6 +16237,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     transactions?: TransactionCreateNestedManyWithoutUserInput
     Category?: CategoryCreateNestedManyWithoutUserInput
+    Savings?: SavingsCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenCreateNestedManyWithoutUserInput
@@ -14269,6 +16255,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
     Category?: CategoryUncheckedCreateNestedManyWithoutUserInput
+    Savings?: SavingsUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenUncheckedCreateNestedManyWithoutUserInput
@@ -14287,6 +16274,7 @@ export namespace Prisma {
     type: $Enums.CategoryType
     icon?: string
     transactions?: TransactionCreateNestedManyWithoutCategoryInput
+    savings?: SavingsCreateNestedManyWithoutCategoryInput
     user: UserCreateNestedOneWithoutCategoryInput
   }
 
@@ -14298,6 +16286,7 @@ export namespace Prisma {
     icon?: string
     userId: string
     transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
+    savings?: SavingsUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutBudgetsInput = {
@@ -14327,6 +16316,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUpdateManyWithoutUserNestedInput
     Category?: CategoryUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUpdateManyWithoutUserNestedInput
@@ -14344,6 +16334,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
     Category?: CategoryUncheckedUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -14368,6 +16359,7 @@ export namespace Prisma {
     type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
     icon?: StringFieldUpdateOperationsInput | string
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
+    savings?: SavingsUpdateManyWithoutCategoryNestedInput
     user?: UserUpdateOneRequiredWithoutCategoryNestedInput
   }
 
@@ -14378,6 +16370,155 @@ export namespace Prisma {
     type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
     icon?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
+    transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
+    savings?: SavingsUncheckedUpdateManyWithoutCategoryNestedInput
+  }
+
+  export type UserCreateWithoutSavingsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionCreateNestedManyWithoutUserInput
+    Category?: CategoryCreateNestedManyWithoutUserInput
+    Budget?: BudgetCreateNestedManyWithoutUserInput
+    accounts?: AccountCreateNestedManyWithoutUserInput
+    sessions?: SessionCreateNestedManyWithoutUserInput
+    verificationTokens?: VerificationTokenCreateNestedManyWithoutUserInput
+    passwordResetToken?: PasswordResetTokenCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutSavingsInput = {
+    id?: string
+    name?: string | null
+    email: string
+    emailVerified?: Date | string | null
+    image?: string | null
+    password?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: TransactionUncheckedCreateNestedManyWithoutUserInput
+    Category?: CategoryUncheckedCreateNestedManyWithoutUserInput
+    Budget?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
+    sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
+    verificationTokens?: VerificationTokenUncheckedCreateNestedManyWithoutUserInput
+    passwordResetToken?: PasswordResetTokenUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutSavingsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutSavingsInput, UserUncheckedCreateWithoutSavingsInput>
+  }
+
+  export type CategoryCreateWithoutSavingsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    type: $Enums.CategoryType
+    icon?: string
+    budgets?: BudgetCreateNestedManyWithoutCategoryInput
+    transactions?: TransactionCreateNestedManyWithoutCategoryInput
+    user: UserCreateNestedOneWithoutCategoryInput
+  }
+
+  export type CategoryUncheckedCreateWithoutSavingsInput = {
+    id?: string
+    name: string
+    description?: string | null
+    type: $Enums.CategoryType
+    icon?: string
+    userId: string
+    budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
+    transactions?: TransactionUncheckedCreateNestedManyWithoutCategoryInput
+  }
+
+  export type CategoryCreateOrConnectWithoutSavingsInput = {
+    where: CategoryWhereUniqueInput
+    create: XOR<CategoryCreateWithoutSavingsInput, CategoryUncheckedCreateWithoutSavingsInput>
+  }
+
+  export type UserUpsertWithoutSavingsInput = {
+    update: XOR<UserUpdateWithoutSavingsInput, UserUncheckedUpdateWithoutSavingsInput>
+    create: XOR<UserCreateWithoutSavingsInput, UserUncheckedCreateWithoutSavingsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutSavingsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutSavingsInput, UserUncheckedUpdateWithoutSavingsInput>
+  }
+
+  export type UserUpdateWithoutSavingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUpdateManyWithoutUserNestedInput
+    Category?: CategoryUpdateManyWithoutUserNestedInput
+    Budget?: BudgetUpdateManyWithoutUserNestedInput
+    accounts?: AccountUpdateManyWithoutUserNestedInput
+    sessions?: SessionUpdateManyWithoutUserNestedInput
+    verificationTokens?: VerificationTokenUpdateManyWithoutUserNestedInput
+    passwordResetToken?: PasswordResetTokenUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutSavingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: NullableStringFieldUpdateOperationsInput | string | null
+    email?: StringFieldUpdateOperationsInput | string
+    emailVerified?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: TransactionUncheckedUpdateManyWithoutUserNestedInput
+    Category?: CategoryUncheckedUpdateManyWithoutUserNestedInput
+    Budget?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
+    sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
+    verificationTokens?: VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
+    passwordResetToken?: PasswordResetTokenUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type CategoryUpsertWithoutSavingsInput = {
+    update: XOR<CategoryUpdateWithoutSavingsInput, CategoryUncheckedUpdateWithoutSavingsInput>
+    create: XOR<CategoryCreateWithoutSavingsInput, CategoryUncheckedCreateWithoutSavingsInput>
+    where?: CategoryWhereInput
+  }
+
+  export type CategoryUpdateToOneWithWhereWithoutSavingsInput = {
+    where?: CategoryWhereInput
+    data: XOR<CategoryUpdateWithoutSavingsInput, CategoryUncheckedUpdateWithoutSavingsInput>
+  }
+
+  export type CategoryUpdateWithoutSavingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
+    icon?: StringFieldUpdateOperationsInput | string
+    budgets?: BudgetUpdateManyWithoutCategoryNestedInput
+    transactions?: TransactionUpdateManyWithoutCategoryNestedInput
+    user?: UserUpdateOneRequiredWithoutCategoryNestedInput
+  }
+
+  export type CategoryUncheckedUpdateWithoutSavingsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
+    icon?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
@@ -14392,6 +16533,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     Category?: CategoryCreateNestedManyWithoutUserInput
     Budget?: BudgetCreateNestedManyWithoutUserInput
+    Savings?: SavingsCreateNestedManyWithoutUserInput
     accounts?: AccountCreateNestedManyWithoutUserInput
     sessions?: SessionCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenCreateNestedManyWithoutUserInput
@@ -14409,6 +16551,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     Category?: CategoryUncheckedCreateNestedManyWithoutUserInput
     Budget?: BudgetUncheckedCreateNestedManyWithoutUserInput
+    Savings?: SavingsUncheckedCreateNestedManyWithoutUserInput
     accounts?: AccountUncheckedCreateNestedManyWithoutUserInput
     sessions?: SessionUncheckedCreateNestedManyWithoutUserInput
     verificationTokens?: VerificationTokenUncheckedCreateNestedManyWithoutUserInput
@@ -14427,6 +16570,7 @@ export namespace Prisma {
     type: $Enums.CategoryType
     icon?: string
     budgets?: BudgetCreateNestedManyWithoutCategoryInput
+    savings?: SavingsCreateNestedManyWithoutCategoryInput
     user: UserCreateNestedOneWithoutCategoryInput
   }
 
@@ -14438,6 +16582,7 @@ export namespace Prisma {
     icon?: string
     userId: string
     budgets?: BudgetUncheckedCreateNestedManyWithoutCategoryInput
+    savings?: SavingsUncheckedCreateNestedManyWithoutCategoryInput
   }
 
   export type CategoryCreateOrConnectWithoutTransactionsInput = {
@@ -14467,6 +16612,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Category?: CategoryUpdateManyWithoutUserNestedInput
     Budget?: BudgetUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUpdateManyWithoutUserNestedInput
     accounts?: AccountUpdateManyWithoutUserNestedInput
     sessions?: SessionUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUpdateManyWithoutUserNestedInput
@@ -14484,6 +16630,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     Category?: CategoryUncheckedUpdateManyWithoutUserNestedInput
     Budget?: BudgetUncheckedUpdateManyWithoutUserNestedInput
+    Savings?: SavingsUncheckedUpdateManyWithoutUserNestedInput
     accounts?: AccountUncheckedUpdateManyWithoutUserNestedInput
     sessions?: SessionUncheckedUpdateManyWithoutUserNestedInput
     verificationTokens?: VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
@@ -14508,6 +16655,7 @@ export namespace Prisma {
     type?: EnumCategoryTypeFieldUpdateOperationsInput | $Enums.CategoryType
     icon?: StringFieldUpdateOperationsInput | string
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
+    savings?: SavingsUpdateManyWithoutCategoryNestedInput
     user?: UserUpdateOneRequiredWithoutCategoryNestedInput
   }
 
@@ -14519,6 +16667,7 @@ export namespace Prisma {
     icon?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
+    savings?: SavingsUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type TransactionCreateManyUserInput = {
@@ -14541,11 +16690,25 @@ export namespace Prisma {
 
   export type BudgetCreateManyUserInput = {
     id?: string
+    name?: string
     categoryId: string
     amount: number
     description?: string | null
     month: string
     createdAt?: Date | string
+  }
+
+  export type SavingsCreateManyUserInput = {
+    id?: string
+    accountName: string
+    categoryId: string
+    balance: number
+    interestRate: number
+    growth?: number
+    accountType?: $Enums.AccountType
+    institution?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type AccountCreateManyUserInput = {
@@ -14621,6 +16784,7 @@ export namespace Prisma {
     icon?: StringFieldUpdateOperationsInput | string
     budgets?: BudgetUpdateManyWithoutCategoryNestedInput
     transactions?: TransactionUpdateManyWithoutCategoryNestedInput
+    savings?: SavingsUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateWithoutUserInput = {
@@ -14631,6 +16795,7 @@ export namespace Prisma {
     icon?: StringFieldUpdateOperationsInput | string
     budgets?: BudgetUncheckedUpdateManyWithoutCategoryNestedInput
     transactions?: TransactionUncheckedUpdateManyWithoutCategoryNestedInput
+    savings?: SavingsUncheckedUpdateManyWithoutCategoryNestedInput
   }
 
   export type CategoryUncheckedUpdateManyWithoutUserInput = {
@@ -14643,6 +16808,7 @@ export namespace Prisma {
 
   export type BudgetUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
     month?: StringFieldUpdateOperationsInput | string
@@ -14652,6 +16818,7 @@ export namespace Prisma {
 
   export type BudgetUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     categoryId?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14661,11 +16828,51 @@ export namespace Prisma {
 
   export type BudgetUncheckedUpdateManyWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     categoryId?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
     month?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingsUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    category?: CategoryUpdateOneRequiredWithoutSavingsNestedInput
+  }
+
+  export type SavingsUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingsUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    categoryId?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AccountUpdateWithoutUserInput = {
@@ -14775,6 +16982,7 @@ export namespace Prisma {
 
   export type BudgetCreateManyCategoryInput = {
     id?: string
+    name?: string
     userId: string
     amount: number
     description?: string | null
@@ -14792,8 +17000,22 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type SavingsCreateManyCategoryInput = {
+    id?: string
+    accountName: string
+    userId: string
+    balance: number
+    interestRate: number
+    growth?: number
+    accountType?: $Enums.AccountType
+    institution?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
   export type BudgetUpdateWithoutCategoryInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
     month?: StringFieldUpdateOperationsInput | string
@@ -14803,6 +17025,7 @@ export namespace Prisma {
 
   export type BudgetUncheckedUpdateWithoutCategoryInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14812,6 +17035,7 @@ export namespace Prisma {
 
   export type BudgetUncheckedUpdateManyWithoutCategoryInput = {
     id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14845,6 +17069,45 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingsUpdateWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSavingsNestedInput
+  }
+
+  export type SavingsUncheckedUpdateWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SavingsUncheckedUpdateManyWithoutCategoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    accountName?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    balance?: FloatFieldUpdateOperationsInput | number
+    interestRate?: FloatFieldUpdateOperationsInput | number
+    growth?: FloatFieldUpdateOperationsInput | number
+    accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    institution?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }

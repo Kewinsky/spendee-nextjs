@@ -178,12 +178,27 @@ exports.Prisma.CategoryScalarFieldEnum = {
 
 exports.Prisma.BudgetScalarFieldEnum = {
   id: 'id',
+  name: 'name',
   categoryId: 'categoryId',
   userId: 'userId',
   amount: 'amount',
   description: 'description',
   month: 'month',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.SavingsScalarFieldEnum = {
+  id: 'id',
+  accountName: 'accountName',
+  categoryId: 'categoryId',
+  userId: 'userId',
+  balance: 'balance',
+  interestRate: 'interestRate',
+  growth: 'growth',
+  accountType: 'accountType',
+  institution: 'institution',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.TransactionScalarFieldEnum = {
@@ -212,8 +227,13 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 exports.CategoryType = exports.$Enums.CategoryType = {
-  Expense: 'Expense',
-  Income: 'Income'
+  EXPENSE: 'EXPENSE',
+  INCOME: 'INCOME'
+};
+
+exports.AccountType = exports.$Enums.AccountType = {
+  SAVINGS: 'SAVINGS',
+  INVESTMENT: 'INVESTMENT'
 };
 
 exports.Prisma.ModelName = {
@@ -224,6 +244,7 @@ exports.Prisma.ModelName = {
   PasswordResetToken: 'PasswordResetToken',
   Category: 'Category',
   Budget: 'Budget',
+  Savings: 'Savings',
   Transaction: 'Transaction'
 };
 
