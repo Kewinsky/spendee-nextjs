@@ -3,19 +3,11 @@
 import * as React from "react";
 import {
   IconChevronDown,
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
   IconDotsVertical,
-  IconPlus,
   IconLayoutColumns,
+  IconPlus,
 } from "@tabler/icons-react";
 import {
-  Building,
-  Wallet,
-  Landmark,
-  Briefcase,
   TrendingUp,
   Trash2,
   ArrowUpDown,
@@ -24,6 +16,7 @@ import {
   Edit,
   Eye,
   PiggyBank,
+  Plus,
 } from "lucide-react";
 import {
   type ColumnDef,
@@ -39,8 +32,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { toast } from "sonner";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -91,92 +82,75 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const accountSchema = z.object({
-  id: z.number(),
-  accountName: z.string(),
-  institution: z.string(),
-  category: z.string(),
-  expectedRate: z.number(),
-  balance: z.number(),
-  growth: z.number(),
-  growthPercentage: z.number(),
-  type: z.enum(["Savings", "Investment"]),
-});
+// Import the proper schemas and types
+import {
+  savingsFormSchema,
+  type SavingsFormValues,
+  type SavingsWithStats,
+  type AccountType,
+  emptySavingsForm,
+} from "@/services/savings/schema";
+import { createSavings, updateSavings, deleteSavings } from "../actions";
+import { formatCurrency, formatPercentage } from "@/utils/formatting";
+import { performBulkDelete } from "@/utils/performBulkDelete";
+import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
+import { performAddOrUpdateItem } from "@/utils/performAddOrUpdateItem";
+import { getIconBySlug } from "@/utils/getIconBySlug";
 
-export type Account = z.infer<typeof accountSchema>;
-
-const accountFormSchema = z.object({
-  id: z.number().optional(),
-  accountName: z.string().min(1, "Account name is required"),
-  institution: z.string().min(1, "Institution is required"),
-  category: z.string().min(1, "Category is required"),
-  expectedRate: z.string().min(1, "Expected rate is required"),
-  balance: z.string().min(1, "Balance is required"),
-  type: z.enum(["Savings", "Investment"]),
-});
-
-type AccountFormValues = z.infer<typeof accountFormSchema>;
-
-const emptyAccountForm: AccountFormValues = {
-  accountName: "",
-  institution: "",
-  category: "",
-  expectedRate: "",
-  balance: "",
-  type: "Savings",
-};
-
-const getCategoryIcon = (category: string) => {
-  switch (category) {
-    case "Bank Account":
-      return <Landmark className="mr-2 h-4 w-4" />;
-    case "Retirement":
-      return <Briefcase className="mr-2 h-4 w-4" />;
-    case "Brokerage":
-      return <TrendingUp className="mr-2 h-4 w-4" />;
-    case "Cash":
-      return <Wallet className="mr-2 h-4 w-4" />;
-    case "Savings":
+const getAccountTypeIcon = (accountType: AccountType) => {
+  switch (accountType) {
+    case "SAVINGS":
       return <PiggyBank className="mr-2 h-4 w-4" />;
-    default:
-      return <Building className="mr-2 h-4 w-4" />;
+    case "INVESTMENT":
+      return <TrendingUp className="mr-2 h-4 w-4" />;
   }
 };
 
-export function SavingsTable({ data: initialData }: { data?: Account[] }) {
-  const [activeItem, setActiveItem] = React.useState<Account | null>(null);
+export function SavingsTable({
+  data: initialData,
+  categories = [],
+  usedCategoryIds = [],
+}: {
+  data: SavingsWithStats[];
+  categories?: {
+    id: string;
+    name: string;
+    type: "EXPENSE" | "INCOME";
+    icon: string;
+  }[];
+  usedCategoryIds?: string[];
+}) {
+  const [activeItem, setActiveItem] = React.useState<SavingsWithStats | null>(
+    null
+  );
   const [viewMode, setViewMode] = React.useState<
     "add" | "edit" | "view" | "delete-confirm"
   >("add");
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
-  // Ensure data is always an array, even if initialData is undefined
-  const [data, setData] = React.useState<Account[]>(() => initialData);
-  const [selectedAccounts, setSelectedAccounts] = React.useState<Account[]>([]);
-  const [activeTab, setActiveTab] = React.useState("savings");
+  const [data, setData] = React.useState<SavingsWithStats[]>(() => initialData);
   const [categoryFilter, setCategoryFilter] =
     React.useState<string>("All Categories");
+  const [selectedAccounts, setSelectedAccounts] = React.useState<
+    SavingsWithStats[]
+  >([]);
+  const [activeTab, setActiveTab] = React.useState("savings");
 
   const filteredData = React.useMemo(() => {
-    // No need to check if data is undefined since we ensure it's always an array
     let result = data;
 
     if (activeTab !== "all") {
       result = result.filter((item) =>
         activeTab === "investments"
-          ? item.type === "Investment"
-          : item.type === "Savings"
+          ? item.accountType === "INVESTMENT"
+          : item.accountType === "SAVINGS"
       );
     }
 
-    if (categoryFilter !== "All Categories") {
-      result = result.filter((item) => item.category === categoryFilter);
-    }
-
     return result;
-  }, [data, activeTab, categoryFilter]);
+  }, [data, activeTab]);
 
   const openTableCellViewer = (
-    item: Account | null,
+    item: SavingsWithStats | null,
     mode: "add" | "edit" | "view"
   ) => {
     setActiveItem(item);
@@ -188,30 +162,40 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
     setIsDrawerOpen(false);
   };
 
-  const handleDeleteAccount = (id: number) => {
-    setData((prev) => prev.filter((item) => item.id !== id));
-    toast.success("Account deleted successfully");
+  const handleDeleteAccount = async (id: string) => {
+    await performSingleItemDelete({
+      id,
+      deleteFn: deleteSavings,
+      setData,
+      resourceName: "account",
+    });
   };
 
   const handleBulkDelete = () => {
-    const selectedRowIds = Object.keys(rowSelection).map(Number);
-    const selectedRows = data.filter((item) =>
-      selectedRowIds.includes(item.id)
-    );
-    setSelectedAccounts(selectedRows);
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    const selectedItems = selectedRows.map((row) => row.original);
+    setSelectedAccounts(selectedItems);
     setViewMode("delete-confirm");
     setIsDrawerOpen(true);
   };
 
-  const confirmBulkDelete = () => {
-    const selectedRowIds = Object.keys(rowSelection).map(Number);
-    setData((prev) => prev.filter((item) => !selectedRowIds.includes(item.id)));
-    setRowSelection({});
-    toast.success("Accounts deleted successfully");
-    closeDrawer();
+  const deleteAccountsBulk = async (ids: string[]) => {
+    return Promise.all(ids.map((id) => deleteSavings(id)));
   };
 
-  const columns: ColumnDef<Account>[] = [
+  const confirmBulkDelete = async () => {
+    await performBulkDelete({
+      items: selectedAccounts,
+      getId: (item) => item.id,
+      deleteFn: deleteAccountsBulk,
+      setData,
+      resetSelection: () => table.resetRowSelection(),
+      closeDrawer,
+      resourceName: "account(s)",
+    });
+  };
+
+  const columns: ColumnDef<SavingsWithStats>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -294,44 +278,31 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.original.institution}</div>,
+      cell: ({ row }) => <div>{row.original.institution || "N/A"}</div>,
       enableSorting: true,
       enableHiding: true,
     },
     {
-      accessorKey: "category",
-      header: ({ column }) => {
+      accessorFn: (row) => row.category?.name,
+      id: "category", // ważne, aby dać ID dla filtrowania
+      header: "Category",
+      cell: ({ row }) => {
+        const category = row.original.category!;
         return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
+          <Badge
+            variant="outline"
+            className="text-muted-foreground px-1.5 flex items-center w-fit"
           >
-            Category
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
+            {getIconBySlug(category.icon)}
+            {category.name}
+          </Badge>
         );
       },
-      cell: ({ row }) => (
-        <Badge
-          variant="outline"
-          className="text-muted-foreground px-1.5 flex items-center"
-        >
-          {getCategoryIcon(row.original.category)}
-          {row.original.category}
-        </Badge>
-      ),
       enableSorting: true,
       enableHiding: true,
     },
     {
-      accessorKey: "expectedRate",
+      accessorKey: "interestRate",
       header: ({ column }) => {
         return (
           <Button
@@ -350,7 +321,7 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
           </Button>
         );
       },
-      cell: ({ row }) => <div>{row.original.expectedRate.toFixed(2)}%</div>,
+      cell: ({ row }) => formatPercentage(row.original.interestRate),
       enableSorting: true,
       enableHiding: true,
     },
@@ -374,17 +345,7 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
           </Button>
         );
       },
-      cell: ({ row }) => {
-        const balance = row.original.balance;
-        return (
-          <div>
-            {new Intl.NumberFormat("en-US", {
-              style: "currency",
-              currency: "USD",
-            }).format(balance)}
-          </div>
-        );
-      },
+      cell: ({ row }) => formatCurrency(row.original.balance),
       enableSorting: true,
       enableHiding: true,
     },
@@ -410,25 +371,16 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
       },
       cell: ({ row }) => {
         const growth = row.original.growth;
-        const isPositive = growth >= 0;
         return (
-          <div>
-            {growth.toFixed(2)}%
-            <span className="ml-2 text-xs">
-              {row.original.growthPercentage > 0 ? (
-                <span className="text-emerald-500">
-                  <ArrowUp className="inline h-3 w-3 mr-1" />
-                  {row.original.growthPercentage}%
-                </span>
-              ) : row.original.growthPercentage < 0 ? (
-                <span className="text-desctructive">
-                  <ArrowDown className="inline h-3 w-3 mr-1" />
-                  {Math.abs(row.original.growthPercentage)}%
-                </span>
+          <div className="flex items-center gap-2">
+            <span className={growth >= 0 ? "text-emerald-600" : "text-red-600"}>
+              {growth >= 0 ? (
+                <ArrowUp className="h-3 w-3" />
               ) : (
-                <span className="text-gray-500">0%</span>
+                <ArrowDown className="h-3 w-3" />
               )}
             </span>
+            <span>{formatPercentage(growth)}</span>
           </div>
         );
       },
@@ -454,7 +406,7 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
               onClick={() => openTableCellViewer(row.original, "edit")}
             >
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              Edit account
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => openTableCellViewer(row.original, "view")}
@@ -468,7 +420,7 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
               onClick={() => handleDeleteAccount(row.original.id)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              Delete account
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -517,8 +469,25 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
 
   // Get unique categories from data for the filter dropdown
   const uniqueCategories = React.useMemo(() => {
-    return Array.from(new Set(data.map((item) => item.category)));
+    const map = new Map<string, { name: string; icon: string }>();
+
+    data.forEach((item) => {
+      const category = item.category;
+      if (category && !map.has(category.name)) {
+        map.set(category.name, { name: category.name, icon: category.icon });
+      }
+    });
+
+    return Array.from(map.values());
   }, [data]);
+
+  React.useEffect(() => {
+    if (categoryFilter !== "All Categories") {
+      table.getColumn("category")?.setFilterValue(categoryFilter);
+    } else {
+      table.getColumn("category")?.setFilterValue(undefined);
+    }
+  }, [table, categoryFilter]);
 
   return (
     <Tabs
@@ -603,14 +572,14 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
                 All Categories
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {uniqueCategories.map((category) => (
+              {uniqueCategories.map((c) => (
                 <DropdownMenuItem
-                  key={category}
-                  onClick={() => setCategoryFilter(category)}
+                  key={c?.name}
+                  onClick={() => setCategoryFilter(c?.name)}
                 >
                   <div className="flex items-center">
-                    {getCategoryIcon(category)}
-                    {category}
+                    {getIconBySlug(c?.icon)}
+                    {c?.name}
                   </div>
                 </DropdownMenuItem>
               ))}
@@ -695,83 +664,6 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-between px-4">
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
-          <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
-              </Label>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
-                }}
-              >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                  <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
-                  />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
-            </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to first page</span>
-                <IconChevronsLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to previous page</span>
-                <IconChevronLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to next page</span>
-                <IconChevronRight />
-              </Button>
-              <Button
-                variant="outline"
-                className="hidden size-8 lg:flex"
-                size="icon"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to last page</span>
-                <IconChevronsRight />
-              </Button>
-            </div>
-          </div>
-        </div>
       </TabsContent>
       <TabsContent
         value="investments"
@@ -827,85 +719,8 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-between px-4">
-          <div className="text-muted-foreground hidden flex-1 text-sm lg:flex">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
-          <div className="flex w-full items-center gap-8 lg:w-fit">
-            <div className="hidden items-center gap-2 lg:flex">
-              <Label htmlFor="rows-per-page" className="text-sm font-medium">
-                Rows per page
-              </Label>
-              <Select
-                value={`${table.getState().pagination.pageSize}`}
-                onValueChange={(value) => {
-                  table.setPageSize(Number(value));
-                }}
-              >
-                <SelectTrigger size="sm" className="w-20" id="rows-per-page">
-                  <SelectValue
-                    placeholder={table.getState().pagination.pageSize}
-                  />
-                </SelectTrigger>
-                <SelectContent side="top">
-                  {[10, 20, 30, 40, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex w-fit items-center justify-center text-sm font-medium">
-              Page {table.getState().pagination.pageIndex + 1} of{" "}
-              {table.getPageCount()}
-            </div>
-            <div className="ml-auto flex items-center gap-2 lg:ml-0">
-              <Button
-                variant="outline"
-                className="hidden h-8 w-8 p-0 lg:flex"
-                onClick={() => table.setPageIndex(0)}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to first page</span>
-                <IconChevronsLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                <span className="sr-only">Go to previous page</span>
-                <IconChevronLeft />
-              </Button>
-              <Button
-                variant="outline"
-                className="size-8"
-                size="icon"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to next page</span>
-                <IconChevronRight />
-              </Button>
-              <Button
-                variant="outline"
-                className="hidden size-8 lg:flex"
-                size="icon"
-                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                disabled={!table.getCanNextPage()}
-              >
-                <span className="sr-only">Go to last page</span>
-                <IconChevronsRight />
-              </Button>
-            </div>
-          </div>
-        </div>
       </TabsContent>
-      <TableCellViewer
+      <SavingsTableCellViewer
         activeItem={activeItem}
         viewMode={viewMode}
         isDrawerOpen={isDrawerOpen}
@@ -915,12 +730,14 @@ export function SavingsTable({ data: initialData }: { data?: Account[] }) {
         selectedAccounts={selectedAccounts}
         confirmBulkDelete={confirmBulkDelete}
         activeTab={activeTab}
+        categories={categories}
+        usedCategoryIds={usedCategoryIds}
       />
     </Tabs>
   );
 }
 
-function TableCellViewer({
+function SavingsTableCellViewer({
   activeItem,
   viewMode,
   isDrawerOpen,
@@ -930,89 +747,95 @@ function TableCellViewer({
   selectedAccounts = [],
   confirmBulkDelete,
   activeTab,
+  categories = [],
+  usedCategoryIds = [],
 }: {
-  activeItem: Account | null;
+  activeItem: SavingsWithStats | null;
   viewMode: "add" | "edit" | "view" | "delete-confirm";
   isDrawerOpen: boolean;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   closeDrawer: () => void;
-  setData: React.Dispatch<React.SetStateAction<Account[]>>;
-  selectedAccounts?: Account[];
+  setData: React.Dispatch<React.SetStateAction<SavingsWithStats[]>>;
+  selectedAccounts?: SavingsWithStats[];
   confirmBulkDelete?: () => void;
   activeTab?: string;
+  categories?: {
+    id: string;
+    name: string;
+    type: "EXPENSE" | "INCOME";
+    icon: string;
+  }[];
+  usedCategoryIds?: string[];
 }) {
   const isMobile = useIsMobile();
 
-  const form = useForm<AccountFormValues>({
-    resolver: zodResolver(accountFormSchema),
+  const form = useForm<SavingsFormValues>({
+    resolver: zodResolver(savingsFormSchema),
     defaultValues: activeItem
       ? {
-          id: activeItem.id,
           accountName: activeItem.accountName,
-          institution: activeItem.institution,
-          category: activeItem.category,
-          expectedRate: activeItem.expectedRate.toString(),
+          categoryId: activeItem.categoryId,
           balance: activeItem.balance.toString(),
-          type: activeItem.type,
+          interestRate: activeItem.interestRate.toString(),
+          growth: activeItem.growth.toString(),
+          accountType: activeItem.accountType,
+          institution: activeItem.institution || "",
         }
-      : emptyAccountForm,
+      : {
+          ...emptySavingsForm,
+          accountType: activeTab === "investments" ? "INVESTMENT" : "SAVINGS",
+        },
     mode: "onSubmit",
   });
 
   React.useEffect(() => {
     if (activeItem) {
       form.reset({
-        id: activeItem.id,
         accountName: activeItem.accountName,
-        institution: activeItem.institution,
-        category: activeItem.category,
-        expectedRate: activeItem.expectedRate.toString(),
+        categoryId: activeItem.categoryId,
         balance: activeItem.balance.toString(),
-        type: activeItem.type,
+        interestRate: activeItem.interestRate.toString(),
+        growth: activeItem.growth.toString(),
+        accountType: activeItem.accountType,
+        institution: activeItem.institution || "",
       });
     } else {
       form.reset({
-        ...emptyAccountForm,
-        type: activeTab === "investments" ? "Investment" : "Savings",
+        ...emptySavingsForm,
+        accountType: activeTab === "investments" ? "INVESTMENT" : "SAVINGS",
       });
     }
   }, [activeItem, form, activeTab]);
 
-  const onSubmit = (values: AccountFormValues) => {
-    const newAccount = {
-      id: values.id || Date.now(),
-      accountName: values.accountName,
-      institution: values.institution,
-      category: values.category,
-      expectedRate: Number.parseFloat(values.expectedRate),
-      balance: Number.parseFloat(values.balance),
-      growth: activeItem?.growth || 0,
-      type: values.type,
-    };
+  const onSubmit = async (values: SavingsFormValues) => {
+    const formData = new FormData();
+    formData.append("accountName", values.accountName);
+    formData.append("categoryId", values.categoryId);
+    formData.append("balance", values.balance);
+    formData.append("interestRate", values.interestRate);
+    formData.append("growth", values.growth || "0");
+    formData.append("accountType", values.accountType);
+    formData.append("institution", values.institution || "");
 
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: activeItem ? "Updating account..." : "Adding account...",
-      success: () => {
-        if (activeItem) {
-          setData((prev) =>
-            prev.map((item) => (item.id === activeItem.id ? newAccount : item))
-          );
-          return "Account updated successfully";
-        } else {
-          setData((prev) => [...prev, newAccount]);
-          form.reset(emptyAccountForm);
-          return "Account added successfully";
-        }
-      },
-      error: "Failed to save account",
+    if (activeItem) {
+      formData.append("id", activeItem.id);
+    }
+
+    await performAddOrUpdateItem({
+      formData,
+      isEdit: !!activeItem,
+      createFn: createSavings,
+      updateFn: updateSavings,
+      setData,
+      closeDrawer,
+      resetForm: form.reset,
+      resourceName: "account",
     });
-
-    closeDrawer();
   };
 
   const isReadOnly = viewMode === "view";
   const isDeleteConfirm = viewMode === "delete-confirm";
-  const isSavings = form.watch("type") === "Savings";
+  const isSavings = form.watch("accountType") === "SAVINGS";
 
   if (isDeleteConfirm) {
     return (
@@ -1047,15 +870,10 @@ function TableCellViewer({
                           variant="outline"
                           className="text-muted-foreground px-1.5 flex items-center"
                         >
-                          {account.type}
+                          {account.accountType}
                         </Badge>
                       </div>
-                      <div>
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(account.balance)}
-                      </div>
+                      <div>{formatCurrency(account.balance)}</div>
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {account.institution}
@@ -1124,7 +942,7 @@ function TableCellViewer({
                       <div className="p-2 border rounded-md">{field.value}</div>
                     ) : (
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="e.g., Emergency Fund" />
                       </FormControl>
                     )}
                     <FormMessage />
@@ -1138,12 +956,14 @@ function TableCellViewer({
                 name="institution"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Institution</FormLabel>
+                    <FormLabel>Institution (Optional)</FormLabel>
                     {isReadOnly ? (
-                      <div className="p-2 border rounded-md">{field.value}</div>
+                      <div className="p-2 border rounded-md">
+                        {field.value || "N/A"}
+                      </div>
                     ) : (
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="e.g., Chase Bank" />
                       </FormControl>
                     )}
                     <FormMessage />
@@ -1151,126 +971,76 @@ function TableCellViewer({
                 )}
               />
 
-              {/* Category & Type */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Category</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md flex items-center">
-                          {getCategoryIcon(field.value)}
-                          {field.value}
-                        </div>
-                      ) : (
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isReadOnly}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Bank Account">
-                              <div className="flex items-center">
-                                <Landmark className="mr-2 h-4 w-4" />
-                                Bank Account
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Retirement">
-                              <div className="flex items-center">
-                                <Briefcase className="mr-2 h-4 w-4" />
-                                Retirement
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Brokerage">
-                              <div className="flex items-center">
-                                <TrendingUp className="mr-2 h-4 w-4" />
-                                Brokerage
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Cash">
-                              <div className="flex items-center">
-                                <Wallet className="mr-2 h-4 w-4" />
-                                Cash
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Savings">
-                              <div className="flex items-center">
-                                <PiggyBank className="mr-2 h-4 w-4" />
-                                Savings
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="Other">
-                              <div className="flex items-center">
-                                <Building className="mr-2 h-4 w-4" />
-                                Other
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Type</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md">
-                          {field.value}
-                        </div>
-                      ) : (
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isReadOnly}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select a type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Savings">Savings</SelectItem>
-                            <SelectItem value="Investment">
-                              Investment
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Expected Rate */}
+              {/* Category */}
               <FormField
                 control={form.control}
-                name="expectedRate"
+                name="categoryId"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>
-                      {isSavings ? "Interest Rate (%)" : "Expected Return (%)"}
-                    </FormLabel>
+                    <FormLabel>Category</FormLabel>
                     {isReadOnly ? (
-                      <div className="p-2 border rounded-md">
-                        {Number.parseFloat(field.value).toFixed(2)}%
+                      <div className="p-2 border rounded-md flex items-center">
+                        {getIconBySlug(activeItem!.category!.icon)}
+                        {activeItem!.category!.name}
                       </div>
                     ) : (
-                      <FormControl>
-                        <Input {...field} type="number" step="0.01" min={0} />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={isReadOnly}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {(() => {
+                            const availableCategories = categories.filter(
+                              (cat) =>
+                                cat.type === "INCOME" &&
+                                (!usedCategoryIds.includes(cat.id) ||
+                                  cat.id === activeItem?.categoryId)
+                            );
+
+                            return (
+                              <>
+                                {availableCategories.length === 0 && (
+                                  <div className="px-4 py-2 text-muted-foreground text-sm italic">
+                                    No available categories
+                                  </div>
+                                )}
+
+                                {availableCategories.map((category) => (
+                                  <SelectItem
+                                    key={category.id}
+                                    value={category.id}
+                                  >
+                                    <div className="flex items-center">
+                                      {getIconBySlug(category.icon)}
+                                      {category.name}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+
+                                <div className="pt-1 border-t">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="w-full justify-start text-sm text-muted-foreground"
+                                    onClick={() =>
+                                      (window.location.href = "/categories")
+                                    }
+                                  >
+                                    <Plus />
+                                    Add new category
+                                  </Button>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </SelectContent>
+                      </Select>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -1286,14 +1056,17 @@ function TableCellViewer({
                     <FormLabel>Balance</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(Number.parseFloat(field.value))}
+                        {formatCurrency(Number.parseFloat(field.value))}
                       </div>
                     ) : (
                       <FormControl>
-                        <Input {...field} type="number" step="0.01" min={0} />
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.01"
+                          min={0}
+                          placeholder="0.00"
+                        />
                       </FormControl>
                     )}
                     <FormMessage />
@@ -1301,31 +1074,123 @@ function TableCellViewer({
                 )}
               />
 
-              {/* Additional read-only fields for view mode */}
-              {isReadOnly && activeItem && (
-                <div className="flex flex-col gap-3">
-                  <Label>Growth</Label>
-                  <div className="p-2 border rounded-md">
-                    <span>
-                      {activeItem.growth.toFixed(2)}%
-                      <span className="ml-2 text-xs">
-                        {activeItem.growthPercentage > 0 ? (
-                          <span className="text-emerald-500">
-                            <ArrowUp className="inline h-3 w-3 mr-1" />
-                            {activeItem.growthPercentage}%
+              {/* Account Type & Interest Rate */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="accountType"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-3">
+                      <FormLabel>Account Type</FormLabel>
+                      {isReadOnly ? (
+                        <div className="p-2 border rounded-md flex items-center">
+                          {getAccountTypeIcon(field.value)}
+                          {field.value === "SAVINGS" ? "Savings" : "Investing"}
+                        </div>
+                      ) : (
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          disabled={isReadOnly}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select account type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="SAVINGS">
+                              <div className="flex items-center">
+                                <PiggyBank className="mr-2 h-4 w-4" />
+                                Savings
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="INVESTMENT">
+                              <div className="flex items-center">
+                                <TrendingUp className="mr-2 h-4 w-4" />
+                                Investment
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="interestRate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-3">
+                      <FormLabel>
+                        {isSavings
+                          ? "Interest Rate (%)"
+                          : "Expected Return (%)"}
+                      </FormLabel>
+                      {isReadOnly ? (
+                        <div className="p-2 border rounded-md">
+                          {formatPercentage(Number.parseFloat(field.value))}
+                        </div>
+                      ) : (
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            placeholder="0.00"
+                          />
+                        </FormControl>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              {/* Growth - Only show in view/edit modes, not in add mode */}
+              {(isReadOnly || viewMode === "edit") && (
+                <FormField
+                  control={form.control}
+                  name="growth"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-3">
+                      <FormLabel>Growth Rate (%)</FormLabel>
+                      {isReadOnly ? (
+                        <div className="p-2 border rounded-md flex items-center gap-2">
+                          <span
+                            className={
+                              Number.parseFloat(field.value) >= 0
+                                ? "text-emerald-600"
+                                : "text-red-600"
+                            }
+                          >
+                            {Number.parseFloat(field.value) >= 0 ? (
+                              <ArrowUp className="h-3 w-3" />
+                            ) : (
+                              <ArrowDown className="h-3 w-3" />
+                            )}
                           </span>
-                        ) : activeItem.growthPercentage < 0 ? (
-                          <span className="text-desctructive">
-                            <ArrowDown className="inline h-3 w-3 mr-1" />
-                            {Math.abs(activeItem.growthPercentage)}%
+                          <span>
+                            {formatPercentage(Number.parseFloat(field.value))}
                           </span>
-                        ) : (
-                          <span className="text-gray-500">0%</span>
-                        )}
-                      </span>
-                    </span>
-                  </div>
-                </div>
+                        </div>
+                      ) : (
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                          />
+                        </FormControl>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
             </form>
           </Form>

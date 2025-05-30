@@ -208,6 +208,8 @@ exports.Prisma.TransactionScalarFieldEnum = {
   amount: 'amount',
   date: 'date',
   description: 'description',
+  notes: 'notes',
+  type: 'type',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -234,6 +236,11 @@ exports.CategoryType = exports.$Enums.CategoryType = {
 exports.AccountType = exports.$Enums.AccountType = {
   SAVINGS: 'SAVINGS',
   INVESTMENT: 'INVESTMENT'
+};
+
+exports.TransactionType = exports.$Enums.TransactionType = {
+  INCOME: 'INCOME',
+  EXPENSE: 'EXPENSE'
 };
 
 exports.Prisma.ModelName = {

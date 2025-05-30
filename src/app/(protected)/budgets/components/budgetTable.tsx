@@ -1,16 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  IconChevronDown,
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconDotsVertical,
-  IconLayoutColumns,
-  IconPlus,
-} from "@tabler/icons-react";
+import { IconDotsVertical, IconPlus } from "@tabler/icons-react";
 import {
   ArrowUpDown,
   ArrowUp,
@@ -18,12 +9,7 @@ import {
   Edit,
   Eye,
   Trash2,
-  Package,
-  Utensils,
-  Car,
-  Home,
-  Film,
-  Heart,
+  Plus,
 } from "lucide-react";
 import {
   type ColumnDef,
@@ -40,7 +26,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { toast } from "sonner";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -58,7 +43,6 @@ import {
 } from "@/components/ui/drawer";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -73,7 +57,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -94,53 +77,47 @@ import { Tabs } from "@/components/ui/tabs";
 import { getIconBySlug } from "@/utils/getIconBySlug";
 import { getStatusColorByPercentage } from "@/utils/getStatusColorByPercentage";
 
-// Schema for budget data
-export const budgetSchema = z.object({
-  id: z.number(),
-  category: z.string(),
-  icon: z.string().default("Package"),
-  amount: z.number(),
-  spent: z.number().optional(),
-  progress: z.number().optional(),
-});
-
-export type Budget = z.infer<typeof budgetSchema>;
-
-// Form schema for adding/editing budgets
-const budgetFormSchema = z.object({
-  id: z.number().optional(),
-  category: z.string().min(1, "Category is required"),
-  amount: z.coerce.number().min(0.01, "Amount must be at least 0.01"),
-  spent: z.coerce.number().optional(),
-  progress: z.coerce.number().optional(),
-});
-
-export type BudgetFormValues = z.infer<typeof budgetFormSchema>;
-
-const emptyBudgetForm: BudgetFormValues = {
-  category: "",
-  amount: 0,
-  spent: 0,
-  progress: 0,
-};
+// Import the proper schemas and types
+import {
+  budgetFormSchema,
+  emptyBudgetForm,
+  type BudgetFormValues,
+  type BudgetWithStats,
+} from "@/services/budgets/schema";
+import { createBudget, updateBudget, deleteBudget } from "../actions";
+import { formatCurrency } from "@/utils/formatting";
+import { performBulkDelete } from "@/utils/performBulkDelete";
+import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
+import { performAddOrUpdateItem } from "@/utils/performAddOrUpdateItem";
 
 export function BudgetTable({
   data: initialData,
   categories = [],
+  usedCategoryIds = [],
 }: {
-  data: Budget[];
-  categories?: { id: number; name: string; type: string }[];
+  data: BudgetWithStats[];
+  categories?: {
+    id: string;
+    name: string;
+    type: "EXPENSE" | "INCOME";
+    icon: string;
+  }[];
+  usedCategoryIds?: string[];
 }) {
-  const [activeItem, setActiveItem] = React.useState<Budget | null>(null);
+  const [activeItem, setActiveItem] = React.useState<BudgetWithStats | null>(
+    null
+  );
   const [viewMode, setViewMode] = React.useState<
     "add" | "edit" | "view" | "delete-confirm"
   >("add");
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [data, setData] = React.useState(() => initialData);
-  const [selectedBudgets, setSelectedBudgets] = React.useState<Budget[]>([]);
+  const [selectedBudgets, setSelectedBudgets] = React.useState<
+    BudgetWithStats[]
+  >([]);
 
   const openTableCellViewer = (
-    item: Budget | null = null,
+    item: BudgetWithStats | null = null,
     mode: "add" | "edit" | "view" | "delete-confirm" = "view"
   ) => {
     setActiveItem(item);
@@ -148,14 +125,12 @@ export function BudgetTable({
     setIsDrawerOpen(true);
   };
 
-  const handleDeleteBudget = (id: number) => {
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: "Deleting budget...",
-      success: () => {
-        setData((prev) => prev.filter((item) => item.id !== id));
-        return "Budget deleted successfully";
-      },
-      error: "Failed to delete budget",
+  const handleDeleteBudget = async (id: string) => {
+    await performSingleItemDelete({
+      id,
+      deleteFn: deleteBudget,
+      setData,
+      resourceName: "budget",
     });
   };
 
@@ -166,20 +141,19 @@ export function BudgetTable({
     openTableCellViewer(null, "delete-confirm");
   };
 
-  const confirmBulkDelete = () => {
-    const selectedIds = selectedBudgets.map((item) => item.id);
+  const deleteBudgetsBulk = async (ids: string[]) => {
+    return Promise.all(ids.map((id) => deleteBudget(id)));
+  };
 
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: `Deleting ${selectedIds.length} budget(s)...`,
-      success: () => {
-        setData((prev) =>
-          prev.filter((item) => !selectedIds.includes(item.id))
-        );
-        table.resetRowSelection();
-        closeDrawer();
-        return `${selectedIds.length} budget(s) deleted successfully`;
-      },
-      error: "Failed to delete budgets",
+  const confirmBulkDelete = async () => {
+    await performBulkDelete({
+      items: selectedBudgets,
+      getId: (item) => item.id,
+      deleteFn: deleteBudgetsBulk,
+      setData,
+      resetSelection: () => table.resetRowSelection(),
+      closeDrawer,
+      resourceName: "budget(s)",
     });
   };
 
@@ -189,7 +163,7 @@ export function BudgetTable({
     setSelectedBudgets([]);
   };
 
-  const columns: ColumnDef<Budget>[] = [
+  const columns: ColumnDef<BudgetWithStats>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -219,7 +193,7 @@ export function BudgetTable({
       enableHiding: false,
     },
     {
-      accessorKey: "category",
+      accessorKey: "name",
       header: ({ column }) => {
         return (
           <Button
@@ -227,7 +201,7 @@ export function BudgetTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="flex items-center gap-1 p-0!"
           >
-            Category
+            Name
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -245,13 +219,30 @@ export function BudgetTable({
             className="text-foreground w-fit px-0 text-left"
             onClick={() => openTableCellViewer(row.original, "view")}
           >
-            {getIconBySlug(row.original.icon || "Package")}
-            {row.original.category}
+            {row.original.name}
           </Button>
         );
       },
       enableHiding: false,
       enableSorting: true,
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+      cell: ({ row }) => {
+        const category = row.original.category!;
+        return (
+          <Badge
+            variant="outline"
+            className="text-muted-foreground px-1.5 flex items-center w-fit"
+          >
+            {getIconBySlug(category.icon)}
+            {category.name}
+          </Badge>
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
     },
     {
       accessorKey: "amount",
@@ -273,13 +264,7 @@ export function BudgetTable({
           </Button>
         );
       },
-      cell: ({ row }) => {
-        const amount = row.original.amount;
-        return new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-        }).format(amount);
-      },
+      cell: ({ row }) => formatCurrency(row.original.amount),
       enableSorting: true,
       enableHiding: true,
     },
@@ -303,13 +288,7 @@ export function BudgetTable({
           </Button>
         );
       },
-      cell: ({ row }) => {
-        const spent = row.original.spent || 0;
-        return new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-        }).format(spent);
-      },
+      cell: ({ row }) => formatCurrency(row.original.spent || 0),
       enableSorting: true,
       enableHiding: true,
     },
@@ -357,7 +336,7 @@ export function BudgetTable({
               onClick={() => openTableCellViewer(row.original, "edit")}
             >
               <Edit className="mr-2 h-4 w-4" />
-              Edit
+              Edit budget
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => openTableCellViewer(row.original, "view")}
@@ -371,7 +350,7 @@ export function BudgetTable({
               onClick={() => handleDeleteBudget(row.original.id)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              Delete budget
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -421,29 +400,25 @@ export function BudgetTable({
   return (
     <Tabs className="w-full flex-col justify-start gap-6">
       <div className="flex flex-wrap items-start justify-end gap-4 px-4 lg:px-6">
-        {/* Filters & Actions */}
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Actions */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => openTableCellViewer(null, "add")}
-            >
-              <IconPlus />
-              <span className="hidden lg:inline">Add Budget</span>
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleBulkDelete}
-              disabled={!hasSelectedRows}
-              className="flex items-center gap-1"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="hidden lg:inline">Delete Selected</span>
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => openTableCellViewer(null, "add")}
+          >
+            <IconPlus />
+            <span className="hidden lg:inline">Add Budget</span>
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleBulkDelete}
+            disabled={!hasSelectedRows}
+            className="flex items-center gap-1"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span className="hidden lg:inline">Delete Selected</span>
+          </Button>
         </div>
       </div>
 
@@ -499,7 +474,7 @@ export function BudgetTable({
           </Table>
         </div>
       </div>
-      <TableCellViewer
+      <BudgetTableCellViewer
         activeItem={activeItem}
         viewMode={viewMode}
         isDrawerOpen={isDrawerOpen}
@@ -509,12 +484,13 @@ export function BudgetTable({
         selectedBudgets={selectedBudgets}
         confirmBulkDelete={confirmBulkDelete}
         categories={categories}
+        usedCategoryIds={usedCategoryIds}
       />
     </Tabs>
   );
 }
 
-function TableCellViewer({
+function BudgetTableCellViewer({
   activeItem,
   viewMode,
   isDrawerOpen,
@@ -524,16 +500,23 @@ function TableCellViewer({
   selectedBudgets = [],
   confirmBulkDelete,
   categories = [],
+  usedCategoryIds = [],
 }: {
-  activeItem: Budget | null;
+  activeItem: BudgetWithStats | null;
   viewMode: "add" | "edit" | "view" | "delete-confirm";
   isDrawerOpen: boolean;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   closeDrawer: () => void;
-  setData: React.Dispatch<React.SetStateAction<Budget[]>>;
-  selectedBudgets?: Budget[];
+  setData: React.Dispatch<React.SetStateAction<BudgetWithStats[]>>;
+  selectedBudgets?: BudgetWithStats[];
   confirmBulkDelete?: () => void;
-  categories?: { id: number; name: string; type: string }[];
+  categories?: {
+    id: string;
+    name: string;
+    type: "EXPENSE" | "INCOME";
+    icon: string;
+  }[];
+  usedCategoryIds?: string[];
 }) {
   const isMobile = useIsMobile();
 
@@ -541,11 +524,10 @@ function TableCellViewer({
     resolver: zodResolver(budgetFormSchema),
     defaultValues: activeItem
       ? {
-          id: activeItem.id,
-          category: activeItem.category,
-          amount: activeItem.amount,
-          spent: activeItem.spent,
-          progress: activeItem.progress,
+          name: activeItem.name,
+          categoryId: activeItem.categoryId,
+          amount: activeItem.amount.toString(),
+          description: activeItem.description || "",
         }
       : emptyBudgetForm,
     mode: "onSubmit",
@@ -554,44 +536,34 @@ function TableCellViewer({
   React.useEffect(() => {
     if (activeItem) {
       form.reset({
-        id: activeItem.id,
-        category: activeItem.category,
-        amount: activeItem.amount,
-        spent: activeItem.spent,
-        progress: activeItem.progress,
+        name: activeItem.name,
+        categoryId: activeItem.categoryId,
+        amount: activeItem.amount.toString(),
+        description: activeItem.description || "",
       });
     } else {
       form.reset(emptyBudgetForm);
     }
   }, [activeItem, form]);
 
-  const onSubmit = (values: BudgetFormValues) => {
-    const newBudget: Budget = {
-      id: values.id || Date.now(),
-      category: values.category,
-      amount: values.amount,
-      spent: values.spent || 0,
-      progress: values.progress || 0,
-    };
+  const onSubmit = async (values: BudgetFormValues) => {
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("categoryId", values.categoryId);
+    formData.append("amount", values.amount);
+    formData.append("description", values.description || "");
+    if (activeItem) formData.append("id", activeItem.id);
 
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: activeItem ? "Updating budget..." : "Adding budget...",
-      success: () => {
-        if (activeItem) {
-          setData((prev) =>
-            prev.map((item) => (item.id === activeItem.id ? newBudget : item))
-          );
-          return "Budget updated successfully";
-        } else {
-          setData((prev) => [...prev, newBudget]);
-          form.reset(emptyBudgetForm);
-          return "Budget added successfully";
-        }
-      },
-      error: "Failed to save budget",
+    await performAddOrUpdateItem({
+      formData,
+      isEdit: !!activeItem,
+      createFn: createBudget,
+      updateFn: updateBudget,
+      setData,
+      closeDrawer,
+      resetForm: form.reset,
+      resourceName: "budget",
     });
-
-    closeDrawer();
   };
 
   const isReadOnly = viewMode === "view";
@@ -623,14 +595,20 @@ function TableCellViewer({
                   >
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{budget.category}</span>
+                        <span className="font-medium">{budget.name}</span>
+                        <Badge
+                          variant="outline"
+                          className="text-muted-foreground px-1.5 flex items-center"
+                        >
+                          {budget.category?.icon &&
+                            getIconBySlug(budget.category.icon)}
+                          {budget.category?.name}
+                        </Badge>
                       </div>
-                      <div>
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(budget.amount)}
-                      </div>
+                      <div>{formatCurrency(budget.amount)}</div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {budget.description || "No description"}
                     </div>
                   </div>
                 ))}
@@ -685,17 +663,60 @@ function TableCellViewer({
               onSubmit={form.handleSubmit(onSubmit)}
               className="flex flex-col gap-4"
             >
+              {/* Name */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Name</FormLabel>
+                    {isReadOnly ? (
+                      <div className="p-2 border rounded-md">{field.value}</div>
+                    ) : (
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="e.g., Monthly Groceries"
+                        />
+                      </FormControl>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Description (Optional)</FormLabel>
+                    {isReadOnly ? (
+                      <div className="p-2 border rounded-md">
+                        {field.value || "No description"}
+                      </div>
+                    ) : (
+                      <FormControl>
+                        <Input {...field} placeholder="Budget description..." />
+                      </FormControl>
+                    )}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               {/* Category */}
               <FormField
                 control={form.control}
-                name="category"
+                name="categoryId"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
                     <FormLabel>Category</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md flex items-center">
-                        {getIconBySlug(activeItem?.icon || "Package")}
-                        {field.value}
+                        {getIconBySlug(activeItem!.category!.icon)}
+                        {activeItem!.category!.name}
                       </div>
                     ) : (
                       <Select
@@ -709,42 +730,50 @@ function TableCellViewer({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="groceries">
-                            <div className="flex items-center">
-                              <Package className="mr-2 h-4 w-4" />
-                              Groceries
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="housing">
-                            <div className="flex items-center">
-                              <Home className="mr-2 h-4 w-4" />
-                              Housing
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="transportation">
-                            <div className="flex items-center">
-                              <Car className="mr-2 h-4 w-4" />
-                              Transportation
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="dining">
-                            <div className="flex items-center">
-                              <Utensils className="mr-2 h-4 w-4" />
-                              Dining
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="entertainment">
-                            <div className="flex items-center">
-                              <Film className="mr-2 h-4 w-4" />
-                              Entertainment
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="healthcare">
-                            <div className="flex items-center">
-                              <Heart className="mr-2 h-4 w-4" />
-                              Healthcare
-                            </div>
-                          </SelectItem>
+                          {(() => {
+                            const availableCategories = categories.filter(
+                              (cat) =>
+                                cat.type === "EXPENSE" &&
+                                (!usedCategoryIds.includes(cat.id) ||
+                                  cat.id === activeItem?.categoryId)
+                            );
+
+                            return (
+                              <>
+                                {availableCategories.length === 0 && (
+                                  <div className="px-4 py-2 text-muted-foreground text-sm italic">
+                                    No available categories
+                                  </div>
+                                )}
+
+                                {availableCategories.map((category) => (
+                                  <SelectItem
+                                    key={category.id}
+                                    value={category.id}
+                                  >
+                                    <div className="flex items-center">
+                                      {getIconBySlug(category.icon)}
+                                      {category.name}
+                                    </div>
+                                  </SelectItem>
+                                ))}
+
+                                <div className="pt-1 border-t">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="w-full justify-start text-sm text-muted-foreground"
+                                    onClick={() =>
+                                      (window.location.href = "/categories")
+                                    }
+                                  >
+                                    <Plus />
+                                    Add new category
+                                  </Button>
+                                </div>
+                              </>
+                            );
+                          })()}
                         </SelectContent>
                       </Select>
                     )}
@@ -759,13 +788,10 @@ function TableCellViewer({
                 name="amount"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Amount</FormLabel>
+                    <FormLabel>Budget Amount</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(field.value)}
+                        {formatCurrency(Number.parseFloat(field.value))}
                       </div>
                     ) : (
                       <FormControl>
@@ -774,6 +800,7 @@ function TableCellViewer({
                           type="number"
                           step="0.01"
                           min={0.01}
+                          placeholder="0.00"
                         />
                       </FormControl>
                     )}
@@ -784,22 +811,22 @@ function TableCellViewer({
 
               {/* Spent - View only */}
               {isReadOnly && activeItem?.spent !== undefined && (
-                <FormField
-                  control={form.control}
-                  name="spent"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Spent</FormLabel>
-                      <div className="p-2 border rounded-md">
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(field.value || 0)}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <FormItem className="flex flex-col gap-3">
+                  <FormLabel>Spent</FormLabel>
+                  <div className="p-2 border rounded-md">
+                    {formatCurrency(activeItem.spent)}
+                  </div>
+                </FormItem>
+              )}
+
+              {/* Remaining - View only */}
+              {isReadOnly && activeItem?.remaining !== undefined && (
+                <FormItem className="flex flex-col gap-3">
+                  <FormLabel>Remaining</FormLabel>
+                  <div className="p-2 border rounded-md">
+                    {formatCurrency(activeItem.remaining)}
+                  </div>
+                </FormItem>
               )}
 
               {/* Progress - View only */}
@@ -819,16 +846,8 @@ function TableCellViewer({
                         )}`}
                       />
                       <p className="text-sm text-muted-foreground">
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(activeItem.spent || 0)}{" "}
-                        of{" "}
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(activeItem.amount)}{" "}
-                        (
+                        {formatCurrency(activeItem.spent || 0)} of{" "}
+                        {formatCurrency(activeItem.amount)} (
                         {Math.round(
                           ((activeItem.spent || 0) / activeItem.amount) * 100
                         )}

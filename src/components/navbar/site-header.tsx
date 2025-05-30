@@ -2,7 +2,7 @@
 
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { ThemeToggle } from "./theme-toggle";
+import { ThemeToggle } from "../theme-toggle/theme-toggle";
 import { usePathname } from "next/navigation";
 import { extractTabName } from "@/utils/extractTabName";
 

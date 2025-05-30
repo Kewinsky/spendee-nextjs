@@ -12,16 +12,7 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 import {
-  Utensils,
-  Car,
-  Home,
-  Lightbulb,
-  Film,
-  Heart,
-  Briefcase,
   Share2,
-  TrendingUp,
-  Package,
   CalendarIcon,
   Trash2,
   ArrowUpDown,
@@ -44,8 +35,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { toast } from "sonner";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -101,55 +90,39 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  transactionFormSchema,
-  type TransactionFormValues,
-  emptyTransactionForm,
-} from "@/lib/schemas";
 import { format } from "date-fns";
 import type { DateRange } from "react-day-picker";
-
-export const schema = z.object({
-  id: z.number(),
-  date: z.string(),
-  description: z.string(),
-  amount: z.number(),
-  category: z.string(),
-  type: z.string(),
-  notes: z.string().optional(),
-});
-
-const getCategoryIcon = (category: string) => {
-  switch (category) {
-    case "Food":
-      return <Utensils className="mr-2 h-4 w-4" />;
-    case "Transportation":
-      return <Car className="mr-2 h-4 w-4" />;
-    case "Housing":
-      return <Home className="mr-2 h-4 w-4" />;
-    case "Utilities":
-      return <Lightbulb className="mr-2 h-4 w-4" />;
-    case "Entertainment":
-      return <Film className="mr-2 h-4 w-4" />;
-    case "Healthcare":
-      return <Heart className="mr-2 h-4 w-4" />;
-    case "Salary":
-      return <Briefcase className="mr-2 h-4 w-4" />;
-    case "Investment":
-      return <TrendingUp className="mr-2 h-4 w-4" />;
-    default:
-      return <Package className="mr-2 h-4 w-4" />;
-  }
-};
+import {
+  emptyTransactionForm,
+  transactionFormSchema,
+  type TransactionFormValues,
+  type TransactionWithStats,
+} from "@/services/transactions/schema";
+import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
+import {
+  createTransaction,
+  deleteTransaction,
+  deleteTransactions,
+  updateTransaction,
+} from "../actions";
+import { performBulkDelete } from "@/utils/performBulkDelete";
+import { getIconBySlug } from "@/utils/getIconBySlug";
+import { performAddOrUpdateItem } from "@/utils/performAddOrUpdateItem";
 
 export function TransactionsTable({
   data: initialData,
+  categories = [],
 }: {
-  data: z.infer<typeof schema>[];
+  data: TransactionWithStats[];
+  categories?: {
+    id: string;
+    name: string;
+    type: "EXPENSE" | "INCOME";
+    icon: string;
+  }[];
 }) {
-  const [activeItem, setActiveItem] = React.useState<z.infer<
-    typeof schema
-  > | null>(null);
+  const [activeItem, setActiveItem] =
+    React.useState<TransactionWithStats | null>(null);
   const [viewMode, setViewMode] = React.useState<
     "add" | "edit" | "view" | "delete-confirm"
   >("add");
@@ -161,7 +134,7 @@ export function TransactionsTable({
   const [activeTab, setActiveTab] = React.useState("all");
   const [data, setData] = React.useState(() => initialData);
   const [selectedTransactions, setSelectedTransactions] = React.useState<
-    z.infer<typeof schema>[]
+    TransactionWithStats[]
   >([]);
   const [dateRange, setDateRange] = React.useState<DateRange>({
     from: undefined,
@@ -172,7 +145,7 @@ export function TransactionsTable({
   );
 
   const openTableCellViewer = (
-    item: z.infer<typeof schema> | null = null,
+    item: TransactionWithStats | null = null,
     mode: "add" | "edit" | "view" | "delete-confirm" = "view"
   ) => {
     setActiveItem(item);
@@ -180,14 +153,12 @@ export function TransactionsTable({
     setIsDrawerOpen(true);
   };
 
-  const handleDeleteTransaction = (id: number) => {
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: "Deleting transaction...",
-      success: () => {
-        setData((prev) => prev.filter((item) => item.id !== id));
-        return "Transaction deleted successfully";
-      },
-      error: "Failed to delete transaction",
+  const handleDeleteTransaction = async (id: string) => {
+    await performSingleItemDelete({
+      id,
+      deleteFn: deleteTransaction,
+      setData,
+      resourceName: "transaction",
     });
   };
 
@@ -196,6 +167,22 @@ export function TransactionsTable({
     const selectedItems = selectedRows.map((row) => row.original);
     setSelectedTransactions(selectedItems);
     openTableCellViewer(null, "delete-confirm");
+  };
+
+  const deleteTransactionsBulk = async (ids: string[]) => {
+    return Promise.all(ids.map((id) => deleteTransactions(id)));
+  };
+
+  const confirmBulkDelete = async () => {
+    await performBulkDelete({
+      items: selectedTransactions,
+      getId: (item) => item.id,
+      deleteFn: deleteTransactionsBulk,
+      setData,
+      resetSelection: () => table.resetRowSelection(),
+      closeDrawer,
+      resourceName: "transaction(s)",
+    });
   };
 
   const handleRangeSelect = (range: { from?: Date; to?: Date } | undefined) => {
@@ -209,23 +196,6 @@ export function TransactionsTable({
         to: range?.to ?? undefined,
       });
     }
-  };
-
-  const confirmBulkDelete = () => {
-    const selectedIds = selectedTransactions.map((item) => item.id);
-
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: `Deleting ${selectedIds.length} transaction(s)...`,
-      success: () => {
-        setData((prev) =>
-          prev.filter((item) => !selectedIds.includes(item.id))
-        );
-        table.resetRowSelection();
-        closeDrawer();
-        return `${selectedIds.length} transaction(s) deleted successfully`;
-      },
-      error: "Failed to delete transactions",
-    });
   };
 
   const handleExportCSV = () => {
@@ -246,7 +216,7 @@ export function TransactionsTable({
     setCsvMode(null);
   };
 
-  const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  const columns: ColumnDef<TransactionWithStats>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -356,7 +326,7 @@ export function TransactionsTable({
       },
       cell: ({ row }) => {
         const amount = row.original.amount;
-        const isExpense = row.original.type === "Expense";
+        const isExpense = row.original.type === "EXPENSE";
         return (
           <div className={isExpense ? "text-destructive" : "text-green-500"}>
             {isExpense ? "-" : "+"}
@@ -374,15 +344,19 @@ export function TransactionsTable({
     {
       accessorKey: "category",
       header: "Category",
-      cell: ({ row }) => (
-        <Badge
-          variant="outline"
-          className="text-muted-foreground px-1.5 flex items-center"
-        >
-          {getCategoryIcon(row.original.category)}
-          {row.original.category}
-        </Badge>
-      ),
+      cell: ({ row }) => {
+        const category = row.original.category!;
+
+        return (
+          <Badge
+            variant="outline"
+            className="text-muted-foreground px-1.5 flex items-center"
+          >
+            {getIconBySlug(category.icon)}
+            {category.name}
+          </Badge>
+        );
+      },
       enableHiding: true,
     },
     {
@@ -392,7 +366,7 @@ export function TransactionsTable({
         <Badge
           variant="outline"
           className={
-            row.original.type === "Income"
+            row.original.type === "INCOME"
               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
               : "bg-red-100 text-destructive dark:bg-red-900 dark:text-red-200"
           }
@@ -449,8 +423,8 @@ export function TransactionsTable({
     if (activeTab !== "all") {
       result = result.filter((item) =>
         activeTab === "incomes"
-          ? item.type === "Income"
-          : item.type === "Expense"
+          ? item.type === "INCOME"
+          : item.type === "EXPENSE"
       );
     }
 
@@ -505,6 +479,19 @@ export function TransactionsTable({
   });
 
   const hasSelectedRows = table.getFilteredSelectedRowModel().rows.length > 0;
+
+  // Get unique categories from data for the filter dropdown
+  const uniqueCategories = React.useMemo(() => {
+    const categoryMap = new Map();
+
+    data.forEach((item) => {
+      if (item.category && !categoryMap.has(item.category.id)) {
+        categoryMap.set(item.category.id, item.category);
+      }
+    });
+
+    return Array.from(categoryMap.values());
+  }, [data]);
 
   React.useEffect(() => {
     if (categoryFilter !== "All Categories") {
@@ -660,19 +647,17 @@ export function TransactionsTable({
                 All Categories
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {Array.from(new Set(data.map((item) => item.category))).map(
-                (category) => (
-                  <DropdownMenuItem
-                    key={category}
-                    onClick={() => setCategoryFilter(category)}
-                  >
-                    <div className="flex items-center">
-                      {getCategoryIcon(category)}
-                      {category}
-                    </div>
-                  </DropdownMenuItem>
-                )
-              )}
+              {uniqueCategories.map((category) => (
+                <DropdownMenuItem
+                  key={category.id}
+                  onClick={() => setCategoryFilter(category.name)}
+                >
+                  <div className="flex items-center">
+                    {getIconBySlug(category.icon)}
+                    {category.name}
+                  </div>
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -777,7 +762,7 @@ export function TransactionsTable({
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
-                    No results.
+                    No transactions found.
                   </TableCell>
                 </TableRow>
               )}
@@ -1137,13 +1122,14 @@ export function TransactionsTable({
         confirmBulkDelete={confirmBulkDelete}
         csvMode={csvMode}
         setCsvMode={setCsvMode}
+        categories={categories}
       />
     </Tabs>
   );
 }
 
 // CSV utility functions
-function generateCSV(transactions: z.infer<typeof schema>[]) {
+function generateCSV(transactions: TransactionWithStats[]) {
   // Headers
   const headers = [
     "date",
@@ -1195,17 +1181,24 @@ function TableCellViewer({
   confirmBulkDelete,
   csvMode,
   setCsvMode,
+  categories = [],
 }: {
-  activeItem: z.infer<typeof schema> | null;
+  activeItem: TransactionWithStats | null;
   viewMode: "add" | "edit" | "view" | "delete-confirm";
   isDrawerOpen: boolean;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   closeDrawer: () => void;
-  setData: React.Dispatch<React.SetStateAction<z.infer<typeof schema>[]>>;
-  selectedTransactions?: z.infer<typeof schema>[];
+  setData: React.Dispatch<React.SetStateAction<TransactionWithStats[]>>;
+  selectedTransactions?: TransactionWithStats[];
   confirmBulkDelete?: () => void;
   csvMode: "import" | "export" | null;
   setCsvMode: React.Dispatch<React.SetStateAction<"import" | "export" | null>>;
+  categories?: {
+    id: string;
+    name: string;
+    type: "EXPENSE" | "INCOME";
+    icon: string;
+  }[];
 }) {
   const isMobile = useIsMobile();
 
@@ -1232,8 +1225,8 @@ function TableCellViewer({
         date: activeItem.date,
         description: activeItem.description,
         amount: activeItem.amount.toString(),
-        category: activeItem.category,
-        type: activeItem.type as "Income" | "Expense",
+        categoryId: activeItem.categoryId,
+        type: activeItem.type === "INCOME" ? "Income" : "Expense",
         notes: activeItem.notes || "",
       });
     } else {
@@ -1241,37 +1234,27 @@ function TableCellViewer({
     }
   }, [activeItem, form]);
 
-  const onSubmit = (values: TransactionFormValues) => {
-    const newTransaction = {
-      id: values.id || Date.now(),
-      date: values.date,
-      description: values.description,
-      amount: values.amount,
-      category: values.category,
-      type: values.type,
-      notes: values.notes || "",
-    };
+  const onSubmit = async (values: TransactionFormValues) => {
+    const formData = new FormData();
+    formData.append("date", values.date);
+    formData.append("description", values.description);
+    formData.append("amount", values.amount);
+    formData.append("categoryId", values.categoryId);
+    formData.append("type", values.type);
+    formData.append("notes", values.notes || "");
 
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: activeItem ? "Updating transaction..." : "Adding transaction...",
-      success: () => {
-        if (activeItem) {
-          setData((prev) =>
-            prev.map((item) =>
-              item.id === activeItem.id ? newTransaction : item
-            )
-          );
-          return "Transaction updated successfully";
-        } else {
-          setData((prev) => [...prev, newTransaction]);
-          form.reset(emptyTransactionForm);
-          return "Transaction added successfully";
-        }
-      },
-      error: "Failed to save transaction",
+    if (activeItem) formData.append("id", activeItem.id);
+
+    await performAddOrUpdateItem({
+      formData,
+      isEdit: !!activeItem,
+      createFn: createTransaction,
+      updateFn: updateTransaction,
+      setData,
+      closeDrawer,
+      resetForm: form.reset,
+      resourceName: "transaction",
     });
-
-    closeDrawer();
   };
 
   const isReadOnly = viewMode === "view";
@@ -1393,12 +1376,12 @@ function TableCellViewer({
                       </TableCell>
                       <TableCell
                         className={
-                          transaction.type === "Expense"
+                          transaction.type === "EXPENSE"
                             ? "text-destructive"
                             : "text-green-500"
                         }
                       >
-                        {transaction.type === "Expense" ? "-" : "+"}
+                        {transaction.type === "EXPENSE" ? "-" : "+"}
                         {new Intl.NumberFormat("en-US", {
                           style: "currency",
                           currency: "USD",
@@ -1477,18 +1460,19 @@ function TableCellViewer({
                           variant="outline"
                           className="text-muted-foreground px-1.5 flex items-center"
                         >
-                          {getCategoryIcon(transaction.category)}
-                          {transaction.category}
+                          {transaction.category?.icon &&
+                            getIconBySlug(transaction.category.icon)}
+                          {transaction.category?.name}
                         </Badge>
                       </div>
                       <div
                         className={
-                          transaction.type === "Expense"
+                          transaction.type === "EXPENSE"
                             ? "text-destructive"
                             : "text-emerald-500"
                         }
                       >
-                        {transaction.type === "Expense" ? "-" : "+"}
+                        {transaction.type === "EXPENSE" ? "-" : "+"}
                         {new Intl.NumberFormat("en-US", {
                           style: "currency",
                           currency: "USD",
@@ -1686,14 +1670,14 @@ function TableCellViewer({
               {/* Category */}
               <FormField
                 control={form.control}
-                name="category"
+                name="categoryId"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
                     <FormLabel>Category</FormLabel>
                     {isReadOnly ? (
-                      <div className="p-2 border rounded-md flex items-center gap-2">
-                        {getCategoryIcon(field.value)}
-                        {field.value}
+                      <div className="p-2 border rounded-md flex items-center">
+                        {getIconBySlug(activeItem!.category!.icon)}
+                        {activeItem!.category!.name}
                       </div>
                     ) : (
                       <Select
@@ -1707,60 +1691,14 @@ function TableCellViewer({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Food">
-                            <div className="flex items-center">
-                              <Utensils className="mr-2 h-4 w-4" />
-                              Food
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Transportation">
-                            <div className="flex items-center">
-                              <Car className="mr-2 h-4 w-4" />
-                              Transportation
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Housing">
-                            <div className="flex items-center">
-                              <Home className="mr-2 h-4 w-4" />
-                              Housing
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Utilities">
-                            <div className="flex items-center">
-                              <Lightbulb className="mr-2 h-4 w-4" />
-                              Utilities
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Entertainment">
-                            <div className="flex items-center">
-                              <Film className="mr-2 h-4 w-4" />
-                              Entertainment
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Healthcare">
-                            <div className="flex items-center">
-                              <Heart className="mr-2 h-4 w-4" />
-                              Healthcare
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Salary">
-                            <div className="flex items-center">
-                              <Briefcase className="mr-2 h-4 w-4" />
-                              Salary
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Investment">
-                            <div className="flex items-center">
-                              <TrendingUp className="mr-2 h-4 w-4" />
-                              Investment
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="Other">
-                            <div className="flex items-center">
-                              <Package className="mr-2 h-4 w-4" />
-                              Other
-                            </div>
-                          </SelectItem>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              <div className="flex items-center">
+                                {getIconBySlug(category.icon)}
+                                {category.name}
+                              </div>
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     )}

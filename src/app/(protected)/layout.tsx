@@ -1,17 +1,17 @@
 import { auth } from "@/auth";
-import { AppSidebar } from "@/components/app-sidebar";
-import { ClientLayoutWrapper } from "@/components/client-layout-wrapper";
-import { SiteHeader } from "@/components/site-header";
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { ClientLayoutWrapper } from "@/components/layout/client-layout-wrapper";
+import { SiteHeader } from "@/components/navbar/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { redirect } from "next/navigation";
 import { CSSProperties, ReactNode } from "react";
 
 const ProtectedLayout = async ({ children }: { children: ReactNode }) => {
-  // const session = await auth();
+  const session = await auth();
 
-  // if (!session?.user) {
-  //   redirect("/login");
-  // }
+  if (!session?.user) {
+    redirect("/login");
+  }
 
   return (
     <SidebarProvider

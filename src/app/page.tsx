@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Logo } from "@/components/logo";
+import { Logo } from "@/components/ui/logo";
 
 const Home = () => {
   return (

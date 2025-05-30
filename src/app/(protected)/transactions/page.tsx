@@ -1,11 +1,14 @@
-"use client";
-import data from "./_components/transactions-data.json";
-import { TransactionsTable } from "./_components/transactions-table";
+import { getCurrentUserCategories } from "../categories/actions";
+import { getCurrentUserTransactions } from "./actions";
+import { TransactionsTable } from "./components/transactionsTable";
 
-export default function TransactionsPage() {
+export default async function TransactionsPage() {
+  const transactions = await getCurrentUserTransactions();
+  const categories = await getCurrentUserCategories();
+
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-      <TransactionsTable data={data} />
+      <TransactionsTable data={transactions} categories={categories} />
     </div>
   );
 }
