@@ -284,7 +284,7 @@ export function SavingsTable({
     },
     {
       accessorFn: (row) => row.category?.name,
-      id: "category", // ważne, aby dać ID dla filtrowania
+      id: "category",
       header: "Category",
       cell: ({ row }) => {
         const category = row.original.category!;
@@ -583,6 +583,13 @@ export function SavingsTable({
                   </div>
                 </DropdownMenuItem>
               ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => (window.location.href = "/categories")}
+              >
+                <Plus />
+                Add new category
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

@@ -20,6 +20,7 @@ import {
   ArrowDown,
   Edit,
   Eye,
+  Plus,
 } from "lucide-react";
 import {
   type ColumnDef,
@@ -108,6 +109,8 @@ import {
 import { performBulkDelete } from "@/utils/performBulkDelete";
 import { getIconBySlug } from "@/utils/getIconBySlug";
 import { performAddOrUpdateItem } from "@/utils/performAddOrUpdateItem";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 export function TransactionsTable({
   data: initialData,
@@ -305,6 +308,25 @@ export function TransactionsTable({
       enableSorting: true,
     },
     {
+      accessorFn: (row) => row.category?.name,
+      id: "category",
+      header: "Category",
+      cell: ({ row }) => {
+        const category = row.original.category!;
+        return (
+          <Badge
+            variant="outline"
+            className="text-muted-foreground px-1.5 flex items-center w-fit"
+          >
+            {getIconBySlug(category.icon)}
+            {category.name}
+          </Badge>
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+    },
+    {
       accessorKey: "amount",
       header: ({ column }) => {
         return (
@@ -342,41 +364,6 @@ export function TransactionsTable({
       sortingFn: "basic",
     },
     {
-      accessorKey: "category",
-      header: "Category",
-      cell: ({ row }) => {
-        const category = row.original.category!;
-
-        return (
-          <Badge
-            variant="outline"
-            className="text-muted-foreground px-1.5 flex items-center"
-          >
-            {getIconBySlug(category.icon)}
-            {category.name}
-          </Badge>
-        );
-      },
-      enableHiding: true,
-    },
-    {
-      accessorKey: "type",
-      header: "Type",
-      cell: ({ row }) => (
-        <Badge
-          variant="outline"
-          className={
-            row.original.type === "INCOME"
-              ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
-              : "bg-red-100 text-destructive dark:bg-red-900 dark:text-red-200"
-          }
-        >
-          {row.original.type}
-        </Badge>
-      ),
-      enableHiding: true,
-    },
-    {
       id: "actions",
       cell: ({ row }) => (
         <DropdownMenu>
@@ -409,7 +396,7 @@ export function TransactionsTable({
               onClick={() => handleDeleteTransaction(row.original.id)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete transaction
+              Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -645,6 +632,13 @@ export function TransactionsTable({
                   </div>
                 </DropdownMenuItem>
               ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => (window.location.href = "/categories")}
+              >
+                <Plus />
+                Add new category
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -1198,7 +1192,7 @@ function TableCellViewer({
           description: activeItem.description,
           amount: activeItem.amount.toString(),
           categoryId: activeItem.categoryId,
-          type: activeItem.type === "INCOME" ? "Income" : "Expense",
+          type: activeItem.type as "Income" | "Expense",
           notes: activeItem.notes || "",
         }
       : emptyTransactionForm,
@@ -1220,16 +1214,6 @@ function TableCellViewer({
       form.reset(emptyTransactionForm);
     }
   }, [activeItem, form]);
-
-  React.useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === "type") {
-        // Clear category when type changes to avoid mismatched category types
-        form.setValue("categoryId", "");
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [form]);
 
   const onSubmit = async (values: TransactionFormValues) => {
     const formData = new FormData();
@@ -1262,7 +1246,12 @@ function TableCellViewer({
       <Drawer
         direction={isMobile ? "bottom" : "right"}
         open={isDrawerOpen}
-        onOpenChange={setIsDrawerOpen}
+        onOpenChange={(open) => {
+          setIsDrawerOpen(open);
+          if (!open) {
+            setCsvMode(null);
+          }
+        }}
       >
         <DrawerContent>
           <DrawerHeader className="gap-1">
@@ -1335,7 +1324,12 @@ function TableCellViewer({
       <Drawer
         direction={isMobile ? "bottom" : "right"}
         open={isDrawerOpen}
-        onOpenChange={setIsDrawerOpen}
+        onOpenChange={(open) => {
+          setIsDrawerOpen(open);
+          if (!open) {
+            setCsvMode(null);
+          }
+        }}
       >
         <DrawerContent>
           <DrawerHeader className="gap-1">
@@ -1544,7 +1538,7 @@ function TableCellViewer({
                         {format(new Date(field.value), "PPP")}
                       </div>
                     ) : (
-                      <Popover>
+                      <Popover modal={false}>
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
@@ -1562,7 +1556,10 @@ function TableCellViewer({
                             </Button>
                           </FormControl>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0">
+                        <PopoverContent
+                          className="w-auto p-0 pointer-events-auto"
+                          align="start"
+                        >
                           <Calendar
                             mode="single"
                             selected={
@@ -1600,68 +1597,6 @@ function TableCellViewer({
                   </FormItem>
                 )}
               />
-
-              {/* Amount & Type */}
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Amount</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md">
-                          {new Intl.NumberFormat("en-US", {
-                            style: "currency",
-                            currency: "USD",
-                          }).format(Number(field.value))}
-                        </div>
-                      ) : (
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            step="0.01"
-                            min={0.01}
-                          />
-                        </FormControl>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="type"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Type</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md">
-                          {field.value}
-                        </div>
-                      ) : (
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isReadOnly}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select a type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="Income">Income</SelectItem>
-                            <SelectItem value="Expense">Expense</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
 
               {/* Category */}
               <FormField
@@ -1715,6 +1650,19 @@ function TableCellViewer({
                                     </div>
                                   </SelectItem>
                                 ))}
+                                <div className="pt-1 border-t">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    className="w-full justify-start text-sm text-muted-foreground"
+                                    onClick={() =>
+                                      (window.location.href = "/categories")
+                                    }
+                                  >
+                                    <Plus />
+                                    Add new category
+                                  </Button>
+                                </div>
                               </>
                             );
                           })()}
@@ -1725,6 +1673,80 @@ function TableCellViewer({
                   </FormItem>
                 )}
               />
+
+              {/* Amount & Type */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => {
+                    const type = form.watch("type");
+                    const isExpense = type?.toUpperCase() === "EXPENSE";
+
+                    return (
+                      <FormItem className="flex flex-col gap-3">
+                        <FormLabel>Amount</FormLabel>
+                        {isReadOnly ? (
+                          <div
+                            className={cn(
+                              "p-2 border rounded-md",
+                              isExpense ? "text-destructive" : "text-green-500"
+                            )}
+                          >
+                            {isExpense ? "-" : "+"}
+                            {new Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: "USD",
+                            }).format(Math.abs(Number(field.value)))}
+                          </div>
+                        ) : (
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              step="0.01"
+                              min={0.01}
+                            />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col gap-3">
+                      <FormLabel>Type</FormLabel>
+                      {isReadOnly ? (
+                        <div className="p-2 border rounded-md">
+                          {field.value}
+                        </div>
+                      ) : (
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          disabled={isReadOnly}
+                        >
+                          <FormControl>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select a type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Income">Income</SelectItem>
+                            <SelectItem value="Expense">Expense</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               {/* Notes */}
               <FormField
