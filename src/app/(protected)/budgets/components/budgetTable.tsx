@@ -813,26 +813,27 @@ function BudgetTableCellViewer({
                   </FormItem>
                 )}
               />
+              <div className="grid grid-cols-2 gap-4">
+                {/* Spent - View only */}
+                {isReadOnly && activeItem?.spent !== undefined && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Spent</FormLabel>
+                    <div className="p-2 border rounded-md">
+                      {formatCurrency(activeItem.spent)}
+                    </div>
+                  </FormItem>
+                )}
 
-              {/* Spent - View only */}
-              {isReadOnly && activeItem?.spent !== undefined && (
-                <FormItem className="flex flex-col gap-3">
-                  <FormLabel>Spent</FormLabel>
-                  <div className="p-2 border rounded-md">
-                    {formatCurrency(activeItem.spent)}
-                  </div>
-                </FormItem>
-              )}
-
-              {/* Remaining - View only */}
-              {isReadOnly && activeItem?.remaining !== undefined && (
-                <FormItem className="flex flex-col gap-3">
-                  <FormLabel>Remaining</FormLabel>
-                  <div className="p-2 border rounded-md">
-                    {formatCurrency(activeItem.remaining)}
-                  </div>
-                </FormItem>
-              )}
+                {/* Remaining - View only */}
+                {isReadOnly && activeItem?.remaining !== undefined && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Remaining</FormLabel>
+                    <div className="p-2 border rounded-md">
+                      {formatCurrency(activeItem.remaining)}
+                    </div>
+                  </FormItem>
+                )}
+              </div>
 
               {/* Progress - View only */}
               {isReadOnly &&

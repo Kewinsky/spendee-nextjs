@@ -1059,78 +1059,77 @@ function SavingsTableCellViewer({
                 )}
               />
 
-              {/* Balance */}
+              {/* Account Type */}
               <FormField
                 control={form.control}
-                name="balance"
+                name="accountType"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Balance</FormLabel>
+                    <FormLabel>Account Type</FormLabel>
                     {isReadOnly ? (
-                      <div className="p-2 border rounded-md">
-                        {formatCurrency(Number.parseFloat(field.value))}
+                      <div className="p-2 border rounded-md flex items-center">
+                        {getAccountTypeIcon(field.value)}
+                        {field.value === "SAVINGS" ? "Savings" : "Investing"}
                       </div>
                     ) : (
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          step="0.01"
-                          min={0}
-                          placeholder="0.00"
-                        />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        disabled={isReadOnly}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select account type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="SAVINGS">
+                            <div className="flex items-center">
+                              <PiggyBank className="mr-2 h-4 w-4" />
+                              Savings
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="INVESTMENT">
+                            <div className="flex items-center">
+                              <TrendingUp className="mr-2 h-4 w-4" />
+                              Investment
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
                     )}
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* Account Type & Interest Rate */}
+              {/* Balance & Interest Rate */}
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="accountType"
+                  name="balance"
                   render={({ field }) => (
                     <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Account Type</FormLabel>
+                      <FormLabel>Balance</FormLabel>
                       {isReadOnly ? (
-                        <div className="p-2 border rounded-md flex items-center">
-                          {getAccountTypeIcon(field.value)}
-                          {field.value === "SAVINGS" ? "Savings" : "Investing"}
+                        <div className="p-2 border rounded-md">
+                          {formatCurrency(Number.parseFloat(field.value))}
                         </div>
                       ) : (
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          disabled={isReadOnly}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select account type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="SAVINGS">
-                              <div className="flex items-center">
-                                <PiggyBank className="mr-2 h-4 w-4" />
-                                Savings
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="INVESTMENT">
-                              <div className="flex items-center">
-                                <TrendingUp className="mr-2 h-4 w-4" />
-                                Investment
-                              </div>
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            placeholder="0.00"
+                          />
+                        </FormControl>
                       )}
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-
                 <FormField
                   control={form.control}
                   name="interestRate"
@@ -1162,8 +1161,8 @@ function SavingsTableCellViewer({
                 />
               </div>
 
-              {/* Growth - Only show in view/edit modes, not in add mode */}
-              {(isReadOnly || viewMode === "edit") && (
+              {/* Growth */}
+              {isReadOnly && (
                 <FormField
                   control={form.control}
                   name="growth"
