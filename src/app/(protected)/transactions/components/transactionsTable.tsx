@@ -102,6 +102,7 @@ import {
 import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
 import {
   createTransaction,
+  createTransactions,
   deleteTransaction,
   deleteTransactions,
   updateTransaction,
@@ -111,6 +112,7 @@ import { getIconBySlug } from "@/utils/getIconBySlug";
 import { performAddOrUpdateItem } from "@/utils/performAddOrUpdateItem";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import Papa from "papaparse";
 
 export function TransactionsTable({
   data: initialData,
@@ -1127,7 +1129,7 @@ function generateCSV(transactions: TransactionWithStats[]) {
       transaction.date,
       `"${transaction.description.replace(/"/g, '""')}"`, // Escape quotes in CSV
       transaction.amount,
-      transaction.category,
+      transaction.category?.name,
       transaction.type,
       `"${(transaction.notes || "").replace(/"/g, '""')}"`, // Escape quotes in CSV
     ].join(",");
@@ -1182,6 +1184,9 @@ function TableCellViewer({
   }[];
 }) {
   const isMobile = useIsMobile();
+  const [csvFile, setCsvFile] = React.useState<File | null>(null);
+  const [csvData, setCsvData] = React.useState<TransactionFormValues[]>([]);
+  const [csvErrors, setCsvErrors] = React.useState<string[]>([]);
 
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
@@ -1238,6 +1243,21 @@ function TableCellViewer({
     });
   };
 
+  const getCategoryIdByNameAndType = (
+    name: string,
+    type: "INCOME" | "EXPENSE"
+  ) => {
+    const expectedType = type === "INCOME" ? "INCOME" : "EXPENSE";
+
+    return (
+      categories.find(
+        (c) =>
+          c.name.trim().toLowerCase() === name.trim().toLowerCase() &&
+          c.type === expectedType
+      )?.id || ""
+    );
+  };
+
   const isReadOnly = viewMode === "view";
   const isDeleteConfirm = viewMode === "delete-confirm";
 
@@ -1270,40 +1290,210 @@ function TableCellViewer({
                 type="file"
                 accept=".csv"
                 className="cursor-pointer"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setCsvFile(file);
+                  setCsvData([]);
+                  setCsvErrors([]);
+                }}
               />
               <p className="mt-2 text-sm text-muted-foreground">
                 The CSV file should have the following columns: date,
                 description, amount, category, type, notes (optional)
               </p>
             </div>
-            <div className="rounded-md border p-4 bg-muted/30">
-              <h3 className="font-medium mb-2">CSV Format Requirements:</h3>
-              <ul className="list-disc pl-5 space-y-1 text-sm">
-                <li>First row must be headers</li>
-                <li>
-                  Required columns: date, description, amount, category, type
-                </li>
-                <li>Date format: YYYY-MM-DD</li>
-                <li>Type must be either "Income" or "Expense"</li>
-                <li>Amount should be a positive number</li>
-              </ul>
-            </div>
-            <div className="text-muted-foreground text-sm">
-              Note: Importing will validate your data before adding it to your
-              transactions.
-            </div>
+
+            {csvErrors.length > 0 && (
+              <div className="rounded-md border p-4 text-sm text-destructive">
+                <strong>Validation Errors:</strong>
+                <ul className="list-disc pl-5 space-y-1 mt-2">
+                  {csvErrors.slice(0, 5).map((err, i) => (
+                    <li key={i}>{err}</li>
+                  ))}
+                  {csvErrors.length > 5 && (
+                    <li>...and {csvErrors.length - 5} more</li>
+                  )}
+                </ul>
+              </div>
+            )}
+
+            {/* Show format instructions if data not yet valid */}
+            {!(csvData.length > 0 && csvErrors.length === 0) && (
+              <div className="rounded-md border p-4 bg-muted/30">
+                <h3 className="font-medium mb-2">CSV Format Requirements:</h3>
+                <ul className="list-disc pl-5 space-y-1 text-sm">
+                  <li>First row must be headers</li>
+                  <li>
+                    Required columns: date, description, amount, category, type
+                  </li>
+                  <li>Date format: YYYY-MM-DD</li>
+                  <li>Type must be either "Income" or "Expense"</li>
+                  <li>Amount should be a positive number</li>
+                </ul>
+              </div>
+            )}
+
+            {csvData.length > 0 && csvErrors.length === 0 && (
+              <>
+                <div className="text-sm text-muted-foreground">
+                  <p>
+                    Ready to import <strong>{csvData.length}</strong>{" "}
+                    transactions.
+                  </p>
+                </div>
+
+                <div className="max-h-[300px] overflow-y-auto border rounded-md text-sm">
+                  <Table>
+                    <TableHeader className="bg-muted sticky top-0 z-10">
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Notes</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {csvData.map((t, i) => (
+                        <TableRow key={i}>
+                          <TableCell>{t.date}</TableCell>
+                          <TableCell>{t.description}</TableCell>
+                          <TableCell>{t.amount}</TableCell>
+                          <TableCell>{t.type}</TableCell>
+                          <TableCell>
+                            {categories.find((c) => c.id === t.categoryId)
+                              ?.name || "—"}
+                          </TableCell>
+                          <TableCell>{t.notes}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            )}
           </div>
+
           <DrawerFooter>
-            <Button
-              onClick={() => {
-                toast.success(
-                  "CSV validation successful! Ready to import 0 transactions."
-                );
-                // In a real implementation, this would parse and validate the CSV
-              }}
-            >
-              Validate CSV
-            </Button>
+            {csvData.length > 0 && csvErrors.length === 0 ? (
+              <Button
+                onClick={async () => {
+                  const formDataList = csvData.map((row) => {
+                    const formData = new FormData();
+                    formData.append("date", row.date);
+                    formData.append("description", row.description);
+                    formData.append("amount", row.amount);
+                    formData.append("categoryId", row.categoryId);
+                    formData.append("type", row.type);
+                    formData.append("notes", row.notes || "");
+                    return formData;
+                  });
+
+                  const res = await createTransactions(formDataList);
+
+                  if (res.success) {
+                    toast.success(
+                      `Imported ${res.data.successful} / ${res.data.total} transactions`
+                    );
+                    setData((prev) => [
+                      ...prev,
+                      ...res.data.results
+                        .filter((r) => r.success)
+                        .map((r) => r.data),
+                    ]);
+                    setCsvMode(null);
+                    setIsDrawerOpen(false);
+                  } else {
+                    toast.error(res.error || "Failed to import transactions");
+                  }
+                }}
+              >
+                Import CSV
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  if (!csvFile) {
+                    toast.error("Please select a CSV file.");
+                    return;
+                  }
+
+                  Papa.parse(csvFile, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                      const parsed = results.data as any[];
+                      const errors: string[] = [];
+                      const valid: TransactionFormValues[] = [];
+
+                      parsed.forEach((row, i) => {
+                        const rowNum = i + 2;
+                        const rawType = row.type?.trim();
+                        const type = rawType?.toUpperCase();
+                        const amount = parseFloat(row.amount);
+                        const date = row.date?.trim();
+                        const categoryId = getCategoryIdByNameAndType(
+                          row.category,
+                          type
+                        );
+
+                        if (!date || isNaN(Date.parse(date))) {
+                          errors.push(`Row ${rowNum}: Invalid or missing date`);
+                        }
+                        if (!row.description?.trim()) {
+                          errors.push(`Row ${rowNum}: Missing description`);
+                        }
+                        if (!row.category?.trim()) {
+                          errors.push(`Row ${rowNum}: Missing category`);
+                        } else if (!categoryId) {
+                          errors.push(
+                            `Row ${rowNum}: Category not found or mismatched type`
+                          );
+                        }
+                        if (!type || !["INCOME", "EXPENSE"].includes(type)) {
+                          errors.push(
+                            `Row ${rowNum}: Type must be "INCOME" or "EXPENSE"`
+                          );
+                        }
+                        if (!amount || amount <= 0 || isNaN(amount)) {
+                          errors.push(`Row ${rowNum}: Invalid amount`);
+                        }
+
+                        if (errors.length === 0) {
+                          valid.push({
+                            id: undefined,
+                            date,
+                            description: row.description.trim(),
+                            amount: row.amount.trim(),
+                            categoryId,
+                            type: type === "INCOME" ? "Income" : "Expense",
+                            notes: row.notes?.trim() || "",
+                          });
+                        }
+                      });
+
+                      setCsvErrors(errors);
+                      setCsvData(valid);
+
+                      if (errors.length > 0) {
+                        toast.error(`CSV has ${errors.length} error(s).`);
+                      } else {
+                        toast.success(
+                          `Validated ${valid.length} transaction(s)!`
+                        );
+                      }
+                    },
+                    error: (err) => {
+                      console.error(err);
+                      toast.error("Error parsing CSV file.");
+                    },
+                  });
+                }}
+              >
+                Validate CSV
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() => {

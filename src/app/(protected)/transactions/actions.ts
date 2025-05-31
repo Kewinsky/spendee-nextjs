@@ -109,6 +109,54 @@ export async function createTransaction(formData: FormData) {
   }
 }
 
+// CREATE MULTIPLE TRANSACTIONS
+export async function createTransactions(transactions: FormData[]) {
+  try {
+    const userId = await getCurrentUser();
+    const results = [];
+
+    for (const formData of transactions) {
+      try {
+        const result = await createTransaction(formData);
+        results.push(result);
+      } catch (error) {
+        results.push({
+          success: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Failed to create transaction",
+        });
+      }
+    }
+
+    const successful = results.filter((r) => r.success).length;
+    const failed = results.filter((r) => !r.success).length;
+
+    revalidatePath("/transactions");
+    revalidatePath("/categories");
+
+    return {
+      success: true,
+      data: {
+        total: transactions.length,
+        successful,
+        failed,
+        results,
+      },
+    };
+  } catch (error) {
+    console.error("Error creating transactions:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to create transactions",
+    };
+  }
+}
+
 // UPDATE TRANSACTION
 export async function updateTransaction(formData: FormData) {
   try {
