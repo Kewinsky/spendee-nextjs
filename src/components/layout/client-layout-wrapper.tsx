@@ -1,6 +1,6 @@
 "use client";
 
-import { SessionRefresher } from "@/components/session-refresher";
+import { SessionRefresher } from "@/components/session/session-refresher";
 
 export function ClientLayoutWrapper({
   children,

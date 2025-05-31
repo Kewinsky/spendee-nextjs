@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db/prisma";
 
 export const createToken = async ({
   userId,

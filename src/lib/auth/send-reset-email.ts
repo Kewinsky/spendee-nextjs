@@ -1,6 +1,6 @@
 import { createToken } from "./create-token";
 import { sendEmail } from "@/lib/mail/send-email";
-import { prisma } from "@/lib/prisma";
+import { prisma } from "@/lib/db/prisma";
 import { TOKEN_EXPIRATION } from "../constanst";
 
 export const sendPasswordResetEmail = async (email: string) => {

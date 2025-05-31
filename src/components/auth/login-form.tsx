@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Logo } from "../logo";
+import { Logo } from "../ui/logo";
 
 export function LoginForm({
   className,

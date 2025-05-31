@@ -1,16 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  IconChevronDown,
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
-  IconDotsVertical,
-  IconLayoutColumns,
-  IconPlus,
-} from "@tabler/icons-react";
+import { IconDotsVertical, IconPlus } from "@tabler/icons-react";
 import {
   ArrowUpDown,
   ArrowUp,
@@ -42,8 +33,6 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { toast } from "sonner";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
@@ -61,7 +50,6 @@ import {
 } from "@/components/ui/drawer";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
@@ -95,80 +83,32 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { getIconBySlug } from "@/utils/getIconBySlug";
+import {
+  categoryFormSchema,
+  emptyCategoryForm,
+  type CategoryFormValues,
+  type CategoryWithStats,
+} from "@/services/categories/schema";
+import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  deleteCategories,
+} from "../actions";
+import { formatCurrency, formatPercentage } from "@/utils/formatting";
+import { performBulkDelete } from "@/utils/performBulkDelete";
+import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
+import { performAddOrUpdateItem } from "@/utils/performAddOrUpdateItem";
+import { getStatusColorByPercentage } from "@/utils/getStatusColorByPercentage";
 
-// Schema for category data
-export const categorySchema = z.object({
-  id: z.number(),
-  name: z.string(),
-  description: z.string().optional(),
-  type: z.enum(["Expense", "Income"]),
-  icon: z.string().default("Package"),
-  period: z
-    .enum([
-      "daily",
-      "weekly",
-      "monthly",
-      "quarterly",
-      "semi-annually",
-      "annually",
-    ])
-    .optional(),
-  budget: z.number().optional(),
-  spent: z.number().optional(),
-  transactions: z.number().optional(),
-  balance: z.number().optional(),
-});
-
-export type Category = z.infer<typeof categorySchema>;
-
-// Form schema for adding/editing categories
-const categoryFormSchema = z.object({
-  id: z.number().optional(),
-  name: z.string().min(1, "Name is required"),
-  description: z.string().optional(),
-  type: z.enum(["Expense", "Income"]),
-  icon: z.string().default("Package"),
-  period: z
-    .enum([
-      "daily",
-      "weekly",
-      "monthly",
-      "quarterly",
-      "semi-annually",
-      "annually",
-    ])
-    .optional(),
-  budget: z.coerce.number().optional(),
-  spent: z.coerce.number().optional(),
-  transactions: z.coerce.number().optional(),
-  balance: z.coerce.number().optional(),
-});
-
-export type CategoryFormValues = z.infer<typeof categoryFormSchema>;
-
-const emptyCategoryForm: CategoryFormValues = {
-  name: "",
-  description: "",
-  type: "Expense",
-  icon: "Package",
-  period: "monthly",
-  budget: undefined,
-  spent: undefined,
-  transactions: undefined,
-  balance: undefined,
-};
-
-const periodLabels = {
-  daily: "Daily",
-  weekly: "Weekly",
-  monthly: "Monthly",
-  quarterly: "Quarterly",
-  "semi-annually": "Every 6 Months",
-  annually: "Yearly",
-};
-
-export function CategoryTable({ data: initialData }: { data: Category[] }) {
-  const [activeItem, setActiveItem] = React.useState<Category | null>(null);
+export function CategoryTable({
+  data: initialData,
+}: {
+  data: CategoryWithStats[];
+}) {
+  const [activeItem, setActiveItem] = React.useState<CategoryWithStats | null>(
+    null
+  );
   const [viewMode, setViewMode] = React.useState<
     "add" | "edit" | "view" | "delete-confirm"
   >("add");
@@ -176,11 +116,11 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
   const [activeTab, setActiveTab] = React.useState("expenses");
   const [data, setData] = React.useState(() => initialData);
   const [selectedCategories, setSelectedCategories] = React.useState<
-    Category[]
+    CategoryWithStats[]
   >([]);
 
   const openTableCellViewer = (
-    item: Category | null = null,
+    item: CategoryWithStats | null = null,
     mode: "add" | "edit" | "view" | "delete-confirm" = "view"
   ) => {
     setActiveItem(item);
@@ -188,14 +128,12 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
     setIsDrawerOpen(true);
   };
 
-  const handleDeleteCategory = (id: number) => {
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: "Deleting category...",
-      success: () => {
-        setData((prev) => prev.filter((item) => item.id !== id));
-        return "Category deleted successfully";
-      },
-      error: "Failed to delete category",
+  const handleDeleteCategory = async (id: string) => {
+    await performSingleItemDelete({
+      id,
+      deleteFn: deleteCategory,
+      setData,
+      resourceName: "category",
     });
   };
 
@@ -206,20 +144,19 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
     openTableCellViewer(null, "delete-confirm");
   };
 
-  const confirmBulkDelete = () => {
-    const selectedIds = selectedCategories.map((item) => item.id);
+  const deleteCategoriesBulk = async (ids: string[]) => {
+    return Promise.all(ids.map((id) => deleteCategories(id)));
+  };
 
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: `Deleting ${selectedIds.length} category(ies)...`,
-      success: () => {
-        setData((prev) =>
-          prev.filter((item) => !selectedIds.includes(item.id))
-        );
-        table.resetRowSelection();
-        closeDrawer();
-        return `${selectedIds.length} category(ies) deleted successfully`;
-      },
-      error: "Failed to delete categories",
+  const confirmBulkDelete = async () => {
+    await performBulkDelete({
+      items: selectedCategories,
+      getId: (item) => item.id,
+      deleteFn: deleteCategoriesBulk,
+      setData,
+      resetSelection: () => table.resetRowSelection(),
+      closeDrawer,
+      resourceName: "category(ies)",
     });
   };
 
@@ -230,7 +167,7 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
   };
 
   // Define columns for expenses
-  const expenseColumns: ColumnDef<Category>[] = [
+  const columns: ColumnDef<CategoryWithStats>[] = [
     {
       id: "select",
       header: ({ table }) => (
@@ -283,7 +220,7 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
         return (
           <Button
             variant="link"
-            className="text-foreground w-fit px-0 text-left flex items-center"
+            className="text-foreground w-fit px-0 text-left flex items-center gap-2"
             onClick={() => openTableCellViewer(row.original, "view")}
           >
             {getIconBySlug(row.original.icon || "Package")}
@@ -295,7 +232,7 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
       enableSorting: true,
     },
     {
-      accessorKey: "transactions",
+      accessorKey: activeTab === "expenses" ? "transactions" : "accounts",
       header: ({ column }) => {
         return (
           <Button
@@ -303,7 +240,7 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="flex items-center gap-1 p-0!"
           >
-            Transactions
+            {activeTab === "expenses" ? "Transactions" : "Accounts"}
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -314,12 +251,15 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
           </Button>
         );
       },
-      cell: ({ row }) => row.original.transactions || 0,
+      cell: ({ row }) =>
+        activeTab === "expenses"
+          ? row.original.transactions || 0
+          : row.original.accounts || 0,
       enableSorting: true,
       enableHiding: true,
     },
     {
-      accessorKey: "budget",
+      accessorKey: activeTab === "expenses" ? "budgetAmount" : "balance",
       header: ({ column }) => {
         return (
           <Button
@@ -327,7 +267,7 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             className="flex items-center gap-1 p-0!"
           >
-            Budget
+            {activeTab === "expenses" ? "Budget Amount" : "Balance"}
             {column.getIsSorted() === "asc" ? (
               <ArrowUp className="ml-2 h-4 w-4" />
             ) : column.getIsSorted() === "desc" ? (
@@ -339,11 +279,14 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
         );
       },
       cell: ({ row }) => {
-        const budget = row.original.budget || 0;
+        const amount =
+          activeTab === "expenses"
+            ? row.original.budgetAmount || 0
+            : row.original.balance || 0;
         return new Intl.NumberFormat("en-US", {
           style: "currency",
           currency: "USD",
-        }).format(budget);
+        }).format(amount);
       },
       enableSorting: true,
       enableHiding: true,
@@ -367,167 +310,7 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
               onClick={() => openTableCellViewer(row.original, "edit")}
             >
               <Edit className="mr-2 h-4 w-4" />
-              Edit Category
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => openTableCellViewer(row.original, "view")}
-            >
-              <Eye className="mr-2 h-4 w-4" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => handleDeleteCategory(row.original.id)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      ),
-    },
-  ];
-
-  // Define columns for incomes
-  const incomeColumns: ColumnDef<Category>[] = [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) =>
-              table.toggleAllPageRowsSelected(!!value)
-            }
-            aria-label="Select all"
-          />
-        </div>
-      ),
-      cell: ({ row }) => (
-        <div className="flex items-center justify-center">
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: "name",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
-          >
-            Name
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <Button
-            variant="link"
-            className="text-foreground w-fit px-0 text-left flex items-center"
-            onClick={() => openTableCellViewer(row.original, "view")}
-          >
-            {getIconBySlug(row.original.icon || "Package")}
-            {row.original.name}
-          </Button>
-        );
-      },
-      enableHiding: false,
-      enableSorting: true,
-    },
-    {
-      accessorKey: "transactions",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
-          >
-            Transactions
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: ({ row }) => row.original.transactions || 0,
-      enableSorting: true,
-      enableHiding: true,
-    },
-    {
-      accessorKey: "balance",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
-          >
-            Balance
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const balance = row.original.balance || 0;
-        return new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "USD",
-        }).format(balance);
-      },
-      enableSorting: true,
-      enableHiding: true,
-    },
-    {
-      id: "actions",
-      cell: ({ row }) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon"
-            >
-              <IconDotsVertical />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem
-              onClick={() => openTableCellViewer(row.original, "edit")}
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Category
+              Edit category
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => openTableCellViewer(row.original, "view")}
@@ -555,8 +338,8 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
     // Filter by tab
     result = result.filter((item) =>
       activeTab === "expenses"
-        ? item.type === "Expense"
-        : item.type === "Income"
+        ? item.type === "EXPENSE"
+        : item.type === "INCOME"
     );
 
     return result;
@@ -573,8 +356,6 @@ export function CategoryTable({ data: initialData }: { data: Category[] }) {
     pageIndex: 0,
     pageSize: 10,
   });
-
-  const columns = activeTab === "expenses" ? expenseColumns : incomeColumns;
 
   const table = useReactTable({
     data: filteredData,
@@ -796,13 +577,13 @@ function TableCellViewer({
   confirmBulkDelete,
   activeTab,
 }: {
-  activeItem: Category | null;
+  activeItem: CategoryWithStats | null;
   viewMode: "add" | "edit" | "view" | "delete-confirm";
   isDrawerOpen: boolean;
   setIsDrawerOpen: React.Dispatch<React.SetStateAction<boolean>>;
   closeDrawer: () => void;
-  setData: React.Dispatch<React.SetStateAction<Category[]>>;
-  selectedCategories?: Category[];
+  setData: React.Dispatch<React.SetStateAction<CategoryWithStats[]>>;
+  selectedCategories?: CategoryWithStats[];
   confirmBulkDelete?: () => void;
   activeTab: string;
 }) {
@@ -812,20 +593,14 @@ function TableCellViewer({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: activeItem
       ? {
-          id: activeItem.id,
           name: activeItem.name,
           description: activeItem.description || "",
           type: activeItem.type,
           icon: activeItem.icon || "Package",
-          period: activeItem.period,
-          budget: activeItem.budget,
-          spent: activeItem.spent,
-          transactions: activeItem.transactions,
-          balance: activeItem.balance,
         }
       : {
           ...emptyCategoryForm,
-          type: activeTab === "expenses" ? "Expense" : "Income",
+          type: activeTab === "expenses" ? "EXPENSE" : "INCOME",
         },
     mode: "onSubmit",
   });
@@ -833,65 +608,56 @@ function TableCellViewer({
   React.useEffect(() => {
     if (activeItem) {
       form.reset({
-        id: activeItem.id,
         name: activeItem.name,
         description: activeItem.description || "",
         type: activeItem.type,
         icon: activeItem.icon || "Package",
-        period: activeItem.period,
-        budget: activeItem.budget,
-        spent: activeItem.spent,
-        transactions: activeItem.transactions,
-        balance: activeItem.balance,
       });
     } else {
       form.reset({
         ...emptyCategoryForm,
-        type: activeTab === "expenses" ? "Expense" : "Income",
+        type: activeTab === "expenses" ? "EXPENSE" : "INCOME",
       });
     }
   }, [activeItem, form, activeTab]);
 
-  const onSubmit = (values: CategoryFormValues) => {
-    const newCategory: Category = {
-      id: values.id || Date.now(),
-      name: values.name,
-      description: values.description,
-      type: values.type,
-      icon: values.icon || "Package",
-      period: values.period,
-      budget: values.budget,
-      spent: values.spent,
-      transactions: values.transactions,
-      balance: values.balance,
-    };
+  const onSubmit = async (values: CategoryFormValues) => {
+    const formData = new FormData();
+    formData.append("name", values.name);
+    formData.append("description", values.description || "");
+    formData.append("type", values.type);
+    formData.append("icon", values.icon);
+    if (activeItem) formData.append("id", activeItem.id);
 
-    toast.promise(new Promise((resolve) => setTimeout(resolve, 1000)), {
-      loading: activeItem ? "Updating category..." : "Adding category...",
-      success: () => {
-        if (activeItem) {
-          setData((prev) =>
-            prev.map((item) => (item.id === activeItem.id ? newCategory : item))
-          );
-          return "Category updated successfully";
-        } else {
-          setData((prev) => [...prev, newCategory]);
-          form.reset({
-            ...emptyCategoryForm,
-            type: activeTab === "expenses" ? "Expense" : "Income",
-          });
-          return "Category added successfully";
-        }
-      },
-      error: "Failed to save category",
+    await performAddOrUpdateItem({
+      formData,
+      isEdit: !!activeItem,
+      createFn: createCategory,
+      updateFn: updateCategory,
+      setData,
+      closeDrawer,
+      resetForm: form.reset,
+      resourceName: "category",
+      updateItemLocally: (oldItem, newItem) => ({
+        ...oldItem,
+        ...newItem,
+        transactions: oldItem.transactions,
+        budget: oldItem.budgetAmount,
+        spent: oldItem.spent,
+        balance: oldItem.balance,
+      }),
+      buildNewItem: (newItem) => ({
+        ...newItem,
+        transactions: 0,
+        budgetAmount: undefined,
+        spent: undefined,
+        balance: undefined,
+      }),
     });
-
-    closeDrawer();
   };
 
   const isReadOnly = viewMode === "view";
   const isDeleteConfirm = viewMode === "delete-confirm";
-  const isExpense = form.watch("type") === "Expense";
 
   if (isDeleteConfirm) {
     return (
@@ -923,17 +689,17 @@ function TableCellViewer({
                         <Badge
                           variant="outline"
                           className={
-                            category.type === "Income"
+                            category.type === "INCOME"
                               ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200"
                               : "bg-red-100 text-destructive dark:bg-red-900 dark:text-red-200"
                           }
                         >
-                          {category.type}
+                          {category.type === "INCOME" ? "Income" : "Expense"}
                         </Badge>
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {category.description || "No description"}
+                      {category.description || "N/A"}
                     </div>
                   </div>
                 ))}
@@ -999,7 +765,7 @@ function TableCellViewer({
                       <div className="p-2 border rounded-md">{field.value}</div>
                     ) : (
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="e.g., Transport" />
                       </FormControl>
                     )}
                     <FormMessage />
@@ -1013,14 +779,17 @@ function TableCellViewer({
                 name="description"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Description (optional)</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
-                        {field.value || "No description"}
+                        {field.value || "N/A"}
                       </div>
                     ) : (
                       <FormControl>
-                        <Input {...field} />
+                        <Input
+                          {...field}
+                          placeholder="Category description..."
+                        />
                       </FormControl>
                     )}
                     <FormMessage />
@@ -1035,13 +804,10 @@ function TableCellViewer({
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
                     <FormLabel>Type</FormLabel>
-                    {isReadOnly ? (
-                      <div className="p-2 border rounded-md">{field.value}</div>
-                    ) : (
+                    {viewMode === "add" ? (
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        disabled={isReadOnly}
                       >
                         <FormControl>
                           <SelectTrigger className="w-full">
@@ -1049,11 +815,16 @@ function TableCellViewer({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Expense">Expense</SelectItem>
-                          <SelectItem value="Income">Income</SelectItem>
+                          <SelectItem value="EXPENSE">Expense</SelectItem>
+                          <SelectItem value="INCOME">Income</SelectItem>
                         </SelectContent>
                       </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {field.value === "INCOME" ? "Income" : "Expense"}
+                      </div>
                     )}
+
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1084,56 +855,56 @@ function TableCellViewer({
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="Package">
-                            <div className="flex items-center">
-                              <Package className="mr-2 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <Package className="h-4 w-4" />
                               Package
                             </div>
                           </SelectItem>
                           <SelectItem value="Utensils">
-                            <div className="flex items-center">
-                              <Utensils className="mr-2 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <Utensils className="h-4 w-4" />
                               Utensils
                             </div>
                           </SelectItem>
                           <SelectItem value="Car">
-                            <div className="flex items-center">
-                              <Car className="mr-2 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <Car className="h-4 w-4" />
                               Car
                             </div>
                           </SelectItem>
                           <SelectItem value="Home">
-                            <div className="flex items-center">
-                              <Home className="mr-2 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <Home className="h-4 w-4" />
                               Home
                             </div>
                           </SelectItem>
                           <SelectItem value="Lightbulb">
-                            <div className="flex items-center">
-                              <Lightbulb className="mr-2 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <Lightbulb className="h-4 w-4" />
                               Lightbulb
                             </div>
                           </SelectItem>
                           <SelectItem value="Film">
-                            <div className="flex items-center">
-                              <Film className="mr-2 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <Film className="h-4 w-4" />
                               Film
                             </div>
                           </SelectItem>
                           <SelectItem value="Heart">
-                            <div className="flex items-center">
-                              <Heart className="mr-2 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <Heart className="h-4 w-4" />
                               Heart
                             </div>
                           </SelectItem>
                           <SelectItem value="Briefcase">
-                            <div className="flex items-center">
-                              <Briefcase className="mr-2 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <Briefcase className="h-4 w-4" />
                               Briefcase
                             </div>
                           </SelectItem>
                           <SelectItem value="TrendingUp">
-                            <div className="flex items-center">
-                              <TrendingUp className="mr-2 h-4 w-4" />
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="h-4 w-4" />
                               TrendingUp
                             </div>
                           </SelectItem>
@@ -1145,68 +916,57 @@ function TableCellViewer({
                 )}
               />
 
-              {/* Period - Only show in view mode or for Expenses */}
-              {form.watch("type") === "Expense" &&
-                viewMode !== "add" &&
-                viewMode !== "edit" && (
-                  <FormField
-                    control={form.control}
-                    name="period"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col gap-3">
-                        <FormLabel>Period</FormLabel>
-                        <div className="p-2 border rounded-md">
-                          {field.value ? periodLabels[field.value] : "N/A"}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-              {/* Budget - Only show in view mode or for Expenses */}
-              {form.watch("type") === "Expense" &&
-                viewMode !== "add" &&
-                viewMode !== "edit" && (
-                  <FormField
-                    control={form.control}
-                    name="budget"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col gap-3">
-                        <FormLabel>Budget</FormLabel>
-                        <div className="p-2 border rounded-md">
-                          {field.value !== undefined
-                            ? new Intl.NumberFormat("en-US", {
-                                style: "currency",
-                                currency: "USD",
-                              }).format(field.value)
-                            : "N/A"}
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-
-              {/* Transactions - View only */}
-              {isReadOnly && activeItem?.transactions !== undefined && (
-                <FormField
-                  control={form.control}
-                  name="transactions"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Transactions</FormLabel>
-                      <div className="p-2 border rounded-md">
-                        {field.value || 0}
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-
+              {/* Keep existing transactions field only for Expense categories */}
               {isReadOnly &&
-                activeItem?.budget &&
+                activeItem?.type === "EXPENSE" &&
+                activeItem?.transactions !== undefined && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Transactions</FormLabel>
+                    <div className="p-2 border rounded-md">
+                      {activeItem.transactions}
+                    </div>
+                  </FormItem>
+                )}
+
+              {/* Budget Name - Only show for Expense categories in view mode */}
+              {isReadOnly &&
+                activeItem?.type === "EXPENSE" &&
+                activeItem?.budgetName && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Budget Name</FormLabel>
+                    <div className="p-2 border rounded-md">
+                      {activeItem.budgetName}
+                    </div>
+                  </FormItem>
+                )}
+
+              {/* Budget Amount- Only show for Expense categories in view mode */}
+              {isReadOnly &&
+                activeItem?.type === "EXPENSE" &&
+                activeItem?.budgetAmount && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Budget Amount</FormLabel>
+                    <div className="p-2 border rounded-md">
+                      {formatCurrency(activeItem.budgetAmount)}
+                    </div>
+                  </FormItem>
+                )}
+
+              {/* Accounts - Show for Income categories instead of transactions */}
+              {isReadOnly &&
+                activeItem?.type === "INCOME" &&
+                activeItem?.accounts !== undefined && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Accounts</FormLabel>
+                    <div className="p-2 border rounded-md">
+                      {activeItem.accounts}
+                    </div>
+                  </FormItem>
+                )}
+
+              {/* Progress for expense categories with budget */}
+              {isReadOnly &&
+                activeItem?.budgetAmount &&
                 activeItem?.spent !== undefined && (
                   <FormItem className="flex flex-col gap-3">
                     <FormLabel>Progress</FormLabel>
@@ -1214,9 +974,13 @@ function TableCellViewer({
                       <Progress
                         value={Math.min(
                           100,
-                          ((activeItem.spent || 0) / activeItem.budget) * 100
+                          ((activeItem.spent || 0) / activeItem.budgetAmount) *
+                            100
                         )}
-                        className="h-2"
+                        className={`h-2 ${getStatusColorByPercentage(
+                          ((activeItem.spent || 0) / activeItem.budgetAmount) *
+                            100
+                        )}`}
                       />
                       <p className="text-sm text-muted-foreground">
                         {new Intl.NumberFormat("en-US", {
@@ -1227,13 +991,55 @@ function TableCellViewer({
                         {new Intl.NumberFormat("en-US", {
                           style: "currency",
                           currency: "USD",
-                        }).format(activeItem.budget)}{" "}
+                        }).format(activeItem.budgetAmount)}{" "}
                         (
                         {Math.round(
-                          ((activeItem.spent || 0) / activeItem.budget) * 100
+                          ((activeItem.spent || 0) / activeItem.budgetAmount) *
+                            100
                         )}
                         %)
                       </p>
+                    </div>
+                  </FormItem>
+                )}
+
+              {/* Balance for income categories */}
+              {isReadOnly &&
+                activeItem?.type === "INCOME" &&
+                activeItem?.accounts !== undefined && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Total Balance</FormLabel>
+                    <div className="p-2 border rounded-md">
+                      {formatCurrency(activeItem.balance as number)}
+                    </div>
+                  </FormItem>
+                )}
+
+              {/* Average Growth - Show for Income categories */}
+              {isReadOnly &&
+                activeItem?.type === "INCOME" &&
+                activeItem?.accounts !== undefined && (
+                  <FormItem className="flex flex-col gap-3">
+                    <FormLabel>Average Growth (%)</FormLabel>
+                    <div className="p-2 border rounded-md flex items-center gap-2">
+                      <span
+                        className={
+                          Number.parseFloat(activeItem.averageGrowth) >= 0
+                            ? "text-emerald-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {Number.parseFloat(activeItem.averageGrowth) >= 0 ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : (
+                          <ArrowDown className="h-3 w-3" />
+                        )}
+                      </span>
+                      <span>
+                        {formatPercentage(
+                          Number.parseFloat(activeItem.averageGrowth)
+                        )}
+                      </span>
                     </div>
                   </FormItem>
                 )}

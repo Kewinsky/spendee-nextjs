@@ -13,7 +13,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { RegisterFormValues, registerSchema } from "@/lib/schemas";
 import { useRouter } from "next/navigation";
-import { Logo } from "../logo";
+import { Logo } from "../ui/logo";
 
 export function RegisterForm({
   className,
