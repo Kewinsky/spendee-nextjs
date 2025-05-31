@@ -1590,7 +1590,7 @@ function TableCellViewer({
                       <div className="p-2 border rounded-md">{field.value}</div>
                     ) : (
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="e.g., Sushi with John" />
                       </FormControl>
                     )}
                     <FormMessage />
@@ -1706,6 +1706,7 @@ function TableCellViewer({
                               type="number"
                               step="0.01"
                               min={0.01}
+                              placeholder="0.00"
                             />
                           </FormControl>
                         )}
@@ -1757,11 +1758,11 @@ function TableCellViewer({
                     <FormLabel>Notes (Optional)</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md min-h-[80px]">
-                        {field.value || "No notes provided."}
+                        {field.value || "No notes..."}
                       </div>
                     ) : (
                       <FormControl>
-                        <Input {...field} />
+                        <Input {...field} placeholder="Transaction notes..." />
                       </FormControl>
                     )}
                     <FormMessage />

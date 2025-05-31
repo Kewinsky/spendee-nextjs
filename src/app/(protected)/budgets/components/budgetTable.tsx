@@ -608,7 +608,7 @@ function BudgetTableCellViewer({
                       <div>{formatCurrency(budget.amount)}</div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {budget.description || "No description"}
+                      {budget.description || "No description..."}
                     </div>
                   </div>
                 ))}
@@ -694,7 +694,7 @@ function BudgetTableCellViewer({
                     <FormLabel>Description (Optional)</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
-                        {field.value || "No description"}
+                        {field.value || "No description..."}
                       </div>
                     ) : (
                       <FormControl>
@@ -788,7 +788,7 @@ function BudgetTableCellViewer({
                 name="amount"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Budget Amount</FormLabel>
+                    <FormLabel>Amount</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
                         {formatCurrency(Number.parseFloat(field.value))}

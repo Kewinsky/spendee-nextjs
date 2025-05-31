@@ -11,7 +11,7 @@ export const transactionSchema = z.object({
   date: z.date(),
   categoryId: z.string().cuid("Invalid category ID"),
   type: TransactionTypeEnum,
-  notes: z.string().optional(),
+  notes: z.string().optional().nullable(),
   userId: z.string().cuid(),
 });
 
@@ -31,7 +31,7 @@ export const transactionFormSchema = z.object({
   date: z.string().min(1, "Date is required"),
   categoryId: z.string().min(1, "Category is required"),
   type: z.enum(["Income", "Expense"]),
-  notes: z.string().optional(),
+  notes: z.string().optional().nullable(),
 });
 
 // Extended transaction type with category info for frontend

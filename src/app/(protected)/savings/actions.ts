@@ -30,7 +30,7 @@ export async function createSavings(formData: FormData) {
     // Convert empty strings to undefined for optional fields
     const cleanedData = {
       ...raw,
-      institution: raw.institution === "" ? undefined : raw.institution,
+      institution: raw.institution === "" ? null : raw.institution,
       growth: raw.growth === "" ? "0" : raw.growth,
     };
 
@@ -94,7 +94,7 @@ export async function updateSavings(formData: FormData) {
     // Convert empty strings to undefined for optional fields
     const cleanedData = {
       ...raw,
-      institution: raw.institution === "" ? undefined : raw.institution,
+      institution: raw.institution === "" ? null : raw.institution,
       growth: raw.growth === "" ? "0" : raw.growth,
     };
 

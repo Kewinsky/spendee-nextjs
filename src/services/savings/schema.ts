@@ -13,7 +13,7 @@ export const savingsSchema = z.object({
   interestRate: z.number().min(0, "Interest rate must be positive"),
   growth: z.number().default(0),
   accountType: AccountTypeEnum.default("SAVINGS"),
-  institution: z.string().optional(),
+  institution: z.string().optional().nullable(),
 });
 
 // Schema for creating savings
@@ -32,7 +32,7 @@ export const savingsFormSchema = z.object({
   interestRate: z.string().min(1, "Interest rate is required"),
   growth: z.string().optional(),
   accountType: AccountTypeEnum.default("SAVINGS"),
-  institution: z.string().optional(),
+  institution: z.string().optional().nullable(),
 });
 
 // Extended savings type with computed fields for frontend

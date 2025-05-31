@@ -698,7 +698,7 @@ function TableCellViewer({
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {category.description || "No description"}
+                      {category.description || "No description..."}
                     </div>
                   </div>
                 ))}
@@ -781,7 +781,7 @@ function TableCellViewer({
                     <FormLabel>Description (Optional)</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
-                        {field.value || "No description"}
+                        {field.value || "No description..."}
                       </div>
                     ) : (
                       <FormControl>
@@ -1016,9 +1016,26 @@ function TableCellViewer({
                 activeItem?.type === "INCOME" &&
                 activeItem?.accounts !== undefined && (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Average Growth</FormLabel>
-                    <div className="p-2 border rounded-md">
-                      {formatPercentage(activeItem.averageGrowth as number)}
+                    <FormLabel>Average Growth (%)</FormLabel>
+                    <div className="p-2 border rounded-md flex items-center gap-2">
+                      <span
+                        className={
+                          Number.parseFloat(activeItem.averageGrowth) >= 0
+                            ? "text-emerald-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {Number.parseFloat(activeItem.averageGrowth) >= 0 ? (
+                          <ArrowUp className="h-3 w-3" />
+                        ) : (
+                          <ArrowDown className="h-3 w-3" />
+                        )}
+                      </span>
+                      <span>
+                        {formatPercentage(
+                          Number.parseFloat(activeItem.averageGrowth)
+                        )}
+                      </span>
                     </div>
                   </FormItem>
                 )}

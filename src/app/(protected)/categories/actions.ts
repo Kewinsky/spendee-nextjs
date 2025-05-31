@@ -30,7 +30,7 @@ export async function createCategory(formData: FormData) {
     // Convert empty strings to undefined for optional fields
     const cleanedData = {
       ...raw,
-      description: raw.description === "" ? undefined : raw.description,
+      description: raw.description === "" ? null : raw.description,
     };
 
     // Validate with form schema first
@@ -77,7 +77,7 @@ export async function updateCategory(formData: FormData) {
     // Convert empty strings to undefined for optional fields
     const cleanedData = {
       ...raw,
-      description: raw.description === "" ? undefined : raw.description,
+      description: raw.description === "" ? null : raw.description,
     };
 
     // Validate with form schema first

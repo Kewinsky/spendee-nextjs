@@ -7,7 +7,7 @@ export const budgetSchema = z.object({
   categoryId: z.string().cuid("Invalid category ID"),
   userId: z.string().cuid("Invalid user ID"),
   amount: z.number().min(0.01, "Amount must be at least 0.01"),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   month: z.string().regex(/^\d{4}-\d{2}$/, "Invalid month format (YYYY-MM)"),
 });
 
@@ -25,7 +25,7 @@ export const budgetFormSchema = z.object({
   name: z.string().min(1, "Budget name is required").default("Monthly Budget"),
   categoryId: z.string().min(1, "Category is required"),
   amount: z.string().min(1, "Amount is required"),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
 });
 
 // Extended budget type with computed fields for frontend

@@ -6,7 +6,7 @@ export const CategoryTypeEnum = z.enum(["EXPENSE", "INCOME"]);
 // Base category schema matching Prisma model
 export const categorySchema = z.object({
   name: z.string().min(1, "Name is required"),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   type: CategoryTypeEnum.default("EXPENSE"),
   icon: z.string().default("Package"),
   userId: z.string().cuid(),
@@ -23,7 +23,7 @@ export const updateCategorySchema = categorySchema.extend({
 // Form schema for frontend forms (handles FormData conversion)
 export const categoryFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  description: z.string().optional(),
+  description: z.string().optional().nullable(),
   type: CategoryTypeEnum.default("EXPENSE"),
   icon: z.string().default("Package"),
 });

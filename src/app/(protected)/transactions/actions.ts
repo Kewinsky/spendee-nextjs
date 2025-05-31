@@ -30,7 +30,7 @@ export async function createTransaction(formData: FormData) {
     // Convert empty strings to undefined for optional fields
     const cleanedData = {
       ...raw,
-      notes: raw.notes === "" ? undefined : raw.notes,
+      notes: raw.notes === "" ? null : raw.notes,
     };
 
     // Validate with form schema first
@@ -120,7 +120,7 @@ export async function updateTransaction(formData: FormData) {
     // Convert empty strings to undefined for optional fields
     const cleanedData = {
       ...raw,
-      notes: raw.notes === "" ? undefined : raw.notes,
+      notes: raw.notes === "" ? null : raw.notes,
     };
 
     // Validate with form schema first
