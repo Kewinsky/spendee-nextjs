@@ -803,15 +803,10 @@ function TableCellViewer({
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
                     <FormLabel>Type</FormLabel>
-                    {isReadOnly ? (
-                      <div className="p-2 border rounded-md">
-                        {field.value === "INCOME" ? "Income" : "Expense"}
-                      </div>
-                    ) : (
+                    {viewMode === "add" ? (
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        disabled={isReadOnly}
                       >
                         <FormControl>
                           <SelectTrigger className="w-full">
@@ -823,7 +818,12 @@ function TableCellViewer({
                           <SelectItem value="INCOME">Income</SelectItem>
                         </SelectContent>
                       </Select>
+                    ) : (
+                      <div className="p-2 border rounded-md">
+                        {field.value === "INCOME" ? "Income" : "Expense"}
+                      </div>
                     )}
+
                     <FormMessage />
                   </FormItem>
                 )}
