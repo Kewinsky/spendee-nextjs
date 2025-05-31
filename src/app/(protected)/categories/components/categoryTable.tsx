@@ -309,7 +309,7 @@ export function CategoryTable({
               onClick={() => openTableCellViewer(row.original, "edit")}
             >
               <Edit className="mr-2 h-4 w-4" />
-              Edit Category
+              Edit category
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => openTableCellViewer(row.original, "view")}

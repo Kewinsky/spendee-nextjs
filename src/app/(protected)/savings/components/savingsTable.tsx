@@ -420,7 +420,7 @@ export function SavingsTable({
               onClick={() => handleDeleteAccount(row.original.id)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete account
+              Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -572,14 +572,14 @@ export function SavingsTable({
                 All Categories
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              {uniqueCategories.map((c) => (
+              {uniqueCategories.map((category) => (
                 <DropdownMenuItem
-                  key={c?.name}
-                  onClick={() => setCategoryFilter(c?.name)}
+                  key={category?.name}
+                  onClick={() => setCategoryFilter(category?.name)}
                 >
                   <div className="flex items-center">
-                    {getIconBySlug(c?.icon)}
-                    {c?.name}
+                    {getIconBySlug(category?.icon)}
+                    {category?.name}
                   </div>
                 </DropdownMenuItem>
               ))}

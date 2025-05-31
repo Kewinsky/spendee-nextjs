@@ -350,7 +350,7 @@ export function BudgetTable({
               onClick={() => handleDeleteBudget(row.original.id)}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete budget
+              Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
