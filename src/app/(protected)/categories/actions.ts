@@ -300,31 +300,3 @@ export async function getCurrentUserCategories(): Promise<CategoryWithStats[]> {
   const userId = await getCurrentUser();
   return getCategories(userId);
 }
-
-// GET CATEGORIES FOR TRANSACTION FORM
-// TODO: check using this fn instead
-export async function getCategoriesForForm() {
-  try {
-    const userId = await getCurrentUser();
-
-    const categories = await prisma.category.findMany({
-      where: { userId },
-      select: {
-        id: true,
-        name: true,
-        type: true,
-        icon: true,
-      },
-      orderBy: { name: "asc" },
-    });
-
-    return { success: true, data: categories };
-  } catch (error) {
-    console.error("Error fetching categories:", error);
-    return {
-      success: false,
-      error: "Failed to fetch categories",
-      data: [],
-    };
-  }
-}

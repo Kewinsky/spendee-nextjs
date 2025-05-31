@@ -224,6 +224,41 @@ export async function deleteBudget(id: string) {
   }
 }
 
+// DELETE MULTIPLE BUDGETS
+export async function deleteBudgets(id: string) {
+  try {
+    const userId = await getCurrentUser();
+
+    if (!id) {
+      throw new Error("Budget ID is required");
+    }
+
+    // Verify ownership before deletion
+    const existingBudget = await prisma.budget.findFirst({
+      where: { id, userId },
+    });
+
+    if (!existingBudget) {
+      throw new Error("Budget not found or access denied");
+    }
+
+    await prisma.budget.delete({
+      where: { id },
+    });
+
+    revalidatePath("/budgets");
+    revalidatePath("/categories");
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting budget:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete budget",
+    };
+  }
+}
+
 // GET BUDGETS WITH STATS
 export async function getBudgets(userId: string): Promise<BudgetWithStats[]> {
   try {

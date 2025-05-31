@@ -84,7 +84,12 @@ import {
   type BudgetFormValues,
   type BudgetWithStats,
 } from "@/services/budgets/schema";
-import { createBudget, updateBudget, deleteBudget } from "../actions";
+import {
+  createBudget,
+  updateBudget,
+  deleteBudget,
+  deleteBudgets,
+} from "../actions";
 import { formatCurrency } from "@/utils/formatting";
 import { performBulkDelete } from "@/utils/performBulkDelete";
 import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
@@ -142,7 +147,7 @@ export function BudgetTable({
   };
 
   const deleteBudgetsBulk = async (ids: string[]) => {
-    return Promise.all(ids.map((id) => deleteBudget(id)));
+    return Promise.all(ids.map((id) => deleteBudgets(id)));
   };
 
   const confirmBulkDelete = async () => {
@@ -608,7 +613,7 @@ function BudgetTableCellViewer({
                       <div>{formatCurrency(budget.amount)}</div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {budget.description || "No description..."}
+                      {budget.description || "N/A"}
                     </div>
                   </div>
                 ))}
@@ -691,10 +696,10 @@ function BudgetTableCellViewer({
                 name="description"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormLabel>Description (optional)</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
-                        {field.value || "No description..."}
+                        {field.value || "N/A"}
                       </div>
                     ) : (
                       <FormControl>

@@ -90,7 +90,12 @@ import {
   type AccountType,
   emptySavingsForm,
 } from "@/services/savings/schema";
-import { createSavings, updateSavings, deleteSavings } from "../actions";
+import {
+  createSavings,
+  updateSavings,
+  deleteSaving,
+  deleteSavings,
+} from "../actions";
 import { formatCurrency, formatPercentage } from "@/utils/formatting";
 import { performBulkDelete } from "@/utils/performBulkDelete";
 import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
@@ -165,7 +170,7 @@ export function SavingsTable({
   const handleDeleteAccount = async (id: string) => {
     await performSingleItemDelete({
       id,
-      deleteFn: deleteSavings,
+      deleteFn: deleteSaving,
       setData,
       resourceName: "account",
     });
@@ -963,7 +968,7 @@ function SavingsTableCellViewer({
                 name="institution"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Institution (Optional)</FormLabel>
+                    <FormLabel>Institution (optional)</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
                         {field.value || "N/A"}

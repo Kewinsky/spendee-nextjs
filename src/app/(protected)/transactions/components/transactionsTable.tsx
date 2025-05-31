@@ -1755,10 +1755,10 @@ function TableCellViewer({
                 name="notes"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Notes (Optional)</FormLabel>
+                    <FormLabel>Notes (optional)</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md min-h-[80px]">
-                        {field.value || "No notes..."}
+                        {field.value || "N/A"}
                       </div>
                     ) : (
                       <FormControl>

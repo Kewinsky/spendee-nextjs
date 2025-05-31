@@ -99,6 +99,7 @@ import { formatCurrency, formatPercentage } from "@/utils/formatting";
 import { performBulkDelete } from "@/utils/performBulkDelete";
 import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
 import { performAddOrUpdateItem } from "@/utils/performAddOrUpdateItem";
+import { getStatusColorByPercentage } from "@/utils/getStatusColorByPercentage";
 
 export function CategoryTable({
   data: initialData,
@@ -698,7 +699,7 @@ function TableCellViewer({
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {category.description || "No description..."}
+                      {category.description || "N/A"}
                     </div>
                   </div>
                 ))}
@@ -778,10 +779,10 @@ function TableCellViewer({
                 name="description"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormLabel>Description (optional)</FormLabel>
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md">
-                        {field.value || "No description..."}
+                        {field.value || "N/A"}
                       </div>
                     ) : (
                       <FormControl>
@@ -976,7 +977,10 @@ function TableCellViewer({
                           ((activeItem.spent || 0) / activeItem.budgetAmount) *
                             100
                         )}
-                        className="h-2"
+                        className={`h-2 ${getStatusColorByPercentage(
+                          ((activeItem.spent || 0) / activeItem.budgetAmount) *
+                            100
+                        )}`}
                       />
                       <p className="text-sm text-muted-foreground">
                         {new Intl.NumberFormat("en-US", {

@@ -167,6 +167,41 @@ export async function updateSavings(formData: FormData) {
 }
 
 // DELETE SAVINGS
+export async function deleteSaving(id: string) {
+  try {
+    const userId = await getCurrentUser();
+
+    if (!id) {
+      throw new Error("Savings ID is required");
+    }
+
+    // Verify ownership before deletion
+    const existingSavings = await prisma.savings.findFirst({
+      where: { id, userId },
+    });
+
+    if (!existingSavings) {
+      throw new Error("Savings not found or access denied");
+    }
+
+    await prisma.savings.delete({
+      where: { id },
+    });
+
+    revalidatePath("/savings");
+    revalidatePath("/categories");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting savings:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to delete savings",
+    };
+  }
+}
+
+// DELETE MULTIPLE SAVINGS
 export async function deleteSavings(id: string) {
   try {
     const userId = await getCurrentUser();
@@ -190,6 +225,7 @@ export async function deleteSavings(id: string) {
 
     revalidatePath("/savings");
     revalidatePath("/categories");
+
     return { success: true };
   } catch (error) {
     console.error("Error deleting savings:", error);
