@@ -173,7 +173,10 @@ exports.Prisma.CategoryScalarFieldEnum = {
   description: 'description',
   type: 'type',
   icon: 'icon',
-  userId: 'userId'
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.BudgetScalarFieldEnum = {
@@ -184,7 +187,9 @@ exports.Prisma.BudgetScalarFieldEnum = {
   amount: 'amount',
   description: 'description',
   month: 'month',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.SavingsScalarFieldEnum = {
@@ -198,7 +203,8 @@ exports.Prisma.SavingsScalarFieldEnum = {
   accountType: 'accountType',
   institution: 'institution',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.TransactionScalarFieldEnum = {
@@ -211,7 +217,8 @@ exports.Prisma.TransactionScalarFieldEnum = {
   notes: 'notes',
   type: 'type',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt'
 };
 
 exports.Prisma.SortOrder = {

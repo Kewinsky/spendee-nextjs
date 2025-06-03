@@ -9,6 +9,7 @@ import {
   type SavingsWithStats,
 } from "@/services/savings/schema";
 import { revalidatePath } from "next/cache";
+import { getValidCategoryOrThrow } from "../categories/actions";
 
 // Helper function to get current user
 async function getCurrentUser() {
@@ -41,7 +42,7 @@ export async function createSavings(formData: FormData) {
     }
 
     // Convert form data to create schema format
-    const dataWithUserId = {
+    const savingsData = {
       ...formValidation.data,
       userId,
       balance: Number.parseFloat(formValidation.data.balance),
@@ -51,10 +52,15 @@ export async function createSavings(formData: FormData) {
         : 0,
     };
 
-    const validation = createSavingsSchema.safeParse(dataWithUserId);
+    const validation = createSavingsSchema.safeParse(savingsData);
     if (!validation.success) {
       throw new Error(`Validation failed: ${validation.error.message}`);
     }
+
+    await getValidCategoryOrThrow({
+      id: validation.data.categoryId,
+      userId,
+    });
 
     const savings = await prisma.savings.create({
       data: validation.data,
@@ -111,7 +117,7 @@ export async function updateSavings(formData: FormData) {
     }
 
     // Convert form data to update schema format
-    const dataWithUserIdAndId = {
+    const savingsData = {
       ...formValidation.data,
       userId,
       id: savingsId,
@@ -122,7 +128,7 @@ export async function updateSavings(formData: FormData) {
         : 0,
     };
 
-    const validation = updateSavingsSchema.safeParse(dataWithUserIdAndId);
+    const validation = updateSavingsSchema.safeParse(savingsData);
     if (!validation.success) {
       throw new Error(`Validation failed: ${validation.error.message}`);
     }
@@ -137,6 +143,11 @@ export async function updateSavings(formData: FormData) {
     if (!existingSavings) {
       throw new Error("Savings not found or access denied");
     }
+
+    await getValidCategoryOrThrow({
+      id: validation.data.categoryId,
+      userId,
+    });
 
     const savings = await prisma.savings.update({
       where: { id },
@@ -241,7 +252,12 @@ export async function deleteSavings(id: string) {
 export async function getSavings(userId: string): Promise<SavingsWithStats[]> {
   try {
     const savings = await prisma.savings.findMany({
-      where: { userId },
+      where: {
+        userId,
+        category: {
+          deletedAt: null,
+        },
+      },
       include: {
         category: {
           select: {

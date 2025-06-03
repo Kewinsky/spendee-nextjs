@@ -9,6 +9,7 @@ import {
   type BudgetWithStats,
 } from "@/services/budgets/schema";
 import { revalidatePath } from "next/cache";
+import { getValidCategoryOrThrow } from "../categories/actions";
 
 // Helper function to get current user
 async function getCurrentUser() {
@@ -45,17 +46,22 @@ export async function createBudget(formData: FormData) {
     ).padStart(2, "0")}`;
 
     // Convert form data to create schema format
-    const dataWithUserId = {
+    const budgetData = {
       ...formValidation.data,
       userId,
       amount: Number.parseFloat(formValidation.data.amount),
       month: currentMonth,
     };
 
-    const validation = createBudgetSchema.safeParse(dataWithUserId);
+    const validation = createBudgetSchema.safeParse(budgetData);
     if (!validation.success) {
       throw new Error(`Validation failed: ${validation.error.message}`);
     }
+
+    await getValidCategoryOrThrow({
+      id: validation.data.categoryId,
+      userId,
+    });
 
     const budget = await prisma.budget.create({
       data: validation.data,
@@ -119,7 +125,7 @@ export async function updateBudget(formData: FormData) {
     }
 
     // Build update data including original month
-    const dataWithUserIdAndId = {
+    const budgetData = {
       ...formValidation.data,
       userId,
       id: budgetId,
@@ -128,12 +134,17 @@ export async function updateBudget(formData: FormData) {
     };
 
     // Validate full update input
-    const validation = updateBudgetSchema.safeParse(dataWithUserIdAndId);
+    const validation = updateBudgetSchema.safeParse(budgetData);
     if (!validation.success) {
       throw new Error(`Validation failed: ${validation.error.message}`);
     }
 
     const { id, ...updateData } = validation.data;
+
+    await getValidCategoryOrThrow({
+      id: validation.data.categoryId,
+      userId,
+    });
 
     const budget = await prisma.budget.update({
       where: { id },
@@ -263,7 +274,12 @@ export async function deleteBudgets(id: string) {
 export async function getBudgets(userId: string): Promise<BudgetWithStats[]> {
   try {
     const budgets = await prisma.budget.findMany({
-      where: { userId },
+      where: {
+        userId,
+        category: {
+          deletedAt: null,
+        },
+      },
       include: {
         category: {
           select: {

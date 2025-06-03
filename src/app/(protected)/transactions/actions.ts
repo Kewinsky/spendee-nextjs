@@ -9,6 +9,7 @@ import {
   type TransactionWithStats,
 } from "@/services/transactions/schema";
 import { revalidatePath } from "next/cache";
+import { getValidCategoryOrThrow } from "../categories/actions";
 
 // Helper function to get current user
 async function getCurrentUser() {
@@ -40,7 +41,7 @@ export async function createTransaction(formData: FormData) {
     }
 
     // Convert form data to database format
-    const dataWithUserId = {
+    const transactionData = {
       description: formValidation.data.description,
       amount: Number.parseFloat(formValidation.data.amount),
       date: new Date(formValidation.data.date),
@@ -51,7 +52,7 @@ export async function createTransaction(formData: FormData) {
     };
 
     // Validate with create schema
-    const validation = createTransactionSchema.safeParse(dataWithUserId);
+    const validation = createTransactionSchema.safeParse(transactionData);
     if (!validation.success) {
       throw new Error(`Validation failed: ${validation.error.message}`);
     }
@@ -75,6 +76,11 @@ export async function createTransaction(formData: FormData) {
         `Transaction type must match category type (${expectedType})`
       );
     }
+
+    await getValidCategoryOrThrow({
+      id: validation.data.categoryId,
+      userId,
+    });
 
     const transaction = await prisma.transaction.create({
       data: validation.data,
@@ -112,7 +118,7 @@ export async function createTransaction(formData: FormData) {
 // CREATE MULTIPLE TRANSACTIONS
 export async function createTransactions(transactions: FormData[]) {
   try {
-    const userId = await getCurrentUser();
+    await getCurrentUser();
     const results = [];
 
     for (const formData of transactions) {
@@ -184,7 +190,7 @@ export async function updateTransaction(formData: FormData) {
     }
 
     // Convert form data to database format
-    const dbData = {
+    const transactionData = {
       description: formValidation.data.description,
       amount: Number.parseFloat(formValidation.data.amount),
       date: new Date(formValidation.data.date),
@@ -196,7 +202,7 @@ export async function updateTransaction(formData: FormData) {
     };
 
     // Validate with update schema
-    const validation = updateTransactionSchema.safeParse(dbData);
+    const validation = updateTransactionSchema.safeParse(transactionData);
     if (!validation.success) {
       throw new Error(`Validation failed: ${validation.error.message}`);
     }
@@ -231,6 +237,11 @@ export async function updateTransaction(formData: FormData) {
         `Transaction type must match category type (${expectedType})`
       );
     }
+
+    await getValidCategoryOrThrow({
+      id: validation.data.categoryId,
+      userId,
+    });
 
     const transaction = await prisma.transaction.update({
       where: { id },
@@ -338,7 +349,12 @@ export async function getTransactions(
 ): Promise<TransactionWithStats[]> {
   try {
     const transactions = await prisma.transaction.findMany({
-      where: { userId },
+      where: {
+        userId,
+        category: {
+          deletedAt: null,
+        },
+      },
       include: {
         category: {
           select: {

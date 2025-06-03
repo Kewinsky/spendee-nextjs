@@ -150,11 +150,52 @@ export async function deleteCategory(id: string) {
       throw new Error("Category not found or access denied");
     }
 
-    await prisma.category.delete({
+    const now = new Date();
+
+    // Soft delete category
+    await prisma.category.update({
       where: { id },
+      data: { deletedAt: now },
+    });
+
+    // Soft delete all related budgets
+    await prisma.budget.updateMany({
+      where: {
+        categoryId: id,
+        userId,
+      },
+      data: {
+        deletedAt: now,
+      },
+    });
+
+    // Soft delete all related transactions
+    await prisma.transaction.updateMany({
+      where: {
+        categoryId: id,
+        userId,
+      },
+      data: {
+        deletedAt: now,
+      },
+    });
+
+    // Soft delete all related savings
+    await prisma.savings.updateMany({
+      where: {
+        categoryId: id,
+        userId,
+      },
+      data: {
+        deletedAt: now,
+      },
     });
 
     revalidatePath("/categories");
+    revalidatePath("/budgets");
+    revalidatePath("/transactions");
+    revalidatePath("/savings");
+
     return { success: true };
   } catch (error) {
     console.error("Error deleting category:", error);
@@ -175,11 +216,12 @@ export async function deleteCategories(ids: string[]) {
       throw new Error("Category IDs are required");
     }
 
-    // Verify ownership of all categories
+    // Fetch existing categories
     const existingCategories = await prisma.category.findMany({
       where: {
         id: { in: ids },
         userId,
+        deletedAt: null,
       },
     });
 
@@ -187,14 +229,57 @@ export async function deleteCategories(ids: string[]) {
       throw new Error("Some categories not found or access denied");
     }
 
-    await prisma.category.deleteMany({
+    const now = new Date();
+
+    // Soft delete categories
+    await prisma.category.updateMany({
       where: {
         id: { in: ids },
         userId,
       },
+      data: {
+        deletedAt: now,
+      },
+    });
+
+    // Soft delete budgets
+    await prisma.budget.updateMany({
+      where: {
+        categoryId: { in: ids },
+        userId,
+      },
+      data: {
+        deletedAt: now,
+      },
+    });
+
+    // Soft delete transactions
+    await prisma.transaction.updateMany({
+      where: {
+        categoryId: { in: ids },
+        userId,
+      },
+      data: {
+        deletedAt: now,
+      },
+    });
+
+    // Soft delete savings
+    await prisma.savings.updateMany({
+      where: {
+        categoryId: { in: ids },
+        userId,
+      },
+      data: {
+        deletedAt: now,
+      },
     });
 
     revalidatePath("/categories");
+    revalidatePath("/budgets");
+    revalidatePath("/transactions");
+    revalidatePath("/savings");
+
     return { success: true };
   } catch (error) {
     console.error("Error deleting categories:", error);
@@ -212,7 +297,7 @@ export async function getCategories(
 ): Promise<CategoryWithStats[]> {
   try {
     const categories = await prisma.category.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       include: {
         transactions: {
           select: {
@@ -299,4 +384,27 @@ export async function getCategories(
 export async function getCurrentUserCategories(): Promise<CategoryWithStats[]> {
   const userId = await getCurrentUser();
   return getCategories(userId);
+}
+
+// VALIDATE CATEGORY
+export async function getValidCategoryOrThrow({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}) {
+  const category = await prisma.category.findFirst({
+    where: {
+      id,
+      userId,
+      deletedAt: null,
+    },
+  });
+
+  if (!category) {
+    throw new Error("Category not found or access denied");
+  }
+
+  return category;
 }
