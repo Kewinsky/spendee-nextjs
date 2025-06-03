@@ -194,7 +194,8 @@ export async function getCategories(
       orderBy: { name: "asc" },
     });
 
-    // Calculate stats for each category
+    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+
     const categoriesWithStats: CategoryWithStats[] = categories.map(
       (category) => {
         const transactions = category.transactions || [];
@@ -202,19 +203,23 @@ export async function getCategories(
         const savings = category.savings || [];
 
         // Get current month budget
-        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
         const currentBudget = budgets.find((b) => b.month === currentMonth);
 
-        // Calculate spent amount (sum of expense transactions or income transactions)
-        const spent = transactions.reduce(
+        // Filter transactions for the current month only
+        const monthTransactions = transactions.filter((t) =>
+          t.date.toISOString().startsWith(currentMonth)
+        );
+
+        // Calculate spent amount (only for this month)
+        const spent = monthTransactions.reduce(
           (sum, t) => sum + Math.abs(t.amount),
           0
         );
 
-        // Calculate balance (for income categories, this would be total earned)
+        // Calculate balance (monthly scoped)
         const balance =
           category.type === "INCOME"
-            ? transactions.reduce((sum, t) => sum + t.amount, 0)
+            ? monthTransactions.reduce((sum, t) => sum + t.amount, 0)
             : (currentBudget?.amount || 0) - spent;
 
         const averageGrowth =
@@ -230,7 +235,7 @@ export async function getCategories(
           icon: category.icon,
           userId: category.userId,
           transactions:
-            category.type === "EXPENSE" ? transactions.length : undefined,
+            category.type === "EXPENSE" ? monthTransactions.length : undefined,
           accounts: category.type === "INCOME" ? savings.length : undefined,
           budgetAmount: currentBudget?.amount,
           budgetName: currentBudget?.name,

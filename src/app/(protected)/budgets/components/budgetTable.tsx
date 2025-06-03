@@ -94,6 +94,7 @@ import { formatCurrency } from "@/utils/formatting";
 import { performBulkDelete } from "@/utils/performBulkDelete";
 import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
 import { performAddOrUpdateItem } from "@/utils/performAddOrUpdateItem";
+import { MonthPicker } from "@/components/month-picker/month-picker";
 
 export function BudgetTable({
   data: initialData,
@@ -117,6 +118,7 @@ export function BudgetTable({
   >("add");
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [data, setData] = React.useState(() => initialData);
+  const [monthFilter, setMonthFilter] = React.useState<string>("");
   const [selectedBudgets, setSelectedBudgets] = React.useState<
     BudgetWithStats[]
   >([]);
@@ -363,6 +365,11 @@ export function BudgetTable({
     },
   ];
 
+  const filteredData = React.useMemo(() => {
+    if (!monthFilter) return data;
+    return data.filter((item) => item.month.startsWith(monthFilter));
+  }, [data, monthFilter]);
+
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -376,7 +383,7 @@ export function BudgetTable({
   });
 
   const table = useReactTable({
-    data: data,
+    data: filteredData,
     columns,
     state: {
       sorting,
@@ -406,6 +413,11 @@ export function BudgetTable({
     <Tabs className="w-full flex-col justify-start gap-6">
       <div className="flex flex-wrap items-start justify-end gap-4 px-4 lg:px-6">
         <div className="flex flex-wrap items-center gap-2">
+          <MonthPicker
+            value={monthFilter}
+            onChange={setMonthFilter}
+            placeholder="Filter by month"
+          />
           <Button
             variant="outline"
             size="sm"
