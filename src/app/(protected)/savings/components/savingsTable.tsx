@@ -185,7 +185,7 @@ export function SavingsTable({
   };
 
   const deleteAccountsBulk = async (ids: string[]) => {
-    return Promise.all(ids.map((id) => deleteSavings(id)));
+    return deleteSavings(ids);
   };
 
   const confirmBulkDelete = async () => {

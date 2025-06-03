@@ -145,7 +145,7 @@ export function CategoryTable({
   };
 
   const deleteCategoriesBulk = async (ids: string[]) => {
-    return Promise.all(ids.map((id) => deleteCategories(id)));
+    return deleteCategories(ids);
   };
 
   const confirmBulkDelete = async () => {

@@ -147,7 +147,7 @@ export function BudgetTable({
   };
 
   const deleteBudgetsBulk = async (ids: string[]) => {
-    return Promise.all(ids.map((id) => deleteBudgets(id)));
+    return deleteBudgets(ids);
   };
 
   const confirmBulkDelete = async () => {

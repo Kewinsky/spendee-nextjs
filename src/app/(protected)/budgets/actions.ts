@@ -1,6 +1,5 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
 import {
   createBudgetSchema,
@@ -8,77 +7,60 @@ import {
   budgetFormSchema,
   type BudgetWithStats,
 } from "@/services/budgets/schema";
-import { revalidatePath } from "next/cache";
-import { getValidCategoryOrThrow } from "../categories/actions";
 
-// Helper function to get current user
-async function getCurrentUser() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-  return session.user.id;
-}
+import { revalidatePaths } from "@/lib/actions/helpers/revalidate";
+import { getValidCategoryOrThrow } from "../categories/actions";
+import { getCurrentUserId } from "@/lib/actions/helpers/auth";
+import {
+  parseAndCleanFormData,
+  validateWithSchema,
+} from "@/lib/actions/helpers/validation";
 
 // CREATE BUDGET
 export async function createBudget(formData: FormData) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    // Parse FormData
-    const raw = Object.fromEntries(formData.entries());
-
-    // Convert empty strings to undefined for optional fields
-    const cleanedData = {
-      ...raw,
-      description: raw.description === "" ? null : raw.description,
-    };
-
-    // Validate with form schema first
-    const formValidation = budgetFormSchema.safeParse(cleanedData);
-    if (!formValidation.success) {
-      throw new Error(`Validation failed: ${formValidation.error.message}`);
-    }
+    const cleanedData = parseAndCleanFormData(formData, ["description"]);
+    const formValidated = validateWithSchema(
+      cleanedData,
+      budgetFormSchema,
+      "form"
+    );
 
     const now = new Date();
     const currentMonth = `${now.getFullYear()}-${String(
       now.getMonth() + 1
     ).padStart(2, "0")}`;
 
-    // Convert form data to create schema format
     const budgetData = {
-      ...formValidation.data,
+      ...formValidated,
       userId,
-      amount: Number.parseFloat(formValidation.data.amount),
+      amount: Number.parseFloat(formValidated.amount),
       month: currentMonth,
     };
 
-    const validation = createBudgetSchema.safeParse(budgetData);
-    if (!validation.success) {
-      throw new Error(`Validation failed: ${validation.error.message}`);
-    }
+    const validated = validateWithSchema(
+      budgetData,
+      createBudgetSchema,
+      "create"
+    );
 
     await getValidCategoryOrThrow({
-      id: validation.data.categoryId,
+      id: validated.categoryId,
       userId,
     });
 
     const budget = await prisma.budget.create({
-      data: validation.data,
+      data: validated,
       include: {
         category: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            icon: true,
-          },
+          select: { id: true, name: true, type: true, icon: true },
         },
       },
     });
 
-    revalidatePath("/budgets");
-    revalidatePath("/categories");
+    revalidatePaths(["/budgets", "/categories"]);
     return { success: true, data: budget };
   } catch (error) {
     console.error("Error creating budget:", error);
@@ -92,30 +74,18 @@ export async function createBudget(formData: FormData) {
 // UPDATE BUDGET
 export async function updateBudget(formData: FormData) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    // Parse FormData
-    const raw = Object.fromEntries(formData.entries());
+    const cleanedData = parseAndCleanFormData(formData, ["description"]);
+    const formValidated = validateWithSchema(
+      cleanedData,
+      budgetFormSchema,
+      "form"
+    );
 
-    // Convert empty strings to undefined for optional fields
-    const cleanedData = {
-      ...raw,
-      description: raw.description === "" ? null : raw.description,
-    };
+    const budgetId = cleanedData.id as string;
+    if (!budgetId) throw new Error("Budget ID is required for update");
 
-    // Validate with form schema first
-    const formValidation = budgetFormSchema.safeParse(cleanedData);
-    if (!formValidation.success) {
-      throw new Error(`Validation failed: ${formValidation.error.message}`);
-    }
-
-    // Get ID from FormData
-    const budgetId = raw.id as string;
-    if (!budgetId) {
-      throw new Error("Budget ID is required for update");
-    }
-
-    // Verify ownership and get existing data
     const existingBudget = await prisma.budget.findFirst({
       where: { id: budgetId, userId },
     });
@@ -124,39 +94,33 @@ export async function updateBudget(formData: FormData) {
       throw new Error("Budget not found or access denied");
     }
 
-    // Build update data including original month
     const budgetData = {
-      ...formValidation.data,
+      ...formValidated,
       userId,
       id: budgetId,
-      amount: Number.parseFloat(formValidation.data.amount),
+      amount: Number.parseFloat(formValidated.amount),
       month: existingBudget.month,
     };
 
-    // Validate full update input
-    const validation = updateBudgetSchema.safeParse(budgetData);
-    if (!validation.success) {
-      throw new Error(`Validation failed: ${validation.error.message}`);
-    }
-
-    const { id, ...updateData } = validation.data;
+    const validated = validateWithSchema(
+      budgetData,
+      updateBudgetSchema,
+      "update"
+    );
 
     await getValidCategoryOrThrow({
-      id: validation.data.categoryId,
+      id: validated.categoryId,
       userId,
     });
+
+    const { id, ...updateData } = validated;
 
     const budget = await prisma.budget.update({
       where: { id },
       data: updateData,
       include: {
         category: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            icon: true,
-          },
+          select: { id: true, name: true, type: true, icon: true },
         },
       },
     });
@@ -180,8 +144,7 @@ export async function updateBudget(formData: FormData) {
     const remaining = budget.amount - spent;
     const progress = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
 
-    revalidatePath("/budgets");
-    revalidatePath("/categories");
+    revalidatePaths(["/budgets", "/categories"]);
 
     return {
       success: true,
@@ -201,21 +164,18 @@ export async function updateBudget(formData: FormData) {
   }
 }
 
-// DELETE BUDGET
+// DELETE SINGLE BUDGET
 export async function deleteBudget(id: string) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    if (!id) {
-      throw new Error("Budget ID is required");
-    }
+    if (!id) throw new Error("Budget ID is required");
 
-    // Verify ownership before deletion
-    const existingBudget = await prisma.budget.findFirst({
+    const existing = await prisma.budget.findFirst({
       where: { id, userId },
     });
 
-    if (!existingBudget) {
+    if (!existing) {
       throw new Error("Budget not found or access denied");
     }
 
@@ -223,8 +183,8 @@ export async function deleteBudget(id: string) {
       where: { id },
     });
 
-    revalidatePath("/budgets");
-    revalidatePath("/categories");
+    revalidatePaths(["/budgets", "/categories"]);
+
     return { success: true };
   } catch (error) {
     console.error("Error deleting budget:", error);
@@ -236,36 +196,39 @@ export async function deleteBudget(id: string) {
 }
 
 // DELETE MULTIPLE BUDGETS
-export async function deleteBudgets(id: string) {
+export async function deleteBudgets(ids: string[]) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    if (!id) {
-      throw new Error("Budget ID is required");
-    }
+    if (!ids.length) throw new Error("Budget IDs are required");
 
-    // Verify ownership before deletion
-    const existingBudget = await prisma.budget.findFirst({
-      where: { id, userId },
+    const existing = await prisma.budget.findMany({
+      where: {
+        id: { in: ids },
+        userId,
+      },
     });
 
-    if (!existingBudget) {
-      throw new Error("Budget not found or access denied");
+    if (existing.length !== ids.length) {
+      throw new Error("Some budgets not found or access denied");
     }
 
-    await prisma.budget.delete({
-      where: { id },
+    await prisma.budget.deleteMany({
+      where: {
+        id: { in: ids },
+        userId,
+      },
     });
 
-    revalidatePath("/budgets");
-    revalidatePath("/categories");
+    revalidatePaths(["/budgets", "/categories"]);
 
     return { success: true };
   } catch (error) {
-    console.error("Error deleting budget:", error);
+    console.error("Error deleting budgets:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to delete budget",
+      error:
+        error instanceof Error ? error.message : "Failed to delete budgets",
     };
   }
 }
@@ -282,25 +245,18 @@ export async function getBudgets(userId: string): Promise<BudgetWithStats[]> {
       },
       include: {
         category: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            icon: true,
-          },
+          select: { id: true, name: true, type: true, icon: true },
         },
       },
       orderBy: { createdAt: "desc" },
     });
 
-    // Calculate stats for each budget
-    const budgetsWithStats: BudgetWithStats[] = await Promise.all(
+    return await Promise.all(
       budgets.map(async (budget) => {
         const startOfMonth = new Date(`${budget.month}-01`);
         const startOfNextMonth = new Date(startOfMonth);
         startOfNextMonth.setMonth(startOfMonth.getMonth() + 1);
 
-        // Calculate spent amount from transactions for this category and month
         const transactions = await prisma.transaction.findMany({
           where: {
             categoryId: budget.categoryId,
@@ -324,19 +280,17 @@ export async function getBudgets(userId: string): Promise<BudgetWithStats[]> {
           spent,
           remaining,
           progress,
-        } as BudgetWithStats;
+        };
       })
     );
-
-    return budgetsWithStats;
   } catch (error) {
     console.error("Error fetching budgets:", error);
     throw new Error("Failed to fetch budgets");
   }
 }
 
-// GET BUDGETS FOR CURRENT USER
+// GET CURRENT USER BUDGETS
 export async function getCurrentUserBudgets(): Promise<BudgetWithStats[]> {
-  const userId = await getCurrentUser();
+  const userId = await getCurrentUserId();
   return getBudgets(userId);
 }
