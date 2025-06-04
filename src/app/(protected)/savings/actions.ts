@@ -1,6 +1,5 @@
 "use server";
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db/prisma";
 import {
   createSavingsSchema,
@@ -8,70 +7,65 @@ import {
   savingsFormSchema,
   type SavingsWithStats,
 } from "@/services/savings/schema";
-import { revalidatePath } from "next/cache";
 
-// Helper function to get current user
-async function getCurrentUser() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-  return session.user.id;
-}
+import { revalidatePaths } from "@/lib/actions/helpers/revalidate";
+import { getValidCategoryOrThrow } from "../categories/actions";
+import { getCurrentUserId } from "@/lib/actions/helpers/auth";
+import {
+  parseAndCleanFormData,
+  validateWithSchema,
+} from "@/lib/actions/helpers/validation";
 
 // CREATE SAVINGS
 export async function createSavings(formData: FormData) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    // Parse FormData
-    const raw = Object.fromEntries(formData.entries());
-
-    // Convert empty strings to undefined for optional fields
-    const cleanedData = {
-      ...raw,
-      institution: raw.institution === "" ? null : raw.institution,
-      growth: raw.growth === "" ? "0" : raw.growth,
+    const cleanedData = parseAndCleanFormData(formData, [
+      "institution",
+      "growth",
+    ]);
+    const normalizedData = {
+      ...cleanedData,
+      growth: cleanedData.growth === "" ? "0" : cleanedData.growth,
     };
 
-    // Validate with form schema first
-    const formValidation = savingsFormSchema.safeParse(cleanedData);
-    if (!formValidation.success) {
-      throw new Error(`Validation failed: ${formValidation.error.message}`);
-    }
+    const formValidated = validateWithSchema(
+      normalizedData,
+      savingsFormSchema,
+      "form"
+    );
 
-    // Convert form data to create schema format
-    const dataWithUserId = {
-      ...formValidation.data,
+    const savingsData = {
+      ...formValidated,
       userId,
-      balance: Number.parseFloat(formValidation.data.balance),
-      interestRate: Number.parseFloat(formValidation.data.interestRate),
-      growth: formValidation.data.growth
-        ? Number.parseFloat(formValidation.data.growth)
-        : 0,
+      balance: parseFloat(formValidated.balance),
+      interestRate: parseFloat(formValidated.interestRate),
+      growth: formValidated.growth ? parseFloat(formValidated.growth) : 0,
     };
 
-    const validation = createSavingsSchema.safeParse(dataWithUserId);
-    if (!validation.success) {
-      throw new Error(`Validation failed: ${validation.error.message}`);
-    }
+    const validated = validateWithSchema(
+      savingsData,
+      createSavingsSchema,
+      "create"
+    );
+
+    await getValidCategoryOrThrow({
+      id: validated.categoryId,
+      userId,
+    });
 
     const savings = await prisma.savings.create({
-      data: validation.data,
+      data: validated,
       include: {
         category: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            icon: true,
-          },
+          select: { id: true, name: true, type: true, icon: true },
         },
       },
     });
 
-    revalidatePath("/savings");
-    revalidatePath("/categories");
+    revalidatePaths(["/savings", "/categories"]);
+
     return { success: true, data: savings };
   } catch (error) {
     console.error("Error creating savings:", error);
@@ -86,75 +80,70 @@ export async function createSavings(formData: FormData) {
 // UPDATE SAVINGS
 export async function updateSavings(formData: FormData) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    // Parse FormData
-    const raw = Object.fromEntries(formData.entries());
-
-    // Convert empty strings to undefined for optional fields
-    const cleanedData = {
-      ...raw,
-      institution: raw.institution === "" ? null : raw.institution,
-      growth: raw.growth === "" ? "0" : raw.growth,
+    const cleanedData = parseAndCleanFormData(formData, [
+      "institution",
+      "growth",
+    ]);
+    const normalizedData = {
+      ...cleanedData,
+      growth: cleanedData.growth === "" ? "0" : cleanedData.growth,
     };
 
-    // Validate with form schema first
-    const formValidation = savingsFormSchema.safeParse(cleanedData);
-    if (!formValidation.success) {
-      throw new Error(`Validation failed: ${formValidation.error.message}`);
-    }
+    const formValidated = validateWithSchema(
+      normalizedData,
+      savingsFormSchema,
+      "form"
+    );
 
-    // Get ID from FormData
-    const savingsId = raw.id as string;
+    const savingsId = cleanedData.id as string;
     if (!savingsId) {
       throw new Error("Savings ID is required for update");
     }
 
-    // Convert form data to update schema format
-    const dataWithUserIdAndId = {
-      ...formValidation.data,
+    const savingsData = {
+      ...formValidated,
       userId,
       id: savingsId,
-      balance: Number.parseFloat(formValidation.data.balance),
-      interestRate: Number.parseFloat(formValidation.data.interestRate),
-      growth: formValidation.data.growth
-        ? Number.parseFloat(formValidation.data.growth)
-        : 0,
+      balance: parseFloat(formValidated.balance),
+      interestRate: parseFloat(formValidated.interestRate),
+      growth: formValidated.growth ? parseFloat(formValidated.growth) : 0,
     };
 
-    const validation = updateSavingsSchema.safeParse(dataWithUserIdAndId);
-    if (!validation.success) {
-      throw new Error(`Validation failed: ${validation.error.message}`);
-    }
+    const validated = validateWithSchema(
+      savingsData,
+      updateSavingsSchema,
+      "update"
+    );
 
-    const { id, ...updateData } = validation.data;
+    const { id, ...updateData } = validated;
 
-    // Verify ownership
-    const existingSavings = await prisma.savings.findFirst({
+    const existing = await prisma.savings.findFirst({
       where: { id, userId },
     });
 
-    if (!existingSavings) {
+    if (!existing) {
       throw new Error("Savings not found or access denied");
     }
+
+    await getValidCategoryOrThrow({
+      id: validated.categoryId,
+      userId,
+    });
 
     const savings = await prisma.savings.update({
       where: { id },
       data: updateData,
       include: {
         category: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            icon: true,
-          },
+          select: { id: true, name: true, type: true, icon: true },
         },
       },
     });
 
-    revalidatePath("/savings");
-    revalidatePath("/categories");
+    revalidatePaths(["/savings", "/categories"]);
+
     return { success: true, data: savings };
   } catch (error) {
     console.error("Error updating savings:", error);
@@ -166,21 +155,18 @@ export async function updateSavings(formData: FormData) {
   }
 }
 
-// DELETE SAVINGS
+// DELETE SINGLE SAVINGS
 export async function deleteSaving(id: string) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    if (!id) {
-      throw new Error("Savings ID is required");
-    }
+    if (!id) throw new Error("Savings ID is required");
 
-    // Verify ownership before deletion
-    const existingSavings = await prisma.savings.findFirst({
+    const existing = await prisma.savings.findFirst({
       where: { id, userId },
     });
 
-    if (!existingSavings) {
+    if (!existing) {
       throw new Error("Savings not found or access denied");
     }
 
@@ -188,8 +174,8 @@ export async function deleteSaving(id: string) {
       where: { id },
     });
 
-    revalidatePath("/savings");
-    revalidatePath("/categories");
+    revalidatePaths(["/savings", "/categories"]);
+
     return { success: true };
   } catch (error) {
     console.error("Error deleting savings:", error);
@@ -202,29 +188,33 @@ export async function deleteSaving(id: string) {
 }
 
 // DELETE MULTIPLE SAVINGS
-export async function deleteSavings(id: string) {
+export async function deleteSavings(ids: string[]) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    if (!id) {
-      throw new Error("Savings ID is required");
+    if (!ids.length) {
+      throw new Error("Savings IDs are required");
     }
 
-    // Verify ownership before deletion
-    const existingSavings = await prisma.savings.findFirst({
-      where: { id, userId },
+    const existing = await prisma.savings.findMany({
+      where: {
+        id: { in: ids },
+        userId,
+      },
     });
 
-    if (!existingSavings) {
-      throw new Error("Savings not found or access denied");
+    if (existing.length !== ids.length) {
+      throw new Error("Some savings not found or access denied");
     }
 
-    await prisma.savings.delete({
-      where: { id },
+    await prisma.savings.deleteMany({
+      where: {
+        id: { in: ids },
+        userId,
+      },
     });
 
-    revalidatePath("/savings");
-    revalidatePath("/categories");
+    revalidatePaths(["/savings", "/categories"]);
 
     return { success: true };
   } catch (error) {
@@ -241,15 +231,15 @@ export async function deleteSavings(id: string) {
 export async function getSavings(userId: string): Promise<SavingsWithStats[]> {
   try {
     const savings = await prisma.savings.findMany({
-      where: { userId },
+      where: {
+        userId,
+        category: {
+          deletedAt: null,
+        },
+      },
       include: {
         category: {
-          select: {
-            id: true,
-            name: true,
-            type: true,
-            icon: true,
-          },
+          select: { id: true, name: true, type: true, icon: true },
         },
       },
       orderBy: { accountName: "asc" },
@@ -264,6 +254,6 @@ export async function getSavings(userId: string): Promise<SavingsWithStats[]> {
 
 // GET SAVINGS FOR CURRENT USER
 export async function getCurrentUserSavings(): Promise<SavingsWithStats[]> {
-  const userId = await getCurrentUser();
+  const userId = await getCurrentUserId();
   return getSavings(userId);
 }

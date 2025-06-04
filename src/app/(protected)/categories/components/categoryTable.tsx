@@ -100,6 +100,12 @@ import { performBulkDelete } from "@/utils/performBulkDelete";
 import { performSingleItemDelete } from "@/utils/performSingleItemDelete";
 import { performAddOrUpdateItem } from "@/utils/performAddOrUpdateItem";
 import { getStatusColorByPercentage } from "@/utils/getStatusColorByPercentage";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 export function CategoryTable({
   data: initialData,
@@ -145,7 +151,7 @@ export function CategoryTable({
   };
 
   const deleteCategoriesBulk = async (ids: string[]) => {
-    return Promise.all(ids.map((id) => deleteCategories(id)));
+    return deleteCategories(ids);
   };
 
   const confirmBulkDelete = async () => {
@@ -916,7 +922,7 @@ function TableCellViewer({
                 )}
               />
 
-              {/* Keep existing transactions field only for Expense categories */}
+              {/* Transactions - only for Expense */}
               {isReadOnly &&
                 activeItem?.type === "EXPENSE" &&
                 activeItem?.transactions !== undefined && (
@@ -928,120 +934,138 @@ function TableCellViewer({
                   </FormItem>
                 )}
 
-              {/* Budget Name - Only show for Expense categories in view mode */}
+              {/* Budget Details - only for Expense */}
               {isReadOnly &&
                 activeItem?.type === "EXPENSE" &&
                 activeItem?.budgetName && (
-                  <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Budget Name</FormLabel>
-                    <div className="p-2 border rounded-md">
-                      {activeItem.budgetName}
-                    </div>
-                  </FormItem>
+                  <Accordion type="single" collapsible>
+                    <AccordionItem value="item-1">
+                      <AccordionTrigger>View Budget Details</AccordionTrigger>
+                      <AccordionContent className="flex flex-col gap-4">
+                        <FormItem className="flex flex-col gap-3">
+                          <FormLabel>Name</FormLabel>
+                          <div className="p-2 border rounded-md">
+                            {activeItem.budgetName}
+                          </div>
+                        </FormItem>
+
+                        <FormItem className="flex flex-col gap-3">
+                          <FormLabel>Amount</FormLabel>
+                          <div className="p-2 border rounded-md">
+                            {formatCurrency(activeItem.budgetAmount)}
+                          </div>
+                        </FormItem>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <FormItem className="flex flex-col gap-3">
+                            <FormLabel>Spent</FormLabel>
+                            <div className="p-2 border rounded-md">
+                              {formatCurrency(activeItem.spent)}
+                            </div>
+                          </FormItem>
+                          <FormItem className="flex flex-col gap-3">
+                            <FormLabel>Remaining</FormLabel>
+                            <div className="p-2 border rounded-md">
+                              {formatCurrency(activeItem.remaining)}
+                            </div>
+                          </FormItem>
+                        </div>
+
+                        <FormItem className="flex flex-col gap-3">
+                          <FormLabel>Progress</FormLabel>
+                          <div className="space-y-2">
+                            <Progress
+                              value={Math.min(
+                                100,
+                                ((activeItem.spent || 0) /
+                                  activeItem.budgetAmount) *
+                                  100
+                              )}
+                              className={`h-2 ${getStatusColorByPercentage(
+                                ((activeItem.spent || 0) /
+                                  activeItem.budgetAmount) *
+                                  100
+                              )}`}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                              {new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                              }).format(activeItem.spent || 0)}{" "}
+                              of{" "}
+                              {new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: "USD",
+                              }).format(activeItem.budgetAmount)}{" "}
+                              (
+                              {Math.round(
+                                ((activeItem.spent || 0) /
+                                  activeItem.budgetAmount) *
+                                  100
+                              )}
+                              %)
+                            </p>
+                          </div>
+                        </FormItem>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 )}
 
-              {/* Budget Amount- Only show for Expense categories in view mode */}
-              {isReadOnly &&
-                activeItem?.type === "EXPENSE" &&
-                activeItem?.budgetAmount && (
-                  <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Budget Amount</FormLabel>
-                    <div className="p-2 border rounded-md">
-                      {formatCurrency(activeItem.budgetAmount)}
-                    </div>
-                  </FormItem>
-                )}
-
-              {/* Accounts - Show for Income categories instead of transactions */}
-              {isReadOnly &&
-                activeItem?.type === "INCOME" &&
-                activeItem?.accounts !== undefined && (
-                  <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Accounts</FormLabel>
-                    <div className="p-2 border rounded-md">
-                      {activeItem.accounts}
-                    </div>
-                  </FormItem>
-                )}
-
-              {/* Progress for expense categories with budget */}
-              {isReadOnly &&
-                activeItem?.budgetAmount &&
-                activeItem?.spent !== undefined && (
-                  <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Progress</FormLabel>
-                    <div className="space-y-2">
-                      <Progress
-                        value={Math.min(
-                          100,
-                          ((activeItem.spent || 0) / activeItem.budgetAmount) *
-                            100
-                        )}
-                        className={`h-2 ${getStatusColorByPercentage(
-                          ((activeItem.spent || 0) / activeItem.budgetAmount) *
-                            100
-                        )}`}
-                      />
-                      <p className="text-sm text-muted-foreground">
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(activeItem.spent || 0)}{" "}
-                        of{" "}
-                        {new Intl.NumberFormat("en-US", {
-                          style: "currency",
-                          currency: "USD",
-                        }).format(activeItem.budgetAmount)}{" "}
-                        (
-                        {Math.round(
-                          ((activeItem.spent || 0) / activeItem.budgetAmount) *
-                            100
-                        )}
-                        %)
-                      </p>
-                    </div>
-                  </FormItem>
-                )}
-
-              {/* Balance for income categories */}
-              {isReadOnly &&
-                activeItem?.type === "INCOME" &&
-                activeItem?.accounts !== undefined && (
-                  <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Total Balance</FormLabel>
-                    <div className="p-2 border rounded-md">
-                      {formatCurrency(activeItem.balance as number)}
-                    </div>
-                  </FormItem>
-                )}
-
-              {/* Average Growth - Show for Income categories */}
+              {/* Account Details - only for Income */}
               {isReadOnly &&
                 activeItem?.type === "INCOME" &&
-                activeItem?.accounts !== undefined && (
-                  <FormItem className="flex flex-col gap-3">
-                    <FormLabel>Average Growth (%)</FormLabel>
-                    <div className="p-2 border rounded-md flex items-center gap-2">
-                      <span
-                        className={
-                          Number.parseFloat(activeItem.averageGrowth) >= 0
-                            ? "text-emerald-600"
-                            : "text-red-600"
-                        }
-                      >
-                        {Number.parseFloat(activeItem.averageGrowth) >= 0 ? (
-                          <ArrowUp className="h-3 w-3" />
-                        ) : (
-                          <ArrowDown className="h-3 w-3" />
-                        )}
-                      </span>
-                      <span>
-                        {formatPercentage(
-                          Number.parseFloat(activeItem.averageGrowth)
-                        )}
-                      </span>
-                    </div>
-                  </FormItem>
+                activeItem?.accounts !== 0 && (
+                  <>
+                    <Accordion type="single" collapsible>
+                      <AccordionItem value="item-1">
+                        <AccordionTrigger>
+                          View Savings Details
+                        </AccordionTrigger>
+                        <AccordionContent className="flex flex-col gap-4">
+                          <FormItem className="flex flex-col gap-3">
+                            <FormLabel>Accounts</FormLabel>
+                            <div className="p-2 border rounded-md">
+                              {activeItem.accounts}
+                            </div>
+                          </FormItem>
+
+                          <FormItem className="flex flex-col gap-3">
+                            <FormLabel>Total Balance</FormLabel>
+                            <div className="p-2 border rounded-md">
+                              {formatCurrency(activeItem.balance as number)}
+                            </div>
+                          </FormItem>
+
+                          <FormItem className="flex flex-col gap-3">
+                            <FormLabel>Average Growth (%)</FormLabel>
+                            <div className="p-2 border rounded-md flex items-center gap-2">
+                              <span
+                                className={
+                                  Number.parseFloat(activeItem.averageGrowth) >=
+                                  0
+                                    ? "text-emerald-600"
+                                    : "text-red-600"
+                                }
+                              >
+                                {Number.parseFloat(activeItem.averageGrowth) >=
+                                0 ? (
+                                  <ArrowUp className="h-3 w-3" />
+                                ) : (
+                                  <ArrowDown className="h-3 w-3" />
+                                )}
+                              </span>
+                              <span>
+                                {formatPercentage(
+                                  Number.parseFloat(activeItem.averageGrowth)
+                                )}
+                              </span>
+                            </div>
+                          </FormItem>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </>
                 )}
             </form>
           </Form>

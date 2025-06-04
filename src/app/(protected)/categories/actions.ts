@@ -1,6 +1,12 @@
 "use server";
 
-import { auth } from "@/auth";
+import { getCurrentUserId } from "@/lib/actions/helpers/auth";
+import { revalidatePaths } from "@/lib/actions/helpers/revalidate";
+import { softDeleteRelations } from "@/lib/actions/helpers/softDelete";
+import {
+  parseAndCleanFormData,
+  validateWithSchema,
+} from "@/lib/actions/helpers/validation";
 import { prisma } from "@/lib/db/prisma";
 import {
   createCategorySchema,
@@ -10,49 +16,25 @@ import {
 } from "@/services/categories/schema";
 import { revalidatePath } from "next/cache";
 
-// Helper function to get current user
-async function getCurrentUser() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    throw new Error("Unauthorized");
-  }
-  return session.user.id;
-}
-
 // CREATE CATEGORY
 export async function createCategory(formData: FormData) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    // Parse FormData
-    const raw = Object.fromEntries(formData.entries());
+    const cleanedData = parseAndCleanFormData(formData, ["description"]);
+    const formValidated = validateWithSchema(
+      cleanedData,
+      categoryFormSchema,
+      "form"
+    );
+    const dataWithUserId = { ...formValidated, userId };
+    const validated = validateWithSchema(
+      dataWithUserId,
+      createCategorySchema,
+      "create"
+    );
 
-    // Convert empty strings to undefined for optional fields
-    const cleanedData = {
-      ...raw,
-      description: raw.description === "" ? null : raw.description,
-    };
-
-    // Validate with form schema first
-    const formValidation = categoryFormSchema.safeParse(cleanedData);
-    if (!formValidation.success) {
-      throw new Error(`Validation failed: ${formValidation.error.message}`);
-    }
-
-    // Add userId and validate with create schema
-    const dataWithUserId = {
-      ...formValidation.data,
-      userId,
-    };
-
-    const validation = createCategorySchema.safeParse(dataWithUserId);
-    if (!validation.success) {
-      throw new Error(`Validation failed: ${validation.error.message}`);
-    }
-
-    const category = await prisma.category.create({
-      data: validation.data,
-    });
+    const category = await prisma.category.create({ data: validated });
 
     revalidatePath("/categories");
     return { success: true, data: category };
@@ -69,48 +51,36 @@ export async function createCategory(formData: FormData) {
 // UPDATE CATEGORY
 export async function updateCategory(formData: FormData) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
 
-    // Parse FormData
-    const raw = Object.fromEntries(formData.entries());
+    const cleanedData = parseAndCleanFormData(formData, ["description"]);
+    const formValidated = validateWithSchema(
+      cleanedData,
+      categoryFormSchema,
+      "form"
+    );
 
-    // Convert empty strings to undefined for optional fields
-    const cleanedData = {
-      ...raw,
-      description: raw.description === "" ? null : raw.description,
-    };
-
-    // Validate with form schema first
-    const formValidation = categoryFormSchema.safeParse(cleanedData);
-    if (!formValidation.success) {
-      throw new Error(`Validation failed: ${formValidation.error.message}`);
-    }
-
-    // Get ID from FormData
-    const categoryId = raw.id as string;
+    const categoryId = cleanedData.id as string;
     if (!categoryId) {
       throw new Error("Category ID is required for update");
     }
 
-    // Add userId and id, then validate with update schema
-    const dataWithUserIdAndId = {
-      ...formValidation.data,
-      userId,
+    const dataWithIdAndUser = {
+      ...formValidated,
       id: categoryId,
+      userId,
     };
+    const validated = validateWithSchema(
+      dataWithIdAndUser,
+      updateCategorySchema,
+      "update"
+    );
 
-    const validation = updateCategorySchema.safeParse(dataWithUserIdAndId);
-    if (!validation.success) {
-      throw new Error(`Validation failed: ${validation.error.message}`);
-    }
+    const { id, ...updateData } = validated;
 
-    const { id, ...updateData } = validation.data;
-
-    // Verify ownership
     const existingCategory = await prisma.category.findFirst({
       where: { id, userId },
     });
-
     if (!existingCategory) {
       throw new Error("Category not found or access denied");
     }
@@ -135,26 +105,25 @@ export async function updateCategory(formData: FormData) {
 // DELETE CATEGORY
 export async function deleteCategory(id: string) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
+    if (!id) throw new Error("Category ID is required");
 
-    if (!id) {
-      throw new Error("Category ID is required");
-    }
-
-    // Verify ownership before deletion
     const existingCategory = await prisma.category.findFirst({
       where: { id, userId },
     });
-
     if (!existingCategory) {
       throw new Error("Category not found or access denied");
     }
 
-    await prisma.category.delete({
+    const now = new Date();
+    await prisma.category.update({
       where: { id },
+      data: { deletedAt: now },
     });
 
-    revalidatePath("/categories");
+    await softDeleteRelations(userId, [id]);
+    revalidatePaths(["/categories", "/budgets", "/transactions", "/savings"]);
+
     return { success: true };
   } catch (error) {
     console.error("Error deleting category:", error);
@@ -169,32 +138,26 @@ export async function deleteCategory(id: string) {
 // DELETE MULTIPLE CATEGORIES
 export async function deleteCategories(ids: string[]) {
   try {
-    const userId = await getCurrentUser();
+    const userId = await getCurrentUserId();
+    if (!ids.length) throw new Error("Category IDs are required");
 
-    if (!ids.length) {
-      throw new Error("Category IDs are required");
-    }
-
-    // Verify ownership of all categories
-    const existingCategories = await prisma.category.findMany({
-      where: {
-        id: { in: ids },
-        userId,
-      },
+    const existing = await prisma.category.findMany({
+      where: { id: { in: ids }, userId, deletedAt: null },
     });
 
-    if (existingCategories.length !== ids.length) {
+    if (existing.length !== ids.length) {
       throw new Error("Some categories not found or access denied");
     }
 
-    await prisma.category.deleteMany({
-      where: {
-        id: { in: ids },
-        userId,
-      },
+    const now = new Date();
+    await prisma.category.updateMany({
+      where: { id: { in: ids }, userId },
+      data: { deletedAt: now },
     });
 
-    revalidatePath("/categories");
+    await softDeleteRelations(userId, ids);
+    revalidatePaths(["/categories", "/budgets", "/transactions", "/savings"]);
+
     return { success: true };
   } catch (error) {
     console.error("Error deleting categories:", error);
@@ -212,21 +175,11 @@ export async function getCategories(
 ): Promise<CategoryWithStats[]> {
   try {
     const categories = await prisma.category.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       include: {
-        transactions: {
-          select: {
-            amount: true,
-            date: true,
-          },
-        },
+        transactions: { select: { amount: true, date: true } },
         budgets: {
-          select: {
-            id: true,
-            name: true,
-            amount: true,
-            month: true,
-          },
+          select: { id: true, name: true, amount: true, month: true },
         },
         savings: {
           select: {
@@ -241,7 +194,8 @@ export async function getCategories(
       orderBy: { name: "asc" },
     });
 
-    // Calculate stats for each category
+    const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
+
     const categoriesWithStats: CategoryWithStats[] = categories.map(
       (category) => {
         const transactions = category.transactions || [];
@@ -249,19 +203,28 @@ export async function getCategories(
         const savings = category.savings || [];
 
         // Get current month budget
-        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
         const currentBudget = budgets.find((b) => b.month === currentMonth);
 
-        // Calculate spent amount (sum of expense transactions or income transactions)
-        const spent = transactions.reduce(
+        // Filter transactions for the current month only
+        const monthTransactions = transactions.filter((t) =>
+          t.date.toISOString().startsWith(currentMonth)
+        );
+
+        // Calculate spent amount (only for this month)
+        const spent = monthTransactions.reduce(
           (sum, t) => sum + Math.abs(t.amount),
           0
         );
 
-        // Calculate balance (for income categories, this would be total earned)
+        const remaining =
+          category.type === "EXPENSE" && currentBudget
+            ? currentBudget.amount - spent
+            : undefined;
+
+        // Calculate balance (monthly scoped)
         const balance =
           category.type === "INCOME"
-            ? transactions.reduce((sum, t) => sum + t.amount, 0)
+            ? monthTransactions.reduce((sum, t) => sum + t.amount, 0)
             : (currentBudget?.amount || 0) - spent;
 
         const averageGrowth =
@@ -277,11 +240,12 @@ export async function getCategories(
           icon: category.icon,
           userId: category.userId,
           transactions:
-            category.type === "EXPENSE" ? transactions.length : undefined,
+            category.type === "EXPENSE" ? monthTransactions.length : undefined,
           accounts: category.type === "INCOME" ? savings.length : undefined,
           budgetAmount: currentBudget?.amount,
           budgetName: currentBudget?.name,
           spent: category.type === "EXPENSE" ? spent : undefined,
+          remaining: category.type === "EXPENSE" ? remaining : undefined,
           balance: category.type === "INCOME" ? balance : undefined,
           averageGrowth,
         };
@@ -297,6 +261,29 @@ export async function getCategories(
 
 // GET CATEGORIES FOR CURRENT USER
 export async function getCurrentUserCategories(): Promise<CategoryWithStats[]> {
-  const userId = await getCurrentUser();
+  const userId = await getCurrentUserId();
   return getCategories(userId);
+}
+
+// VALIDATE CATEGORY
+export async function getValidCategoryOrThrow({
+  id,
+  userId,
+}: {
+  id: string;
+  userId: string;
+}) {
+  const category = await prisma.category.findFirst({
+    where: {
+      id,
+      userId,
+      deletedAt: null,
+    },
+  });
+
+  if (!category) {
+    throw new Error("Category not found or access denied");
+  }
+
+  return category;
 }
