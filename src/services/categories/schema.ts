@@ -42,6 +42,7 @@ export const categoryWithStatsSchema = z.object({
   budgetName: z.string().optional(),
   budgetAmount: z.number().optional(),
   spent: z.number().optional(),
+  remaining: z.number().optional(),
   balance: z.number().optional(),
   averageGrowth: z.number().optional(),
 });

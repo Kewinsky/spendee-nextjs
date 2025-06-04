@@ -216,6 +216,11 @@ export async function getCategories(
           0
         );
 
+        const remaining =
+          category.type === "EXPENSE" && currentBudget
+            ? currentBudget.amount - spent
+            : undefined;
+
         // Calculate balance (monthly scoped)
         const balance =
           category.type === "INCOME"
@@ -240,6 +245,7 @@ export async function getCategories(
           budgetAmount: currentBudget?.amount,
           budgetName: currentBudget?.name,
           spent: category.type === "EXPENSE" ? spent : undefined,
+          remaining: category.type === "EXPENSE" ? remaining : undefined,
           balance: category.type === "INCOME" ? balance : undefined,
           averageGrowth,
         };

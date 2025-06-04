@@ -825,6 +825,7 @@ function BudgetTableCellViewer({
                   </FormItem>
                 )}
               />
+
               <div className="grid grid-cols-2 gap-4">
                 {/* Spent - View only */}
                 {isReadOnly && activeItem?.spent !== undefined && (
