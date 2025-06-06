@@ -44,7 +44,7 @@ export const categoryWithStatsSchema = z.object({
   spent: z.number().optional(),
   remaining: z.number().optional(),
   balance: z.number().optional(),
-  averageGrowth: z.number().optional(),
+  // averageGrowth: z.number().optional(),
 });
 
 // Type exports

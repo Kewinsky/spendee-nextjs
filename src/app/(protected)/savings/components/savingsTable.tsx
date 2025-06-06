@@ -788,8 +788,8 @@ function SavingsTableCellViewer({
           accountName: activeItem.accountName,
           categoryId: activeItem.categoryId,
           balance: activeItem.balance.toString(),
+          initialBalance: activeItem.initialBalance.toString(),
           interestRate: activeItem.interestRate.toString(),
-          growth: activeItem.growth.toString(),
           accountType: activeItem.accountType,
           institution: activeItem.institution || "",
         }
@@ -806,8 +806,8 @@ function SavingsTableCellViewer({
         accountName: activeItem.accountName,
         categoryId: activeItem.categoryId,
         balance: activeItem.balance.toString(),
+        initialBalance: activeItem.initialBalance.toString(),
         interestRate: activeItem.interestRate.toString(),
-        growth: activeItem.growth.toString(),
         accountType: activeItem.accountType,
         institution: activeItem.institution || "",
       });
@@ -823,9 +823,14 @@ function SavingsTableCellViewer({
     const formData = new FormData();
     formData.append("accountName", values.accountName);
     formData.append("categoryId", values.categoryId);
-    formData.append("balance", values.balance);
+    if (activeItem) {
+      formData.append("balance", values.balance.toString());
+      formData.append("initialBalance", values.initialBalance.toString());
+    } else {
+      formData.append("balance", values.initialBalance.toString());
+      formData.append("initialBalance", values.initialBalance.toString());
+    }
     formData.append("interestRate", values.interestRate);
-    formData.append("growth", values.growth || "0");
     formData.append("accountType", values.accountType);
     formData.append("institution", values.institution || "");
 
@@ -846,6 +851,7 @@ function SavingsTableCellViewer({
   };
 
   const isReadOnly = viewMode === "view";
+  const isAddOnly = viewMode === "add";
   const isDeleteConfirm = viewMode === "delete-confirm";
   const isSavings = form.watch("accountType") === "SAVINGS";
 
@@ -990,10 +996,10 @@ function SavingsTableCellViewer({
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
                     <FormLabel>Category</FormLabel>
-                    {isReadOnly ? (
+                    {isReadOnly && activeItem?.category ? (
                       <div className="p-2 border rounded-md flex items-center">
-                        {getIconBySlug(activeItem!.category!.icon)}
-                        {activeItem!.category!.name}
+                        {getIconBySlug(activeItem.category.icon)}
+                        {activeItem.category.name}
                       </div>
                     ) : (
                       <Select
@@ -1103,14 +1109,14 @@ function SavingsTableCellViewer({
                 )}
               />
 
-              {/* Balance & Interest Rate */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Initial Balance */}
+              {isReadOnly && (
                 <FormField
                   control={form.control}
-                  name="balance"
+                  name="initialBalance"
                   render={({ field }) => (
                     <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Balance</FormLabel>
+                      <FormLabel>Initial Balance</FormLabel>
                       {isReadOnly ? (
                         <div className="p-2 border rounded-md">
                           {formatCurrency(Number.parseFloat(field.value))}
@@ -1130,6 +1136,61 @@ function SavingsTableCellViewer({
                     </FormItem>
                   )}
                 />
+              )}
+
+              {/* Balance & Interest Rate */}
+              <div className="grid grid-cols-2 gap-4">
+                {isAddOnly ? (
+                  // SHOW initialBalance only in add mode
+                  <FormField
+                    control={form.control}
+                    name="initialBalance"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-3">
+                        <FormLabel>Initial Balance</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            step="0.01"
+                            min={0}
+                            placeholder="0.00"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  // SHOW balance only in edit mode
+                  <FormField
+                    control={form.control}
+                    name="balance"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-3">
+                        <FormLabel>Balance</FormLabel>
+                        {isReadOnly ? (
+                          <div className="p-2 border rounded-md">
+                            {formatCurrency(Number.parseFloat(field.value))}
+                          </div>
+                        ) : (
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              step="0.01"
+                              min={0}
+                              placeholder="0.00"
+                            />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Interest / Expected Return */}
                 <FormField
                   control={form.control}
                   name="interestRate"
@@ -1173,19 +1234,21 @@ function SavingsTableCellViewer({
                         <div className="p-2 border rounded-md flex items-center gap-2">
                           <span
                             className={
-                              Number.parseFloat(field.value) >= 0
+                              Number.parseFloat(field.value ?? "0") >= 0
                                 ? "text-emerald-600"
                                 : "text-red-600"
                             }
                           >
-                            {Number.parseFloat(field.value) >= 0 ? (
+                            {Number.parseFloat(field.value ?? "0") >= 0 ? (
                               <ArrowUp className="h-3 w-3" />
                             ) : (
                               <ArrowDown className="h-3 w-3" />
                             )}
                           </span>
                           <span>
-                            {formatPercentage(Number.parseFloat(field.value))}
+                            {formatPercentage(
+                              Number.parseFloat(field.value ?? 0)
+                            )}
                           </span>
                         </div>
                       ) : (

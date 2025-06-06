@@ -341,7 +341,6 @@ export function CategoryTable({
   const filteredData = React.useMemo(() => {
     let result = data;
 
-    // Filter by tab
     result = result.filter((item) =>
       activeTab === "expenses"
         ? item.type === "EXPENSE"

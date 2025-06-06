@@ -21,27 +21,20 @@ export async function createSavings(formData: FormData) {
   try {
     const userId = await getCurrentUserId();
 
-    const cleanedData = parseAndCleanFormData(formData, [
-      "institution",
-      "growth",
-    ]);
-    const normalizedData = {
-      ...cleanedData,
-      growth: cleanedData.growth === "" ? "0" : cleanedData.growth,
-    };
-
+    const cleanedData = parseAndCleanFormData(formData, ["institution"]);
     const formValidated = validateWithSchema(
-      normalizedData,
+      cleanedData,
       savingsFormSchema,
       "form"
     );
+    const amount = parseFloat(formValidated.initialBalance);
 
     const savingsData = {
       ...formValidated,
       userId,
-      balance: parseFloat(formValidated.balance),
+      balance: amount,
+      initialBalance: amount,
       interestRate: parseFloat(formValidated.interestRate),
-      growth: formValidated.growth ? parseFloat(formValidated.growth) : 0,
     };
 
     const validated = validateWithSchema(
@@ -82,17 +75,9 @@ export async function updateSavings(formData: FormData) {
   try {
     const userId = await getCurrentUserId();
 
-    const cleanedData = parseAndCleanFormData(formData, [
-      "institution",
-      "growth",
-    ]);
-    const normalizedData = {
-      ...cleanedData,
-      growth: cleanedData.growth === "" ? "0" : cleanedData.growth,
-    };
-
+    const cleanedData = parseAndCleanFormData(formData, ["institution"]);
     const formValidated = validateWithSchema(
-      normalizedData,
+      cleanedData,
       savingsFormSchema,
       "form"
     );
@@ -108,7 +93,6 @@ export async function updateSavings(formData: FormData) {
       id: savingsId,
       balance: parseFloat(formValidated.balance),
       interestRate: parseFloat(formValidated.interestRate),
-      growth: formValidated.growth ? parseFloat(formValidated.growth) : 0,
     };
 
     const validated = validateWithSchema(
@@ -245,7 +229,17 @@ export async function getSavings(userId: string): Promise<SavingsWithStats[]> {
       orderBy: { accountName: "asc" },
     });
 
-    return savings as SavingsWithStats[];
+    return savings.map((s) => {
+      const growth =
+        s.initialBalance > 0
+          ? ((s.balance - s.initialBalance) / s.initialBalance) * 100
+          : 0;
+
+      return {
+        ...s,
+        growth,
+      };
+    });
   } catch (error) {
     console.error("Error fetching savings:", error);
     throw new Error("Failed to fetch savings");
