@@ -3,7 +3,7 @@ import { toast } from "sonner";
 type BulkDeleteOptions<T> = {
   items: T[];
   getId: (item: T) => string;
-  deleteFn: (ids: string[]) => Promise<{ success: boolean }[]>;
+  deleteFn: (ids: string[]) => Promise<{ success: boolean; error?: string }>;
   setData: React.Dispatch<React.SetStateAction<T[]>>;
   resetSelection?: () => void;
   closeDrawer: () => void;
@@ -23,24 +23,19 @@ export async function performBulkDelete<T>({
 
   await toast.promise(
     (async () => {
-      const results = await deleteFn(selectedIds);
+      const result = await deleteFn(selectedIds);
 
-      const successCount = results.filter((r) => r.success).length;
-      const failureCount = results.length - successCount;
-
-      if (successCount > 0) {
+      if (result.success) {
         setData((prev) =>
           prev.filter((item) => !selectedIds.includes(getId(item)))
         );
         resetSelection?.();
         closeDrawer();
+      } else {
+        throw new Error(result.error || `Failed to delete ${resourceName}`);
       }
 
-      if (failureCount > 0) {
-        throw new Error(`Failed to delete ${failureCount} ${resourceName}`);
-      }
-
-      return `${successCount} ${resourceName} deleted successfully`;
+      return `${selectedIds.length} ${resourceName} deleted successfully`;
     })(),
     {
       loading: `Deleting ${resourceName}...`,

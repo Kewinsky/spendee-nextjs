@@ -175,7 +175,7 @@ export function TransactionsTable({
   };
 
   const deleteTransactionsBulk = async (ids: string[]) => {
-    return Promise.all(ids.map((id) => deleteTransactions(id)));
+    return deleteTransactions(ids);
   };
 
   const confirmBulkDelete = async () => {
