@@ -60,8 +60,36 @@ export async function createBudget(formData: FormData) {
       },
     });
 
+    const startOfMonth = new Date(`${budget.month}-01`);
+    const startOfNextMonth = new Date(startOfMonth);
+    startOfNextMonth.setMonth(startOfMonth.getMonth() + 1);
+
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        categoryId: budget.categoryId,
+        userId,
+        date: {
+          gte: startOfMonth,
+          lt: startOfNextMonth,
+        },
+      },
+    });
+
+    const spent = transactions.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+    const remaining = budget.amount - spent;
+    const progress = budget.amount > 0 ? (spent / budget.amount) * 100 : 0;
+
     revalidatePaths(["/budgets", "/categories"]);
-    return { success: true, data: budget };
+
+    return {
+      success: true,
+      data: {
+        ...budget,
+        spent,
+        remaining,
+        progress,
+      },
+    };
   } catch (error) {
     console.error("Error creating budget:", error);
     return {

@@ -1106,6 +1106,7 @@ export function TransactionsTable({
         csvMode={csvMode}
         setCsvMode={setCsvMode}
         categories={categories}
+        activeTab={activeTab}
       />
     </Tabs>
   );
@@ -1165,6 +1166,7 @@ function TableCellViewer({
   csvMode,
   setCsvMode,
   categories = [],
+  activeTab,
 }: {
   activeItem: TransactionWithStats | null;
   viewMode: "add" | "edit" | "view" | "delete-confirm";
@@ -1182,6 +1184,7 @@ function TableCellViewer({
     type: "EXPENSE" | "INCOME";
     icon: string;
   }[];
+  activeTab: string;
 }) {
   const isMobile = useIsMobile();
   const [csvFile, setCsvFile] = React.useState<File | null>(null);
@@ -1200,7 +1203,13 @@ function TableCellViewer({
           type: activeItem.type as "Income" | "Expense",
           notes: activeItem.notes || "",
         }
-      : emptyTransactionForm,
+      : {
+          ...emptyTransactionForm,
+          type:
+            activeTab === "expenses" || activeTab === "all"
+              ? "Expense"
+              : "Income",
+        },
     mode: "onSubmit",
   });
 
@@ -1216,9 +1225,15 @@ function TableCellViewer({
         notes: activeItem.notes || "",
       });
     } else {
-      form.reset(emptyTransactionForm);
+      form.reset({
+        ...emptyTransactionForm,
+        type:
+          activeTab === "expenses" || activeTab === "all"
+            ? "Expense"
+            : "Income",
+      });
     }
-  }, [activeItem, form]);
+  }, [activeItem, form, activeTab]);
 
   const onSubmit = async (values: TransactionFormValues) => {
     const formData = new FormData();
@@ -1928,8 +1943,8 @@ function TableCellViewer({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="Income">Income</SelectItem>
                             <SelectItem value="Expense">Expense</SelectItem>
+                            <SelectItem value="Income">Income</SelectItem>
                           </SelectContent>
                         </Select>
                       )}
