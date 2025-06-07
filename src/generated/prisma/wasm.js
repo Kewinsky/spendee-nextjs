@@ -198,6 +198,7 @@ exports.Prisma.SavingsScalarFieldEnum = {
   categoryId: 'categoryId',
   userId: 'userId',
   balance: 'balance',
+  initialBalance: 'initialBalance',
   interestRate: 'interestRate',
   accountType: 'accountType',
   institution: 'institution',

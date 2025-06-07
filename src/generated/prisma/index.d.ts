@@ -9817,11 +9817,13 @@ export namespace Prisma {
 
   export type SavingsAvgAggregateOutputType = {
     balance: number | null
+    initialBalance: number | null
     interestRate: number | null
   }
 
   export type SavingsSumAggregateOutputType = {
     balance: number | null
+    initialBalance: number | null
     interestRate: number | null
   }
 
@@ -9831,6 +9833,7 @@ export namespace Prisma {
     categoryId: string | null
     userId: string | null
     balance: number | null
+    initialBalance: number | null
     interestRate: number | null
     accountType: $Enums.AccountType | null
     institution: string | null
@@ -9845,6 +9848,7 @@ export namespace Prisma {
     categoryId: string | null
     userId: string | null
     balance: number | null
+    initialBalance: number | null
     interestRate: number | null
     accountType: $Enums.AccountType | null
     institution: string | null
@@ -9859,6 +9863,7 @@ export namespace Prisma {
     categoryId: number
     userId: number
     balance: number
+    initialBalance: number
     interestRate: number
     accountType: number
     institution: number
@@ -9871,11 +9876,13 @@ export namespace Prisma {
 
   export type SavingsAvgAggregateInputType = {
     balance?: true
+    initialBalance?: true
     interestRate?: true
   }
 
   export type SavingsSumAggregateInputType = {
     balance?: true
+    initialBalance?: true
     interestRate?: true
   }
 
@@ -9885,6 +9892,7 @@ export namespace Prisma {
     categoryId?: true
     userId?: true
     balance?: true
+    initialBalance?: true
     interestRate?: true
     accountType?: true
     institution?: true
@@ -9899,6 +9907,7 @@ export namespace Prisma {
     categoryId?: true
     userId?: true
     balance?: true
+    initialBalance?: true
     interestRate?: true
     accountType?: true
     institution?: true
@@ -9913,6 +9922,7 @@ export namespace Prisma {
     categoryId?: true
     userId?: true
     balance?: true
+    initialBalance?: true
     interestRate?: true
     accountType?: true
     institution?: true
@@ -10014,6 +10024,7 @@ export namespace Prisma {
     categoryId: string
     userId: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType: $Enums.AccountType
     institution: string | null
@@ -10047,6 +10058,7 @@ export namespace Prisma {
     categoryId?: boolean
     userId?: boolean
     balance?: boolean
+    initialBalance?: boolean
     interestRate?: boolean
     accountType?: boolean
     institution?: boolean
@@ -10063,6 +10075,7 @@ export namespace Prisma {
     categoryId?: boolean
     userId?: boolean
     balance?: boolean
+    initialBalance?: boolean
     interestRate?: boolean
     accountType?: boolean
     institution?: boolean
@@ -10079,6 +10092,7 @@ export namespace Prisma {
     categoryId?: boolean
     userId?: boolean
     balance?: boolean
+    initialBalance?: boolean
     interestRate?: boolean
     accountType?: boolean
     institution?: boolean
@@ -10095,6 +10109,7 @@ export namespace Prisma {
     categoryId?: boolean
     userId?: boolean
     balance?: boolean
+    initialBalance?: boolean
     interestRate?: boolean
     accountType?: boolean
     institution?: boolean
@@ -10103,7 +10118,7 @@ export namespace Prisma {
     deletedAt?: boolean
   }
 
-  export type SavingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "accountName" | "categoryId" | "userId" | "balance" | "interestRate" | "accountType" | "institution" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["savings"]>
+  export type SavingsOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "accountName" | "categoryId" | "userId" | "balance" | "initialBalance" | "interestRate" | "accountType" | "institution" | "createdAt" | "updatedAt" | "deletedAt", ExtArgs["result"]["savings"]>
   export type SavingsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     category?: boolean | CategoryDefaultArgs<ExtArgs>
@@ -10129,6 +10144,7 @@ export namespace Prisma {
       categoryId: string
       userId: string
       balance: number
+      initialBalance: number
       interestRate: number
       accountType: $Enums.AccountType
       institution: string | null
@@ -10565,6 +10581,7 @@ export namespace Prisma {
     readonly categoryId: FieldRef<"Savings", 'String'>
     readonly userId: FieldRef<"Savings", 'String'>
     readonly balance: FieldRef<"Savings", 'Float'>
+    readonly initialBalance: FieldRef<"Savings", 'Float'>
     readonly interestRate: FieldRef<"Savings", 'Float'>
     readonly accountType: FieldRef<"Savings", 'AccountType'>
     readonly institution: FieldRef<"Savings", 'String'>
@@ -12279,6 +12296,7 @@ export namespace Prisma {
     categoryId: 'categoryId',
     userId: 'userId',
     balance: 'balance',
+    initialBalance: 'initialBalance',
     interestRate: 'interestRate',
     accountType: 'accountType',
     institution: 'institution',
@@ -12965,6 +12983,7 @@ export namespace Prisma {
     categoryId?: StringFilter<"Savings"> | string
     userId?: StringFilter<"Savings"> | string
     balance?: FloatFilter<"Savings"> | number
+    initialBalance?: FloatFilter<"Savings"> | number
     interestRate?: FloatFilter<"Savings"> | number
     accountType?: EnumAccountTypeFilter<"Savings"> | $Enums.AccountType
     institution?: StringNullableFilter<"Savings"> | string | null
@@ -12981,6 +13000,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     userId?: SortOrder
     balance?: SortOrder
+    initialBalance?: SortOrder
     interestRate?: SortOrder
     accountType?: SortOrder
     institution?: SortOrderInput | SortOrder
@@ -13000,6 +13020,7 @@ export namespace Prisma {
     categoryId?: StringFilter<"Savings"> | string
     userId?: StringFilter<"Savings"> | string
     balance?: FloatFilter<"Savings"> | number
+    initialBalance?: FloatFilter<"Savings"> | number
     interestRate?: FloatFilter<"Savings"> | number
     accountType?: EnumAccountTypeFilter<"Savings"> | $Enums.AccountType
     institution?: StringNullableFilter<"Savings"> | string | null
@@ -13016,6 +13037,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     userId?: SortOrder
     balance?: SortOrder
+    initialBalance?: SortOrder
     interestRate?: SortOrder
     accountType?: SortOrder
     institution?: SortOrderInput | SortOrder
@@ -13038,6 +13060,7 @@ export namespace Prisma {
     categoryId?: StringWithAggregatesFilter<"Savings"> | string
     userId?: StringWithAggregatesFilter<"Savings"> | string
     balance?: FloatWithAggregatesFilter<"Savings"> | number
+    initialBalance?: FloatWithAggregatesFilter<"Savings"> | number
     interestRate?: FloatWithAggregatesFilter<"Savings"> | number
     accountType?: EnumAccountTypeWithAggregatesFilter<"Savings"> | $Enums.AccountType
     institution?: StringNullableWithAggregatesFilter<"Savings"> | string | null
@@ -13702,6 +13725,7 @@ export namespace Prisma {
     id?: string
     accountName: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType?: $Enums.AccountType
     institution?: string | null
@@ -13718,6 +13742,7 @@ export namespace Prisma {
     categoryId: string
     userId: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType?: $Enums.AccountType
     institution?: string | null
@@ -13730,6 +13755,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     accountName?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13746,6 +13772,7 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13760,6 +13787,7 @@ export namespace Prisma {
     categoryId: string
     userId: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType?: $Enums.AccountType
     institution?: string | null
@@ -13772,6 +13800,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     accountName?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null
@@ -13786,6 +13815,7 @@ export namespace Prisma {
     categoryId?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14436,6 +14466,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     userId?: SortOrder
     balance?: SortOrder
+    initialBalance?: SortOrder
     interestRate?: SortOrder
     accountType?: SortOrder
     institution?: SortOrder
@@ -14446,6 +14477,7 @@ export namespace Prisma {
 
   export type SavingsAvgOrderByAggregateInput = {
     balance?: SortOrder
+    initialBalance?: SortOrder
     interestRate?: SortOrder
   }
 
@@ -14455,6 +14487,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     userId?: SortOrder
     balance?: SortOrder
+    initialBalance?: SortOrder
     interestRate?: SortOrder
     accountType?: SortOrder
     institution?: SortOrder
@@ -14469,6 +14502,7 @@ export namespace Prisma {
     categoryId?: SortOrder
     userId?: SortOrder
     balance?: SortOrder
+    initialBalance?: SortOrder
     interestRate?: SortOrder
     accountType?: SortOrder
     institution?: SortOrder
@@ -14479,6 +14513,7 @@ export namespace Prisma {
 
   export type SavingsSumOrderByAggregateInput = {
     balance?: SortOrder
+    initialBalance?: SortOrder
     interestRate?: SortOrder
   }
 
@@ -15570,6 +15605,7 @@ export namespace Prisma {
     id?: string
     accountName: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType?: $Enums.AccountType
     institution?: string | null
@@ -15584,6 +15620,7 @@ export namespace Prisma {
     accountName: string
     categoryId: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType?: $Enums.AccountType
     institution?: string | null
@@ -15833,6 +15870,7 @@ export namespace Prisma {
     categoryId?: StringFilter<"Savings"> | string
     userId?: StringFilter<"Savings"> | string
     balance?: FloatFilter<"Savings"> | number
+    initialBalance?: FloatFilter<"Savings"> | number
     interestRate?: FloatFilter<"Savings"> | number
     accountType?: EnumAccountTypeFilter<"Savings"> | $Enums.AccountType
     institution?: StringNullableFilter<"Savings"> | string | null
@@ -16382,6 +16420,7 @@ export namespace Prisma {
     id?: string
     accountName: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType?: $Enums.AccountType
     institution?: string | null
@@ -16396,6 +16435,7 @@ export namespace Prisma {
     accountName: string
     userId: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType?: $Enums.AccountType
     institution?: string | null
@@ -17071,6 +17111,7 @@ export namespace Prisma {
     accountName: string
     categoryId: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType?: $Enums.AccountType
     institution?: string | null
@@ -17232,6 +17273,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     accountName?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17246,6 +17288,7 @@ export namespace Prisma {
     accountName?: StringFieldUpdateOperationsInput | string
     categoryId?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17259,6 +17302,7 @@ export namespace Prisma {
     accountName?: StringFieldUpdateOperationsInput | string
     categoryId?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17402,6 +17446,7 @@ export namespace Prisma {
     accountName: string
     userId: string
     balance: number
+    initialBalance: number
     interestRate: number
     accountType?: $Enums.AccountType
     institution?: string | null
@@ -17489,6 +17534,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     accountName?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17503,6 +17549,7 @@ export namespace Prisma {
     accountName?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null
@@ -17516,6 +17563,7 @@ export namespace Prisma {
     accountName?: StringFieldUpdateOperationsInput | string
     userId?: StringFieldUpdateOperationsInput | string
     balance?: FloatFieldUpdateOperationsInput | number
+    initialBalance?: FloatFieldUpdateOperationsInput | number
     interestRate?: FloatFieldUpdateOperationsInput | number
     accountType?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
     institution?: NullableStringFieldUpdateOperationsInput | string | null

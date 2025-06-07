@@ -131,14 +131,15 @@ model Budget {
 }
 
 model Savings {
-  id           String      @id @default(cuid())
-  accountName  String
-  categoryId   String
-  userId       String
-  balance      Float
-  interestRate Float
-  accountType  AccountType @default(SAVINGS)
-  institution  String?
+  id             String      @id @default(cuid())
+  accountName    String
+  categoryId     String
+  userId         String
+  balance        Float
+  initialBalance Float
+  interestRate   Float
+  accountType    AccountType @default(SAVINGS)
+  institution    String?
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
