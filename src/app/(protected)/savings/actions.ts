@@ -21,17 +21,10 @@ export async function createSavings(formData: FormData) {
   try {
     const userId = await getCurrentUserId();
 
-    const cleanedData = parseAndCleanFormData(formData, [
-      "institution",
-      "growth",
-    ]);
-    const normalizedData = {
-      ...cleanedData,
-      growth: cleanedData.growth === "" ? "0" : cleanedData.growth,
-    };
+    const cleanedData = parseAndCleanFormData(formData, ["institution"]);
 
     const formValidated = validateWithSchema(
-      normalizedData,
+      cleanedData,
       savingsFormSchema,
       "form"
     );
@@ -41,7 +34,6 @@ export async function createSavings(formData: FormData) {
       userId,
       balance: parseFloat(formValidated.balance),
       interestRate: parseFloat(formValidated.interestRate),
-      growth: formValidated.growth ? parseFloat(formValidated.growth) : 0,
     };
 
     const validated = validateWithSchema(
@@ -82,17 +74,10 @@ export async function updateSavings(formData: FormData) {
   try {
     const userId = await getCurrentUserId();
 
-    const cleanedData = parseAndCleanFormData(formData, [
-      "institution",
-      "growth",
-    ]);
-    const normalizedData = {
-      ...cleanedData,
-      growth: cleanedData.growth === "" ? "0" : cleanedData.growth,
-    };
+    const cleanedData = parseAndCleanFormData(formData, ["institution"]);
 
     const formValidated = validateWithSchema(
-      normalizedData,
+      cleanedData,
       savingsFormSchema,
       "form"
     );
@@ -108,7 +93,6 @@ export async function updateSavings(formData: FormData) {
       id: savingsId,
       balance: parseFloat(formValidated.balance),
       interestRate: parseFloat(formValidated.interestRate),
-      growth: formValidated.growth ? parseFloat(formValidated.growth) : 0,
     };
 
     const validated = validateWithSchema(

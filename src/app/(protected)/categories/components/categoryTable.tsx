@@ -1037,7 +1037,7 @@ function TableCellViewer({
                             </div>
                           </FormItem>
 
-                          <FormItem className="flex flex-col gap-3">
+                          {/* <FormItem className="flex flex-col gap-3">
                             <FormLabel>Average Growth (%)</FormLabel>
                             <div className="p-2 border rounded-md flex items-center gap-2">
                               <span
@@ -1061,7 +1061,7 @@ function TableCellViewer({
                                 )}
                               </span>
                             </div>
-                          </FormItem>
+                          </FormItem> */}
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>

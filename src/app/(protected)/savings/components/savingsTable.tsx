@@ -354,44 +354,44 @@ export function SavingsTable({
       enableSorting: true,
       enableHiding: true,
     },
-    {
-      accessorKey: "growth",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
-          >
-            Growth
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: ({ row }) => {
-        const growth = row.original.growth;
-        return (
-          <div className="flex items-center gap-2">
-            <span className={growth >= 0 ? "text-emerald-600" : "text-red-600"}>
-              {growth >= 0 ? (
-                <ArrowUp className="h-3 w-3" />
-              ) : (
-                <ArrowDown className="h-3 w-3" />
-              )}
-            </span>
-            <span>{formatPercentage(growth)}</span>
-          </div>
-        );
-      },
-      enableSorting: true,
-      enableHiding: true,
-    },
+    // {
+    //   accessorKey: "growth",
+    //   header: ({ column }) => {
+    //     return (
+    //       <Button
+    //         variant="ghost"
+    //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    //         className="flex items-center gap-1 p-0!"
+    //       >
+    //         Growth
+    //         {column.getIsSorted() === "asc" ? (
+    //           <ArrowUp className="ml-2 h-4 w-4" />
+    //         ) : column.getIsSorted() === "desc" ? (
+    //           <ArrowDown className="ml-2 h-4 w-4" />
+    //         ) : (
+    //           <ArrowUpDown className="ml-2 h-4 w-4" />
+    //         )}
+    //       </Button>
+    //     );
+    //   },
+    //   cell: ({ row }) => {
+    //     const growth = row.original.growth;
+    //     return (
+    //       <div className="flex items-center gap-2">
+    //         <span className={growth >= 0 ? "text-emerald-600" : "text-red-600"}>
+    //           {growth >= 0 ? (
+    //             <ArrowUp className="h-3 w-3" />
+    //           ) : (
+    //             <ArrowDown className="h-3 w-3" />
+    //           )}
+    //         </span>
+    //         <span>{formatPercentage(growth)}</span>
+    //       </div>
+    //     );
+    //   },
+    //   enableSorting: true,
+    //   enableHiding: true,
+    // },
     {
       id: "actions",
       cell: ({ row }) => (
@@ -789,7 +789,6 @@ function SavingsTableCellViewer({
           categoryId: activeItem.categoryId,
           balance: activeItem.balance.toString(),
           interestRate: activeItem.interestRate.toString(),
-          growth: activeItem.growth.toString(),
           accountType: activeItem.accountType,
           institution: activeItem.institution || "",
         }
@@ -807,7 +806,6 @@ function SavingsTableCellViewer({
         categoryId: activeItem.categoryId,
         balance: activeItem.balance.toString(),
         interestRate: activeItem.interestRate.toString(),
-        growth: activeItem.growth.toString(),
         accountType: activeItem.accountType,
         institution: activeItem.institution || "",
       });
@@ -825,7 +823,6 @@ function SavingsTableCellViewer({
     formData.append("categoryId", values.categoryId);
     formData.append("balance", values.balance);
     formData.append("interestRate", values.interestRate);
-    formData.append("growth", values.growth || "0");
     formData.append("accountType", values.accountType);
     formData.append("institution", values.institution || "");
 
@@ -1162,7 +1159,7 @@ function SavingsTableCellViewer({
               </div>
 
               {/* Growth */}
-              {isReadOnly && (
+              {/* {isReadOnly && (
                 <FormField
                   control={form.control}
                   name="growth"
@@ -1202,7 +1199,7 @@ function SavingsTableCellViewer({
                     </FormItem>
                   )}
                 />
-              )}
+              )} */}
             </form>
           </Form>
         </div>

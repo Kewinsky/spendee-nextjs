@@ -11,7 +11,6 @@ export const savingsSchema = z.object({
   userId: z.string().cuid("Invalid user ID"),
   balance: z.number().min(0, "Balance must be positive"),
   interestRate: z.number().min(0, "Interest rate must be positive"),
-  growth: z.number().default(0),
   accountType: AccountTypeEnum.default("SAVINGS"),
   institution: z.string().optional().nullable(),
 });
@@ -30,7 +29,6 @@ export const savingsFormSchema = z.object({
   categoryId: z.string().min(1, "Category is required"),
   balance: z.string().min(1, "Balance is required"),
   interestRate: z.string().min(1, "Interest rate is required"),
-  growth: z.string().optional(),
   accountType: AccountTypeEnum.default("SAVINGS"),
   institution: z.string().optional().nullable(),
 });
@@ -43,7 +41,6 @@ export const savingsWithStatsSchema = z.object({
   userId: z.string(),
   balance: z.number(),
   interestRate: z.number(),
-  growth: z.number(),
   accountType: AccountTypeEnum,
   institution: z.string().nullable(),
   createdAt: z.date(),
@@ -70,7 +67,6 @@ export const emptySavingsForm: SavingsFormValues = {
   categoryId: "",
   balance: "",
   interestRate: "",
-  growth: "",
   accountType: "SAVINGS",
   institution: "",
 };

@@ -137,7 +137,6 @@ model Savings {
   userId       String
   balance      Float
   interestRate Float
-  growth       Float       @default(0)
   accountType  AccountType @default(SAVINGS)
   institution  String?
 

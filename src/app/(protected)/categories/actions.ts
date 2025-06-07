@@ -187,7 +187,6 @@ export async function getCategories(
             accountName: true,
             balance: true,
             interestRate: true,
-            growth: true,
           },
         },
       },
@@ -227,11 +226,6 @@ export async function getCategories(
             ? monthTransactions.reduce((sum, t) => sum + t.amount, 0)
             : (currentBudget?.amount || 0) - spent;
 
-        const averageGrowth =
-          savings.length > 0
-            ? savings.reduce((sum, s) => sum + s.growth, 0) / savings.length
-            : 0;
-
         return {
           id: category.id,
           name: category.name,
@@ -247,7 +241,7 @@ export async function getCategories(
           spent: category.type === "EXPENSE" ? spent : undefined,
           remaining: category.type === "EXPENSE" ? remaining : undefined,
           balance: category.type === "INCOME" ? balance : undefined,
-          averageGrowth,
+          averageGrowth: 0,
         };
       }
     );
