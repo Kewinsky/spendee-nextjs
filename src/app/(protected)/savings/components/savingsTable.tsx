@@ -84,11 +84,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // Import the proper schemas and types
 import {
-  savingsFormSchema,
-  type SavingsFormValues,
+  addSavingsFormSchema,
+  editSavingsFormSchema,
+  type AddSavingsFormValues,
+  type EditSavingsFormValues,
   type SavingsWithStats,
   type AccountType,
-  emptySavingsForm,
+  emptyAddSavingsForm,
 } from "@/services/savings/schema";
 import {
   createSavings,
@@ -264,30 +266,6 @@ export function SavingsTable({
       enableSorting: true,
     },
     {
-      accessorKey: "institution",
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            className="flex items-center gap-1 p-0!"
-          >
-            Institution
-            {column.getIsSorted() === "asc" ? (
-              <ArrowUp className="ml-2 h-4 w-4" />
-            ) : column.getIsSorted() === "desc" ? (
-              <ArrowDown className="ml-2 h-4 w-4" />
-            ) : (
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            )}
-          </Button>
-        );
-      },
-      cell: ({ row }) => <div>{row.original.institution || "N/A"}</div>,
-      enableSorting: true,
-      enableHiding: true,
-    },
-    {
       accessorFn: (row) => row.category?.name,
       id: "category",
       header: "Category",
@@ -326,7 +304,7 @@ export function SavingsTable({
           </Button>
         );
       },
-      cell: ({ row }) => formatPercentage(row.original.interestRate),
+      cell: ({ row }) => formatPercentage(row.original.interestRate || 0),
       enableSorting: true,
       enableHiding: true,
     },
@@ -354,44 +332,44 @@ export function SavingsTable({
       enableSorting: true,
       enableHiding: true,
     },
-    // {
-    //   accessorKey: "growth",
-    //   header: ({ column }) => {
-    //     return (
-    //       <Button
-    //         variant="ghost"
-    //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    //         className="flex items-center gap-1 p-0!"
-    //       >
-    //         Growth
-    //         {column.getIsSorted() === "asc" ? (
-    //           <ArrowUp className="ml-2 h-4 w-4" />
-    //         ) : column.getIsSorted() === "desc" ? (
-    //           <ArrowDown className="ml-2 h-4 w-4" />
-    //         ) : (
-    //           <ArrowUpDown className="ml-2 h-4 w-4" />
-    //         )}
-    //       </Button>
-    //     );
-    //   },
-    //   cell: ({ row }) => {
-    //     const growth = row.original.growth;
-    //     return (
-    //       <div className="flex items-center gap-2">
-    //         <span className={growth >= 0 ? "text-emerald-600" : "text-red-600"}>
-    //           {growth >= 0 ? (
-    //             <ArrowUp className="h-3 w-3" />
-    //           ) : (
-    //             <ArrowDown className="h-3 w-3" />
-    //           )}
-    //         </span>
-    //         <span>{formatPercentage(growth)}</span>
-    //       </div>
-    //     );
-    //   },
-    //   enableSorting: true,
-    //   enableHiding: true,
-    // },
+    {
+      accessorKey: "growth",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            className="flex items-center gap-1 p-0!"
+          >
+            Growth
+            {column.getIsSorted() === "asc" ? (
+              <ArrowUp className="ml-2 h-4 w-4" />
+            ) : column.getIsSorted() === "desc" ? (
+              <ArrowDown className="ml-2 h-4 w-4" />
+            ) : (
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            )}
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
+        const growth = row.original.growth || 0;
+        return (
+          <div className="flex items-center gap-2">
+            <span className={growth >= 0 ? "text-emerald-600" : "text-red-600"}>
+              {growth >= 0 ? (
+                <ArrowUp className="h-3 w-3" />
+              ) : (
+                <ArrowDown className="h-3 w-3" />
+              )}
+            </span>
+            <span>{formatPercentage(growth)}</span>
+          </div>
+        );
+      },
+      enableSorting: true,
+      enableHiding: true,
+    },
     {
       id: "actions",
       cell: ({ row }) => (
@@ -780,9 +758,22 @@ function SavingsTableCellViewer({
   usedCategoryIds?: string[];
 }) {
   const isMobile = useIsMobile();
+  const isAdd = viewMode === "add";
+  const isEdit = viewMode === "edit";
+  const isView = viewMode === "view";
 
-  const form = useForm<SavingsFormValues>({
-    resolver: zodResolver(savingsFormSchema),
+  // Use different form schemas based on mode
+  const addForm = useForm<AddSavingsFormValues>({
+    resolver: zodResolver(addSavingsFormSchema),
+    defaultValues: {
+      ...emptyAddSavingsForm,
+      accountType: activeTab === "investments" ? "INVESTMENT" : "SAVINGS",
+    },
+    mode: "onSubmit",
+  });
+
+  const editForm = useForm<EditSavingsFormValues>({
+    resolver: zodResolver(editSavingsFormSchema),
     defaultValues: activeItem
       ? {
           accountName: activeItem.accountName,
@@ -793,15 +784,26 @@ function SavingsTableCellViewer({
           institution: activeItem.institution || "",
         }
       : {
-          ...emptySavingsForm,
+          accountName: "",
+          categoryId: "",
+          balance: "",
+          interestRate: "",
           accountType: activeTab === "investments" ? "INVESTMENT" : "SAVINGS",
+          institution: "",
         },
     mode: "onSubmit",
   });
 
+  const currentForm = isAdd ? addForm : editForm;
+
   React.useEffect(() => {
-    if (activeItem) {
-      form.reset({
+    if (isAdd) {
+      addForm.reset({
+        ...emptyAddSavingsForm,
+        accountType: activeTab === "investments" ? "INVESTMENT" : "SAVINGS",
+      });
+    } else if (activeItem) {
+      editForm.reset({
         accountName: activeItem.accountName,
         categoryId: activeItem.categoryId,
         balance: activeItem.balance.toString(),
@@ -809,42 +811,43 @@ function SavingsTableCellViewer({
         accountType: activeItem.accountType,
         institution: activeItem.institution || "",
       });
-    } else {
-      form.reset({
-        ...emptySavingsForm,
-        accountType: activeTab === "investments" ? "INVESTMENT" : "SAVINGS",
-      });
     }
-  }, [activeItem, form, activeTab]);
+  }, [activeItem, activeTab, isAdd, addForm, editForm]);
 
-  const onSubmit = async (values: SavingsFormValues) => {
+  const onSubmit = async (
+    values: AddSavingsFormValues | EditSavingsFormValues
+  ) => {
     const formData = new FormData();
     formData.append("accountName", values.accountName);
     formData.append("categoryId", values.categoryId);
-    formData.append("balance", values.balance);
     formData.append("interestRate", values.interestRate);
     formData.append("accountType", values.accountType);
     formData.append("institution", values.institution || "");
 
-    if (activeItem) {
-      formData.append("id", activeItem.id);
+    if (isAdd) {
+      const addValues = values as AddSavingsFormValues;
+      formData.append("initialBalance", addValues.initialBalance);
+    } else {
+      const editValues = values as EditSavingsFormValues;
+      formData.append("balance", editValues.balance);
+      formData.append("id", activeItem!.id);
     }
 
     await performAddOrUpdateItem({
       formData,
-      isEdit: !!activeItem,
+      isEdit: !isAdd,
       createFn: createSavings,
       updateFn: updateSavings,
       setData,
       closeDrawer,
-      resetForm: form.reset,
+      resetForm: currentForm.reset,
       resourceName: "account",
     });
   };
 
-  const isReadOnly = viewMode === "view";
+  const isReadOnly = isView;
   const isDeleteConfirm = viewMode === "delete-confirm";
-  const isSavings = form.watch("accountType") === "SAVINGS";
+  const isSavings = currentForm.watch("accountType") === "SAVINGS";
 
   if (isDeleteConfirm) {
     return (
@@ -918,31 +921,31 @@ function SavingsTableCellViewer({
       <DrawerContent>
         <DrawerHeader className="gap-1">
           <DrawerTitle>
-            {viewMode === "add"
+            {isAdd
               ? "Add Account"
-              : viewMode === "edit"
+              : isEdit
               ? "Edit Account"
               : "Account Details"}
           </DrawerTitle>
           <DrawerDescription>
-            {viewMode === "add"
+            {isAdd
               ? "Add a new savings or investment account"
-              : viewMode === "edit"
+              : isEdit
               ? "Update account information"
               : "View account details"}
           </DrawerDescription>
         </DrawerHeader>
 
         <div className="flex flex-col gap-4 overflow-y-auto px-4 text-sm">
-          <Form {...form}>
+          <Form {...currentForm}>
             <form
               id="account-form"
-              onSubmit={form.handleSubmit(onSubmit)}
+              onSubmit={currentForm.handleSubmit(onSubmit)}
               className="flex flex-col gap-4"
             >
               {/* Account Name */}
               <FormField
-                control={form.control}
+                control={currentForm.control}
                 name="accountName"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
@@ -961,7 +964,7 @@ function SavingsTableCellViewer({
 
               {/* Institution */}
               <FormField
-                control={form.control}
+                control={currentForm.control}
                 name="institution"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
@@ -982,7 +985,7 @@ function SavingsTableCellViewer({
 
               {/* Category */}
               <FormField
-                control={form.control}
+                control={currentForm.control}
                 name="categoryId"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
@@ -1058,7 +1061,7 @@ function SavingsTableCellViewer({
 
               {/* Account Type */}
               <FormField
-                control={form.control}
+                control={currentForm.control}
                 name="accountType"
                 render={({ field }) => (
                   <FormItem className="flex flex-col gap-3">
@@ -1066,7 +1069,7 @@ function SavingsTableCellViewer({
                     {isReadOnly ? (
                       <div className="p-2 border rounded-md flex items-center">
                         {getAccountTypeIcon(field.value)}
-                        {field.value === "SAVINGS" ? "Savings" : "Investing"}
+                        {field.value === "SAVINGS" ? "Savings" : "Investment"}
                       </div>
                     ) : (
                       <Select
@@ -1100,19 +1103,26 @@ function SavingsTableCellViewer({
                 )}
               />
 
-              {/* Balance & Interest Rate */}
+              {/* Initial Balance - Show as readonly in edit/view mode, above balance */}
+              {(isEdit || isView) && (
+                <FormItem className="flex flex-col gap-3">
+                  <FormLabel>Initial Balance</FormLabel>
+                  <div className="p-2 border rounded-md">
+                    {formatCurrency(activeItem!.initialBalance)}
+                  </div>
+                </FormItem>
+              )}
+
+              {/* Balance & Interest Rate Grid */}
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="balance"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Balance</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md">
-                          {formatCurrency(Number.parseFloat(field.value))}
-                        </div>
-                      ) : (
+                {/* Balance/Initial Balance Field */}
+                {isAdd ? (
+                  <FormField
+                    control={addForm.control}
+                    name="initialBalance"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-3">
+                        <FormLabel>Initial Balance</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
@@ -1122,13 +1132,41 @@ function SavingsTableCellViewer({
                             placeholder="0.00"
                           />
                         </FormControl>
-                      )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : (
+                  <FormField
+                    control={editForm.control}
+                    name="balance"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-3">
+                        <FormLabel>Balance</FormLabel>
+                        {isReadOnly ? (
+                          <div className="p-2 border rounded-md">
+                            {formatCurrency(Number.parseFloat(field.value))}
+                          </div>
+                        ) : (
+                          <FormControl>
+                            <Input
+                              {...field}
+                              type="number"
+                              step="0.01"
+                              min={0}
+                              placeholder="0.00"
+                            />
+                          </FormControl>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {/* Interest Rate */}
                 <FormField
-                  control={form.control}
+                  control={currentForm.control}
                   name="interestRate"
                   render={({ field }) => (
                     <FormItem className="flex flex-col gap-3">
@@ -1139,7 +1177,9 @@ function SavingsTableCellViewer({
                       </FormLabel>
                       {isReadOnly ? (
                         <div className="p-2 border rounded-md">
-                          {formatPercentage(Number.parseFloat(field.value))}
+                          {formatPercentage(
+                            Number.parseFloat(field.value) || 0
+                          )}
                         </div>
                       ) : (
                         <FormControl>
@@ -1158,48 +1198,28 @@ function SavingsTableCellViewer({
                 />
               </div>
 
-              {/* Growth */}
-              {/* {isReadOnly && (
-                <FormField
-                  control={form.control}
-                  name="growth"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col gap-3">
-                      <FormLabel>Growth Rate (%)</FormLabel>
-                      {isReadOnly ? (
-                        <div className="p-2 border rounded-md flex items-center gap-2">
-                          <span
-                            className={
-                              Number.parseFloat(field.value) >= 0
-                                ? "text-emerald-600"
-                                : "text-red-600"
-                            }
-                          >
-                            {Number.parseFloat(field.value) >= 0 ? (
-                              <ArrowUp className="h-3 w-3" />
-                            ) : (
-                              <ArrowDown className="h-3 w-3" />
-                            )}
-                          </span>
-                          <span>
-                            {formatPercentage(Number.parseFloat(field.value))}
-                          </span>
-                        </div>
+              {/* Growth - Only show in view mode */}
+              {isView && (
+                <FormItem className="flex flex-col gap-3">
+                  <FormLabel>Growth Rate</FormLabel>
+                  <div className="p-2 border rounded-md flex items-center gap-2">
+                    <span
+                      className={
+                        (activeItem?.growth || 0) >= 0
+                          ? "text-emerald-600"
+                          : "text-red-600"
+                      }
+                    >
+                      {(activeItem?.growth || 0) >= 0 ? (
+                        <ArrowUp className="h-3 w-3" />
                       ) : (
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            step="0.01"
-                            placeholder="0.00"
-                          />
-                        </FormControl>
+                        <ArrowDown className="h-3 w-3" />
                       )}
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )} */}
+                    </span>
+                    <span>{formatPercentage(activeItem?.growth || 0)}</span>
+                  </div>
+                </FormItem>
+              )}
             </form>
           </Form>
         </div>

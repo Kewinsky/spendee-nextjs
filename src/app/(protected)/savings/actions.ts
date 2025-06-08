@@ -4,7 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 import {
   createSavingsSchema,
   updateSavingsSchema,
-  savingsFormSchema,
+  addSavingsFormSchema,
+  editSavingsFormSchema,
   type SavingsWithStats,
 } from "@/services/savings/schema";
 
@@ -25,15 +26,27 @@ export async function createSavings(formData: FormData) {
 
     const formValidated = validateWithSchema(
       cleanedData,
-      savingsFormSchema,
+      addSavingsFormSchema,
       "form"
     );
 
+    // Ensure we have valid numbers
+    const initialBalance = Number.parseFloat(formValidated.initialBalance);
+    const interestRate = Number.parseFloat(formValidated.interestRate);
+
+    if (isNaN(initialBalance) || isNaN(interestRate)) {
+      throw new Error("Invalid number values provided");
+    }
+
     const savingsData = {
-      ...formValidated,
+      accountName: formValidated.accountName,
+      categoryId: formValidated.categoryId,
       userId,
-      balance: parseFloat(formValidated.balance),
-      interestRate: parseFloat(formValidated.interestRate),
+      balance: initialBalance, // Set balance equal to initialBalance on creation
+      initialBalance,
+      interestRate,
+      accountType: formValidated.accountType,
+      institution: formValidated.institution,
     };
 
     const validated = validateWithSchema(
@@ -78,7 +91,7 @@ export async function updateSavings(formData: FormData) {
 
     const formValidated = validateWithSchema(
       cleanedData,
-      savingsFormSchema,
+      editSavingsFormSchema,
       "form"
     );
 
@@ -87,12 +100,23 @@ export async function updateSavings(formData: FormData) {
       throw new Error("Savings ID is required for update");
     }
 
+    // Ensure we have valid numbers
+    const balance = Number.parseFloat(formValidated.balance);
+    const interestRate = Number.parseFloat(formValidated.interestRate);
+
+    if (isNaN(balance) || isNaN(interestRate)) {
+      throw new Error("Invalid number values provided");
+    }
+
     const savingsData = {
-      ...formValidated,
+      accountName: formValidated.accountName,
+      categoryId: formValidated.categoryId,
       userId,
       id: savingsId,
-      balance: parseFloat(formValidated.balance),
-      interestRate: parseFloat(formValidated.interestRate),
+      balance,
+      interestRate,
+      accountType: formValidated.accountType,
+      institution: formValidated.institution,
     };
 
     const validated = validateWithSchema(
@@ -116,6 +140,7 @@ export async function updateSavings(formData: FormData) {
       userId,
     });
 
+    // Note: initialBalance is not included in updateData, so it remains unchanged
     const savings = await prisma.savings.update({
       where: { id },
       data: updateData,
@@ -229,7 +254,17 @@ export async function getSavings(userId: string): Promise<SavingsWithStats[]> {
       orderBy: { accountName: "asc" },
     });
 
-    return savings as SavingsWithStats[];
+    return savings.map((s) => {
+      const growth =
+        s.initialBalance > 0
+          ? ((s.balance - s.initialBalance) / s.initialBalance) * 100
+          : 0;
+
+      return {
+        ...s,
+        growth,
+      };
+    });
   } catch (error) {
     console.error("Error fetching savings:", error);
     throw new Error("Failed to fetch savings");
@@ -240,4 +275,69 @@ export async function getSavings(userId: string): Promise<SavingsWithStats[]> {
 export async function getCurrentUserSavings(): Promise<SavingsWithStats[]> {
   const userId = await getCurrentUserId();
   return getSavings(userId);
+}
+
+// CALCULATE BALANCE WITH TRANSACTIONS
+export async function calculateBalanceWithTransactions(
+  savingsId: string,
+  userId: string
+): Promise<number> {
+  try {
+    const savings = await prisma.savings.findFirst({
+      where: { id: savingsId, userId },
+    });
+
+    if (!savings) {
+      throw new Error("Savings account not found");
+    }
+
+    // Get sum of all income transactions for this savings account's category
+    const incomeTransactions = await prisma.transaction.aggregate({
+      where: {
+        userId,
+        categoryId: savings.categoryId,
+        type: "INCOME",
+        deletedAt: null,
+      },
+      _sum: {
+        amount: true,
+      },
+    });
+
+    const totalIncome = incomeTransactions._sum.amount || 0;
+    return savings.initialBalance + totalIncome;
+  } catch (error) {
+    console.error("Error calculating balance with transactions:", error);
+    throw new Error("Failed to calculate balance");
+  }
+}
+
+// UPDATE BALANCE WITH TRANSACTIONS
+export async function updateBalanceWithTransactions(savingsId: string) {
+  try {
+    const userId = await getCurrentUserId();
+
+    const calculatedBalance = await calculateBalanceWithTransactions(
+      savingsId,
+      userId
+    );
+
+    await prisma.savings.update({
+      where: { id: savingsId },
+      data: { balance: calculatedBalance },
+    });
+
+    revalidatePaths(["/savings"]);
+
+    return { success: true, balance: calculatedBalance };
+  } catch (error) {
+    console.error("Error updating balance with transactions:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to update balance with transactions",
+    };
+  }
 }
